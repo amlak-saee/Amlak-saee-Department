@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مدیریت | املاک ساعی</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="department">دپارتمان</span>
+      <strong>املاک ساعی</strong>
+      <small>Saee Real Estate Department</small>
+    </div>
+
+    <a href="index.html">مشاهده سایت</a>
+  </header>
+
+  <main class="properties-section">
+
+    <section class="info-section">
+      <span>پنل مدیریت</span>
+      <h1>مدیریت سایت</h1>
+
+      <div id="authStatus">
+        در حال بررسی ورود...
+      </div>
+
+      <button id="loginButton" class="category-btn">
+        ورود مدیر
+      </button>
+
+      <button id="logoutButton" class="category-btn" style="display:none;">
+        خروج
+      </button>
+    </section>
+
+    <section id="adminPanel" class="info-section" style="display:none;">
+
+      <span>مدیریت فایل‌ها</span>
+      <h2>ملک جدید</h2>
+
+      <form id="propertyForm">
+
+        <input
+          id="title"
+          type="text"
+          placeholder="عنوان ملک"
+          required>
+
+        <textarea
+          id="description"
+          placeholder="توضیحات ملک"></textarea>
+
+        <select id="category" required>
+          <option value="">انتخاب دسته‌بندی</option>
+        </select>
+
+        <input
+          id="price"
+          type="number"
+          placeholder="قیمت">
+
+        <input
+          id="monthlyRent"
+          type="number"
+          placeholder="اجاره ماهانه">
+
+        <input
+          id="deposit"
+          type="number"
+          placeholder="ودیعه">
+
+        <input
+          id="area"
+          type="number"
+          placeholder="متراژ">
+
+        <input
+          id="bedrooms"
+          type="number"
+          placeholder="تعداد خواب">
+
+        <input
+          id="location"
+          type="text"
+          placeholder="توضیح محل">
+
+        <input
+          id="address"
+          type="text"
+          placeholder="آدرس">
+
+        <label>
+          <input id="parking" type="checkbox">
+          پارکینگ
+        </label>
+
+        <label>
+          <input id="elevator" type="checkbox">
+          آسانسور
+        </label>
+
+        <label>
+          <input id="storage" type="checkbox">
+          انباری
+        </label>
+
+        <label>
+          <input id="terrace" type="checkbox">
+          تراس
+        </label>
+
+        <button type="submit" class="category-btn">
+          ثبت ملک
+        </button>
+
+      </form>
+
+      <hr>
+
+      <h2>فایل‌های ثبت‌شده</h2>
+
+      <div id="adminProperties">
+        در حال دریافت فایل‌ها...
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
