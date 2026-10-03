@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دپارتمان املاک ساعی</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="department">دپارتمان</span>
+      <strong>املاک ساعی</strong>
+      <small>Saee Real Estate Department</small>
+    </div>
+
+    <nav>
+      <a href="#home">صفحه اصلی</a>
+      <a href="#about">درباره ما</a>
+      <a href="#contact">تماس با ما</a>
+    </nav>
+  </header>
+
+  <main id="home">
+
+    <section class="hero">
+      <div class="hero-content">
+        <span class="hero-label">دپارتمان املاک ساعی</span>
+        <h1>فایل‌های ملکی منطقه‌ی شما</h1>
+        <p>فایل‌های منتخب فروش، اجاره، اداری و تجاری</p>
+
+        <div class="neighborhood-box">
+          <label for="neighborhoodSelect">انتخاب محله</label>
+
+          <select id="neighborhoodSelect" multiple>
+            <option value="">در حال دریافت محله‌ها...</option>
+          </select>
+
+          <small>برای انتخاب چند محله، چند گزینه را انتخاب کنید.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="properties-section">
+
+      <div class="section-heading">
+        <span>فایل‌های ملکی</span>
+        <h2>دسته‌بندی ملک</h2>
+      </div>
+
+      <div id="categories" class="category-list">
+        در حال دریافت دسته‌بندی‌ها...
+      </div>
+
+      <div id="filters" class="filter-list"></div>
+
+      <div id="properties" class="property-grid">
+        در حال دریافت فایل‌ها...
+      </div>
+
+    </section>
+
+    <section id="about" class="info-section">
+      <span>دپارتمان املاک ساعی</span>
+      <h2 id="aboutTitle">درباره ما</h2>
+      <p id="aboutText">در حال دریافت اطلاعات...</p>
+    </section>
+
+    <section id="contact" class="info-section contact-section">
+      <span>ارتباط با ما</span>
+      <h2>تماس با ما</h2>
+
+      <div id="contactPhones"></div>
+
+      <div class="social-links">
+        <a id="instagramLink" href="#" target="_blank">اینستاگرام</a>
+        <a id="whatsappLink" href="#" target="_blank">واتساپ</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div>
+      <span>دپارتمان</span>
+      <strong>املاک ساعی</strong>
+    </div>
+
+    <p id="footerSlogan">انتخاب درست، آینده روشن</p>
+  </footer>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
