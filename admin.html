@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مدیریت | املاک ساعی</title>
+
+  <title>مدیریت | دپارتمان املاک ساعی</title>
 
   <link rel="stylesheet" href="style.css">
 
@@ -13,120 +14,331 @@
 
 <body>
 
-  <header class="topbar">
-    <div class="brand">
-      <span class="department">دپارتمان</span>
-      <strong>املاک ساعی</strong>
-      <small>Saee Real Estate Department</small>
-    </div>
+<header class="topbar">
+  <div class="brand">
+    <span class="department">دپارتمان</span>
+    <strong>املاک ساعی</strong>
+    <small>Saee Real Estate Department</small>
+  </div>
 
-    <a href="index.html">مشاهده سایت</a>
-  </header>
+  <a href="index.html">مشاهده سایت</a>
+</header>
 
-  <main class="properties-section">
 
-    <section class="info-section">
-      <span>پنل مدیریت</span>
-      <h1>مدیریت سایت</h1>
+<main class="properties-section">
 
-      <div id="authStatus">
-        در حال بررسی ورود...
+  <!-- =========================
+       LOGIN
+  ========================== -->
+
+  <section class="info-section" id="loginSection">
+
+    <span>پنل مدیریت</span>
+
+    <h1>مدیریت سایت</h1>
+
+    <p id="authStatus">
+      برای ورود به پنل، اطلاعات مدیر را وارد کنید.
+    </p>
+
+    <form id="loginForm">
+
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="ایمیل مدیر"
+        autocomplete="email"
+        required
+      >
+
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="رمز عبور"
+        autocomplete="current-password"
+        required
+      >
+
+      <button
+        type="submit"
+        class="category-btn">
+        ورود به پنل
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- =========================
+       ADMIN PANEL
+  ========================== -->
+
+  <section
+    id="adminPanel"
+    class="info-section"
+    style="display:none;">
+
+    <div class="admin-header">
+
+      <div>
+        <span>پنل مدیریت</span>
+        <h1>مدیریت دپارتمان</h1>
+
+        <p id="welcomeText"></p>
       </div>
 
-      <button id="loginButton" class="category-btn">
-        ورود مدیر
-      </button>
-
-      <button id="logoutButton" class="category-btn" style="display:none;">
+      <button
+        id="logoutButton"
+        class="category-btn">
         خروج
       </button>
-    </section>
 
-    <section id="adminPanel" class="info-section" style="display:none;">
+    </div>
 
-      <span>مدیریت فایل‌ها</span>
-      <h2>ملک جدید</h2>
+
+    <!-- =========================
+         ADD PROPERTY
+    ========================== -->
+
+    <section class="admin-box">
+
+      <span>فایل ملکی</span>
+
+      <h2>افزودن فایل جدید</h2>
 
       <form id="propertyForm">
+
+        <label>
+          عنوان ملک
+        </label>
 
         <input
           id="title"
           type="text"
-          placeholder="عنوان ملک"
-          required>
+          placeholder="مثلاً آپارتمان ۱۲۰ متری نوساز"
+          required
+        >
+
+
+        <label>
+          توضیحات
+        </label>
 
         <textarea
           id="description"
-          placeholder="توضیحات ملک"></textarea>
+          rows="5"
+          placeholder="توضیحات کامل ملک"></textarea>
+
+
+        <label>
+          دسته‌بندی
+        </label>
 
         <select id="category" required>
           <option value="">انتخاب دسته‌بندی</option>
         </select>
 
-        <input
-          id="price"
-          type="number"
-          placeholder="قیمت">
 
-        <input
-          id="monthlyRent"
-          type="number"
-          placeholder="اجاره ماهانه">
+        <label>
+          محله
+        </label>
 
-        <input
-          id="deposit"
-          type="number"
-          placeholder="ودیعه">
+        <select
+          id="neighborhood"
+          multiple
+          size="4">
+        </select>
 
-        <input
-          id="area"
-          type="number"
-          placeholder="متراژ">
+        <small>
+          برای انتخاب چند محله، چند گزینه را انتخاب کنید.
+        </small>
 
-        <input
-          id="bedrooms"
-          type="number"
-          placeholder="تعداد خواب">
+
+        <div id="propertyFilters"></div>
+
+
+        <!-- PRICE -->
+
+        <div class="admin-grid">
+
+          <div>
+            <label>قیمت</label>
+
+            <input
+              id="price"
+              type="number"
+              inputmode="numeric"
+              placeholder="تومان">
+          </div>
+
+
+          <div>
+            <label>ودیعه</label>
+
+            <input
+              id="deposit"
+              type="number"
+              inputmode="numeric"
+              placeholder="تومان">
+          </div>
+
+
+          <div>
+            <label>اجاره ماهانه</label>
+
+            <input
+              id="monthlyRent"
+              type="number"
+              inputmode="numeric"
+              placeholder="تومان">
+          </div>
+
+
+          <div>
+            <label>متراژ</label>
+
+            <input
+              id="area"
+              type="number"
+              inputmode="numeric"
+              placeholder="متر">
+          </div>
+
+
+          <div>
+            <label>تعداد خواب</label>
+
+            <input
+              id="bedrooms"
+              type="number"
+              inputmode="numeric"
+              placeholder="مثلاً ۲">
+          </div>
+
+        </div>
+
+
+        <!-- LOCATION -->
+
+        <label>
+          توضیح محل
+        </label>
 
         <input
           id="location"
           type="text"
-          placeholder="توضیح محل">
+          placeholder="مثلاً نزدیک میدان اصلی">
+
+
+        <label>
+          آدرس
+        </label>
+
+        <textarea
+          id="address"
+          rows="3"
+          placeholder="آدرس کامل ملک"></textarea>
+
+
+        <!-- FEATURES -->
+
+        <div class="admin-features">
+
+          <label>
+            <input id="parking" type="checkbox">
+            پارکینگ
+          </label>
+
+          <label>
+            <input id="elevator" type="checkbox">
+            آسانسور
+          </label>
+
+          <label>
+            <input id="storage" type="checkbox">
+            انباری
+          </label>
+
+          <label>
+            <input id="terrace" type="checkbox">
+            تراس
+          </label>
+
+        </div>
+
+
+        <!-- SHOP FRONTAGE -->
+
+        <div id="frontageBox" style="display:none;">
+
+          <label>
+            نوع موقعیت مغازه
+          </label>
+
+          <select id="frontageType">
+
+            <option value="">
+              انتخاب کنید
+            </option>
+
+            <option value="main">
+              بر اصلی
+            </option>
+
+            <option value="alley">
+              داخل کوچه
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- IMAGES -->
+
+        <label>
+          عکس‌های ملک
+        </label>
 
         <input
-          id="address"
-          type="text"
-          placeholder="آدرس">
+          id="propertyImages"
+          type="file"
+          accept="image/*"
+          multiple
+        >
 
-        <label>
-          <input id="parking" type="checkbox">
-          پارکینگ
-        </label>
+        <small>
+          می‌توانی چند عکس را هم‌زمان انتخاب کنی.
+        </small>
 
-        <label>
-          <input id="elevator" type="checkbox">
-          آسانسور
-        </label>
 
-        <label>
-          <input id="storage" type="checkbox">
-          انباری
-        </label>
+        <button
+          id="submitPropertyButton"
+          type="submit"
+          class="category-btn">
 
-        <label>
-          <input id="terrace" type="checkbox">
-          تراس
-        </label>
+          ثبت فایل ملک
 
-        <button type="submit" class="category-btn">
-          ثبت ملک
         </button>
 
       </form>
 
-      <hr>
+      <div id="propertyMessage"></div>
 
-      <h2>فایل‌های ثبت‌شده</h2>
+    </section>
+
+
+
+    <!-- =========================
+         PROPERTY LIST
+    ========================== -->
+
+    <section class="admin-box">
+
+      <span>فایل‌های موجود</span>
+
+      <h2>مدیریت فایل‌ها</h2>
 
       <div id="adminProperties">
         در حال دریافت فایل‌ها...
@@ -134,9 +346,154 @@
 
     </section>
 
-  </main>
 
-  <script src="admin.js"></script>
+
+    <!-- =========================
+         SITE SETTINGS
+    ========================== -->
+
+    <section class="admin-box">
+
+      <span>تنظیمات</span>
+
+      <h2>اطلاعات تماس و سایت</h2>
+
+
+      <form id="settingsForm">
+
+        <label>
+          نام سایت
+        </label>
+
+        <input
+          id="settingSiteName"
+          type="text"
+          placeholder="املاک ساعی">
+
+
+        <label>
+          عنوان انگلیسی
+        </label>
+
+        <input
+          id="settingSiteNameEn"
+          type="text"
+          placeholder="Saee Real Estate Department">
+
+
+        <label>
+          شعار سایت
+        </label>
+
+        <input
+          id="settingFooterSlogan"
+          type="text"
+          placeholder="انتخاب درست، آینده روشن">
+
+
+        <label>
+          درباره ما
+        </label>
+
+        <textarea
+          id="settingAboutText"
+          rows="6"
+          placeholder="متن درباره ما"></textarea>
+
+
+        <label>
+          شماره تماس اول
+        </label>
+
+        <input
+          id="settingPhone1"
+          type="tel"
+          inputmode="tel"
+          placeholder="شماره تماس">
+
+
+        <label>
+          شماره تماس دوم
+        </label>
+
+        <input
+          id="settingPhone2"
+          type="tel"
+          inputmode="tel"
+          placeholder="شماره تماس">
+
+
+        <label>
+          شماره تماس سوم
+        </label>
+
+        <input
+          id="settingPhone3"
+          type="tel"
+          inputmode="tel"
+          placeholder="شماره تماس">
+
+
+        <label>
+          لینک اینستاگرام
+        </label>
+
+        <input
+          id="settingInstagram"
+          type="url"
+          placeholder="https://instagram.com/...">
+
+
+        <label>
+          لینک واتساپ
+        </label>
+
+        <input
+          id="settingWhatsapp"
+          type="url"
+          placeholder="https://wa.me/...">
+
+
+        <label>
+          لینک عکس هدر
+        </label>
+
+        <input
+          id="settingHero"
+          type="url"
+          placeholder="لینک مستقیم عکس">
+
+
+        <label>
+          لینک لوگو
+        </label>
+
+        <input
+          id="settingLogo"
+          type="url"
+          placeholder="لینک مستقیم لوگو">
+
+
+        <button
+          type="submit"
+          class="category-btn">
+
+          ذخیره تنظیمات
+
+        </button>
+
+      </form>
+
+      <div id="settingsMessage"></div>
+
+    </section>
+
+  </section>
+
+</main>
+
+
+<script src="admin.js"></script>
 
 </body>
 </html>
