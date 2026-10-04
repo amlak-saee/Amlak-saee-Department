@@ -27,9 +27,7 @@
 
 <main class="properties-section">
 
-  <!-- =========================
-       LOGIN
-  ========================== -->
+  <!-- LOGIN -->
 
   <section class="info-section" id="loginSection">
 
@@ -70,9 +68,7 @@
   </section>
 
 
-  <!-- =========================
-       ADMIN PANEL
-  ========================== -->
+  <!-- ADMIN PANEL -->
 
   <section
     id="adminPanel"
@@ -84,7 +80,6 @@
       <div>
         <span>پنل مدیریت</span>
         <h1>مدیریت دپارتمان</h1>
-
         <p id="welcomeText"></p>
       </div>
 
@@ -97,9 +92,7 @@
     </div>
 
 
-    <!-- =========================
-         ADD PROPERTY
-    ========================== -->
+    <!-- ADD PROPERTY -->
 
     <section class="admin-box">
 
@@ -109,9 +102,7 @@
 
       <form id="propertyForm">
 
-        <label>
-          عنوان ملک
-        </label>
+        <label>عنوان ملک</label>
 
         <input
           id="title"
@@ -120,29 +111,20 @@
           required
         >
 
-
-        <label>
-          توضیحات
-        </label>
+        <label>توضیحات</label>
 
         <textarea
           id="description"
           rows="5"
           placeholder="توضیحات کامل ملک"></textarea>
 
-
-        <label>
-          دسته‌بندی
-        </label>
+        <label>دسته‌بندی</label>
 
         <select id="category" required>
           <option value="">انتخاب دسته‌بندی</option>
         </select>
 
-
-        <label>
-          محله
-        </label>
+        <label>محله</label>
 
         <select
           id="neighborhood"
@@ -154,17 +136,12 @@
           برای انتخاب چند محله، چند گزینه را انتخاب کنید.
         </small>
 
-
         <div id="propertyFilters"></div>
-
-
-        <!-- PRICE -->
 
         <div class="admin-grid">
 
           <div>
             <label>قیمت</label>
-
             <input
               id="price"
               type="number"
@@ -172,10 +149,8 @@
               placeholder="تومان">
           </div>
 
-
           <div>
             <label>ودیعه</label>
-
             <input
               id="deposit"
               type="number"
@@ -183,10 +158,8 @@
               placeholder="تومان">
           </div>
 
-
           <div>
             <label>اجاره ماهانه</label>
-
             <input
               id="monthlyRent"
               type="number"
@@ -194,10 +167,8 @@
               placeholder="تومان">
           </div>
 
-
           <div>
             <label>متراژ</label>
-
             <input
               id="area"
               type="number"
@@ -205,10 +176,8 @@
               placeholder="متر">
           </div>
 
-
           <div>
             <label>تعداد خواب</label>
-
             <input
               id="bedrooms"
               type="number"
@@ -218,30 +187,19 @@
 
         </div>
 
-
-        <!-- LOCATION -->
-
-        <label>
-          توضیح محل
-        </label>
+        <label>توضیح محل</label>
 
         <input
           id="location"
           type="text"
           placeholder="مثلاً نزدیک میدان اصلی">
 
-
-        <label>
-          آدرس
-        </label>
+        <label>آدرس</label>
 
         <textarea
           id="address"
           rows="3"
           placeholder="آدرس کامل ملک"></textarea>
-
-
-        <!-- FEATURES -->
 
         <div class="admin-features">
 
@@ -267,14 +225,9 @@
 
         </div>
 
-
-        <!-- SHOP FRONTAGE -->
-
         <div id="frontageBox" style="display:none;">
 
-          <label>
-            نوع موقعیت مغازه
-          </label>
+          <label>نوع موقعیت مغازه</label>
 
           <select id="frontageType">
 
@@ -294,12 +247,7 @@
 
         </div>
 
-
-        <!-- IMAGES -->
-
-        <label>
-          عکس‌های ملک
-        </label>
+        <label>عکس‌های ملک</label>
 
         <input
           id="propertyImages"
@@ -312,14 +260,11 @@
           می‌توانی چند عکس را هم‌زمان انتخاب کنی.
         </small>
 
-
         <button
           id="submitPropertyButton"
           type="submit"
           class="category-btn">
-
           ثبت فایل ملک
-
         </button>
 
       </form>
@@ -329,10 +274,7 @@
     </section>
 
 
-
-    <!-- =========================
-         PROPERTY LIST
-    ========================== -->
+    <!-- PROPERTY LIST -->
 
     <section class="admin-box">
 
@@ -347,10 +289,7 @@
     </section>
 
 
-
-    <!-- =========================
-         SITE SETTINGS
-    ========================== -->
+    <!-- SITE SETTINGS -->
 
     <section class="admin-box">
 
@@ -358,52 +297,37 @@
 
       <h2>اطلاعات تماس و سایت</h2>
 
-
       <form id="settingsForm">
 
-        <label>
-          نام سایت
-        </label>
+        <label>نام سایت</label>
 
         <input
           id="settingSiteName"
           type="text"
           placeholder="املاک ساعی">
 
-
-        <label>
-          عنوان انگلیسی
-        </label>
+        <label>عنوان انگلیسی</label>
 
         <input
           id="settingSiteNameEn"
           type="text"
           placeholder="Saee Real Estate Department">
 
-
-        <label>
-          شعار سایت
-        </label>
+        <label>شعار سایت</label>
 
         <input
           id="settingFooterSlogan"
           type="text"
           placeholder="انتخاب درست، آینده روشن">
 
-
-        <label>
-          درباره ما
-        </label>
+        <label>درباره ما</label>
 
         <textarea
           id="settingAboutText"
           rows="6"
           placeholder="متن درباره ما"></textarea>
 
-
-        <label>
-          شماره تماس اول
-        </label>
+        <label>شماره تماس اول</label>
 
         <input
           id="settingPhone1"
@@ -411,10 +335,7 @@
           inputmode="tel"
           placeholder="شماره تماس">
 
-
-        <label>
-          شماره تماس دوم
-        </label>
+        <label>شماره تماس دوم</label>
 
         <input
           id="settingPhone2"
@@ -422,10 +343,7 @@
           inputmode="tel"
           placeholder="شماره تماس">
 
-
-        <label>
-          شماره تماس سوم
-        </label>
+        <label>شماره تماس سوم</label>
 
         <input
           id="settingPhone3"
@@ -433,58 +351,83 @@
           inputmode="tel"
           placeholder="شماره تماس">
 
-
-        <label>
-          لینک اینستاگرام
-        </label>
+        <label>لینک اینستاگرام</label>
 
         <input
           id="settingInstagram"
           type="url"
           placeholder="https://instagram.com/...">
 
-
-        <label>
-          لینک واتساپ
-        </label>
+        <label>لینک واتساپ</label>
 
         <input
           id="settingWhatsapp"
           type="url"
           placeholder="https://wa.me/...">
 
-
-        <label>
-          لینک عکس هدر
-        </label>
+        <label>لینک عکس هدر</label>
 
         <input
           id="settingHero"
           type="url"
           placeholder="لینک مستقیم عکس">
 
-
-        <label>
-          لینک لوگو
-        </label>
+        <label>لینک لوگو</label>
 
         <input
           id="settingLogo"
           type="url"
           placeholder="لینک مستقیم لوگو">
 
-
         <button
           type="submit"
           class="category-btn">
-
           ذخیره تنظیمات
-
         </button>
 
       </form>
 
       <div id="settingsMessage"></div>
+
+    </section>
+
+
+    <!-- =========================
+         NEIGHBORHOOD MANAGEMENT
+    ========================== -->
+
+    <section class="admin-box">
+
+      <span>محله‌ها</span>
+
+      <h2>مدیریت محله‌ها</h2>
+
+      <form id="neighborhoodForm">
+
+        <label>
+          نام محله جدید
+        </label>
+
+        <input
+          id="neighborhoodName"
+          type="text"
+          placeholder="مثلاً شهرک غرب"
+          required
+        >
+
+        <button
+          type="submit"
+          class="category-btn">
+          افزودن محله
+        </button>
+
+      </form>
+
+      <div id="neighborhoodMessage"></div>
+
+      <div id="adminNeighborhoods">
+        در حال دریافت محله‌ها...
+      </div>
 
     </section>
 
