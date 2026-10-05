@@ -794,6 +794,10 @@ propertyForm.addEventListener(
     const bedrooms =
       document.getElementById("bedrooms").value;
 
+    /* طبقه */
+    const floor =
+      document.getElementById("floor").value;
+
     const location =
       document.getElementById("location")
         .value
@@ -837,6 +841,12 @@ propertyForm.addEventListener(
       bedrooms:
         bedrooms
           ? Number(bedrooms)
+          : null,
+
+      /* ذخیره طبقه در دیتابیس */
+      floor:
+        floor
+          ? Number(floor)
           : null,
 
       parking:
