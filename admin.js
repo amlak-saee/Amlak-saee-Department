@@ -38,8 +38,6 @@ const settingsForm =
 const settingsMessage =
   document.getElementById("settingsMessage");
 
-/* مدیریت محله‌ها */
-
 const neighborhoodForm =
   document.getElementById("neighborhoodForm");
 
@@ -58,6 +56,8 @@ let categories = [];
 let neighborhoods = [];
 let filters = [];
 
+let editingPropertyId = null;
+
 
 /* =========================
    LOGIN
@@ -71,10 +71,8 @@ loginForm.addEventListener("submit", async (event) => {
   const password = loginPassword.value;
 
   if (!email || !password) {
-
     authStatus.textContent =
       "ایمیل و رمز عبور را وارد کنید.";
-
     return;
   }
 
@@ -114,9 +112,7 @@ async function checkAdmin() {
     await db.auth.getSession();
 
   if (error || !data.session) {
-
     showLoggedOut();
-
     return;
   }
 
@@ -406,7 +402,6 @@ if (neighborhoodForm) {
         "محله با موفقیت اضافه شد.";
 
       await loadNeighborhoods();
-
       await loadAdminNeighborhoods();
 
     }
@@ -477,8 +472,7 @@ async function loadAdminNeighborhoods() {
 
           </div>
 
-          <div
-            style="margin-top:15px;">
+          <div style="margin-top:15px;">
 
             <button
               type="button"
@@ -552,7 +546,6 @@ async function toggleNeighborhood(
   }
 
   await loadNeighborhoods();
-
   await loadAdminNeighborhoods();
 
 }
@@ -592,7 +585,6 @@ async function deleteNeighborhood(id) {
   }
 
   await loadNeighborhoods();
-
   await loadAdminNeighborhoods();
 
 }
@@ -632,7 +624,9 @@ async function loadFilters(categoryId) {
    RENDER FILTERS
 ========================= */
 
-function renderPropertyFilters() {
+function renderPropertyFilters(
+  selectedFilterIds = []
+) {
 
   if (!filters.length) {
 
@@ -673,7 +667,12 @@ function renderPropertyFilters() {
               <input
                 type="checkbox"
                 class="property-filter"
-                value="${parent.id}">
+                value="${parent.id}"
+                ${
+                  selectedFilterIds.includes(parent.id)
+                    ? "checked"
+                    : ""
+                }>
               ${escapeHtml(parent.title)}
             </label>
           `;
@@ -694,7 +693,12 @@ function renderPropertyFilters() {
                   <input
                     type="checkbox"
                     class="property-filter"
-                    value="${child.id}">
+                    value="${child.id}"
+                    ${
+                      selectedFilterIds.includes(child.id)
+                        ? "checked"
+                        : ""
+                    }>
                   ${escapeHtml(child.title)}
                 </label>
               `).join("")}
@@ -713,7 +717,271 @@ function renderPropertyFilters() {
 
 
 /* =========================
-   ADD PROPERTY
+   EDIT MODE BUTTON
+========================= */
+
+function createCancelEditButton() {
+
+  let button =
+    document.getElementById(
+      "cancelEditPropertyButton"
+    );
+
+  if (button) {
+    return button;
+  }
+
+  button =
+    document.createElement("button");
+
+  button.type = "button";
+
+  button.id =
+    "cancelEditPropertyButton";
+
+  button.className =
+    "category-btn";
+
+  button.textContent =
+    "انصراف از ویرایش";
+
+  button.style.marginRight =
+    "8px";
+
+  button.addEventListener(
+    "click",
+    cancelEditProperty
+  );
+
+  submitPropertyButton.parentNode.insertBefore(
+    button,
+    submitPropertyButton.nextSibling
+  );
+
+  return button;
+
+}
+
+
+/* =========================
+   START EDIT PROPERTY
+========================= */
+
+async function editProperty(id) {
+
+  try {
+
+    propertyMessage.textContent =
+      "در حال دریافت اطلاعات ملک...";
+
+    const {
+      data: property,
+      error: propertyError
+    } = await db
+      .from("properties")
+      .select(`
+        *,
+        categories(id, title, slug)
+      `)
+      .eq("id", id)
+      .single();
+
+    if (propertyError) {
+      throw propertyError;
+    }
+
+    const {
+      data: propertyNeighborhoods,
+      error: neighborhoodError
+    } = await db
+      .from("property_neighborhoods")
+      .select("neighborhood_id")
+      .eq("property_id", id);
+
+    if (neighborhoodError) {
+      throw neighborhoodError;
+    }
+
+    const {
+      data: propertyFilters,
+      error: filterError
+    } = await db
+      .from("property_filters")
+      .select("filter_option_id")
+      .eq("property_id", id);
+
+    if (filterError) {
+      throw filterError;
+    }
+
+    editingPropertyId = id;
+
+    document.getElementById("title").value =
+      property.title || "";
+
+    document.getElementById("description").value =
+      property.description || "";
+
+    categorySelect.value =
+      property.category_id || "";
+
+    document.getElementById("price").value =
+      property.price ?? "";
+
+    document.getElementById("monthlyRent").value =
+      property.monthly_rent ?? "";
+
+    document.getElementById("deposit").value =
+      property.deposit ?? "";
+
+    document.getElementById("area").value =
+      property.area ?? "";
+
+    document.getElementById("bedrooms").value =
+      property.bedrooms ?? "";
+
+    document.getElementById("floor").value =
+      property.floor ?? "";
+
+    document.getElementById("location").value =
+      property.location_text || "";
+
+    document.getElementById("address").value =
+      property.address || "";
+
+    document.getElementById("parking").checked =
+      !!property.parking;
+
+    document.getElementById("elevator").checked =
+      !!property.elevator;
+
+    document.getElementById("storage").checked =
+      !!property.storage;
+
+    document.getElementById("terrace").checked =
+      !!property.terrace;
+
+    frontageType.value =
+      property.frontage_type || "";
+
+    if (
+      property.categories &&
+      property.categories.slug === "shop"
+    ) {
+
+      frontageBox.style.display =
+        "block";
+
+    } else {
+
+      frontageBox.style.display =
+        "none";
+
+    }
+
+    const selectedNeighborhoodIds =
+      (propertyNeighborhoods || [])
+        .map(item => item.neighborhood_id);
+
+    Array.from(
+      neighborhoodSelect.options
+    ).forEach(option => {
+
+      option.selected =
+        selectedNeighborhoodIds.includes(
+          option.value
+        );
+
+    });
+
+    const selectedFilterIds =
+      (propertyFilters || [])
+        .map(item => item.filter_option_id);
+
+    if (property.category_id) {
+
+      await loadFilters(
+        property.category_id
+      );
+
+      renderPropertyFilters(
+        selectedFilterIds
+      );
+
+    } else {
+
+      propertyFilters.innerHTML = "";
+
+    }
+
+    submitPropertyButton.textContent =
+      "ذخیره تغییرات";
+
+    createCancelEditButton();
+
+    propertyMessage.textContent =
+      "حالت ویرایش فعال شد.";
+
+    propertyMessage.style.color =
+      "#b8860b";
+
+    propertyForm.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    propertyMessage.textContent =
+      "دریافت اطلاعات ملک انجام نشد: " +
+      (error.message ||
+        "خطای نامشخص");
+
+    propertyMessage.style.color =
+      "crimson";
+
+  }
+
+}
+
+
+/* =========================
+   CANCEL EDIT
+========================= */
+
+function cancelEditProperty() {
+
+  editingPropertyId = null;
+
+  propertyForm.reset();
+
+  propertyFilters.innerHTML = "";
+
+  frontageBox.style.display =
+    "none";
+
+  propertyMessage.textContent =
+    "";
+
+  submitPropertyButton.textContent =
+    "ثبت فایل ملک";
+
+  const button =
+    document.getElementById(
+      "cancelEditPropertyButton"
+    );
+
+  if (button) {
+    button.remove();
+  }
+
+}
+
+
+/* =========================
+   PROPERTY FORM
 ========================= */
 
 propertyForm.addEventListener(
@@ -794,7 +1062,6 @@ propertyForm.addEventListener(
     const bedrooms =
       document.getElementById("bedrooms").value;
 
-    /* طبقه */
     const floor =
       document.getElementById("floor").value;
 
@@ -843,7 +1110,6 @@ propertyForm.addEventListener(
           ? Number(bedrooms)
           : null,
 
-      /* ذخیره طبقه در دیتابیس */
       floor:
         floor
           ? Number(floor)
@@ -868,9 +1134,7 @@ propertyForm.addEventListener(
         address || null,
 
       location_text:
-        location || null,
-
-      is_active: true
+        location || null
 
     };
 
@@ -878,155 +1142,210 @@ propertyForm.addEventListener(
       true;
 
     submitPropertyButton.textContent =
-      "در حال ثبت...";
+      editingPropertyId
+        ? "در حال ذخیره تغییرات..."
+        : "در حال ثبت...";
 
     propertyMessage.textContent =
       "";
 
     try {
 
-      const {
-        data: insertedProperty,
-        error: propertyError
-      } = await db
-        .from("properties")
-        .insert(property)
-        .select("id")
-        .single();
+      let propertyId;
 
-      if (propertyError) {
-        throw propertyError;
-      }
+      /* =========================
+         EDIT EXISTING PROPERTY
+      ========================= */
 
-      const propertyId =
-        insertedProperty.id;
+      if (editingPropertyId) {
 
-      const neighborhoodRows =
-        selectedNeighborhoods.map(
-          neighborhoodId => ({
-            property_id:
-              propertyId,
+        const {
+          error: updateError
+        } = await db
+          .from("properties")
+          .update(property)
+          .eq("id", editingPropertyId);
 
-            neighborhood_id:
-              neighborhoodId
-          })
-        );
+        if (updateError) {
+          throw updateError;
+        }
 
-      const {
-        error: neighborhoodError
-      } = await db
-        .from("property_neighborhoods")
-        .insert(neighborhoodRows);
+        propertyId =
+          editingPropertyId;
 
-      if (neighborhoodError) {
-        throw neighborhoodError;
-      }
+        /* حذف روابط قبلی محله‌ها */
 
-      if (selectedFilterIds.length) {
+        const {
+          error: deleteNeighborhoodError
+        } = await db
+          .from("property_neighborhoods")
+          .delete()
+          .eq("property_id", propertyId);
 
-        const filterRows =
-          selectedFilterIds.map(
-            filterId => ({
+        if (deleteNeighborhoodError) {
+          throw deleteNeighborhoodError;
+        }
+
+        /* ثبت محله‌های جدید */
+
+        const neighborhoodRows =
+          selectedNeighborhoods.map(
+            neighborhoodId => ({
               property_id:
                 propertyId,
 
-              filter_option_id:
-                filterId
+              neighborhood_id:
+                neighborhoodId
             })
           );
 
         const {
-          error: filterError
+          error: neighborhoodError
+        } = await db
+          .from("property_neighborhoods")
+          .insert(neighborhoodRows);
+
+        if (neighborhoodError) {
+          throw neighborhoodError;
+        }
+
+        /* حذف فیلترهای قبلی */
+
+        const {
+          error: deleteFilterError
         } = await db
           .from("property_filters")
-          .insert(filterRows);
+          .delete()
+          .eq("property_id", propertyId);
 
-        if (filterError) {
-          throw filterError;
+        if (deleteFilterError) {
+          throw deleteFilterError;
         }
 
-      }
+        /* ثبت فیلترهای جدید */
 
-      const files =
-        Array.from(
-          propertyImages.files || []
+        if (selectedFilterIds.length) {
+
+          const filterRows =
+            selectedFilterIds.map(
+              filterId => ({
+                property_id:
+                  propertyId,
+
+                filter_option_id:
+                  filterId
+              })
+            );
+
+          const {
+            error: filterError
+          } = await db
+            .from("property_filters")
+            .insert(filterRows);
+
+          if (filterError) {
+            throw filterError;
+          }
+
+        }
+
+        /* تصاویر جدید */
+
+        await uploadNewPropertyImages(
+          propertyId
         );
 
-      for (
-        let index = 0;
-        index < files.length;
-        index++
-      ) {
+        propertyMessage.textContent =
+          "تغییرات ملک با موفقیت ذخیره شد.";
 
-        const file =
-          files[index];
-
-        const extension =
-          file.name
-            .split(".")
-            .pop()
-            .toLowerCase();
-
-        const filePath =
-          `${propertyId}/${crypto.randomUUID()}.${extension}`;
-
-        const {
-          error: uploadError
-        } = await db
-          .storage
-          .from("property-images")
-          .upload(
-            filePath,
-            file,
-            {
-              cacheControl: "31536000",
-              upsert: false
-            }
-          );
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        const {
-          data: publicUrlData
-        } =
-          db
-            .storage
-            .from("property-images")
-            .getPublicUrl(filePath);
-
-        const imageUrl =
-          publicUrlData.publicUrl;
-
-        const {
-          error: imageError
-        } = await db
-          .from("property_images")
-          .insert({
-
-            property_id:
-              propertyId,
-
-            image_url:
-              imageUrl,
-
-            sort_order:
-              index
-
-          });
-
-        if (imageError) {
-          throw imageError;
-        }
+        propertyMessage.style.color =
+          "green";
 
       }
 
-      propertyMessage.textContent =
-        "فایل ملک با موفقیت ثبت شد.";
+      /* =========================
+         CREATE NEW PROPERTY
+      ========================= */
 
-      propertyMessage.style.color =
-        "green";
+      else {
+
+        property.is_active = true;
+
+        const {
+          data: insertedProperty,
+          error: propertyError
+        } = await db
+          .from("properties")
+          .insert(property)
+          .select("id")
+          .single();
+
+        if (propertyError) {
+          throw propertyError;
+        }
+
+        propertyId =
+          insertedProperty.id;
+
+        const neighborhoodRows =
+          selectedNeighborhoods.map(
+            neighborhoodId => ({
+              property_id:
+                propertyId,
+
+              neighborhood_id:
+                neighborhoodId
+            })
+          );
+
+        const {
+          error: neighborhoodError
+        } = await db
+          .from("property_neighborhoods")
+          .insert(neighborhoodRows);
+
+        if (neighborhoodError) {
+          throw neighborhoodError;
+        }
+
+        if (selectedFilterIds.length) {
+
+          const filterRows =
+            selectedFilterIds.map(
+              filterId => ({
+                property_id:
+                  propertyId,
+
+                filter_option_id:
+                  filterId
+              })
+            );
+
+          const {
+            error: filterError
+          } = await db
+            .from("property_filters")
+            .insert(filterRows);
+
+          if (filterError) {
+            throw filterError;
+          }
+
+        }
+
+        await uploadNewPropertyImages(
+          propertyId
+        );
+
+        propertyMessage.textContent =
+          "فایل ملک با موفقیت ثبت شد.";
+
+        propertyMessage.style.color =
+          "green";
+
+      }
+
+      editingPropertyId = null;
 
       propertyForm.reset();
 
@@ -1036,6 +1355,18 @@ propertyForm.addEventListener(
       frontageBox.style.display =
         "none";
 
+      submitPropertyButton.textContent =
+        "ثبت فایل ملک";
+
+      const cancelButton =
+        document.getElementById(
+          "cancelEditPropertyButton"
+        );
+
+      if (cancelButton) {
+        cancelButton.remove();
+      }
+
       await loadProperties();
 
     } catch (error) {
@@ -1043,7 +1374,7 @@ propertyForm.addEventListener(
       console.error(error);
 
       propertyMessage.textContent =
-        "ثبت فایل انجام نشد: " +
+        "عملیات انجام نشد: " +
         (error.message ||
           "خطای نامشخص");
 
@@ -1055,13 +1386,141 @@ propertyForm.addEventListener(
       submitPropertyButton.disabled =
         false;
 
-      submitPropertyButton.textContent =
-        "ثبت فایل ملک";
+      if (editingPropertyId) {
+
+        submitPropertyButton.textContent =
+          "ذخیره تغییرات";
+
+      } else {
+
+        submitPropertyButton.textContent =
+          "ثبت فایل ملک";
+
+      }
 
     }
 
   }
 );
+
+
+/* =========================
+   UPLOAD NEW IMAGES
+========================= */
+
+async function uploadNewPropertyImages(
+  propertyId
+) {
+
+  const files =
+    Array.from(
+      propertyImages.files || []
+    );
+
+  if (!files.length) {
+    return;
+  }
+
+  const {
+    data: existingImages,
+    error: existingImagesError
+  } = await db
+    .from("property_images")
+    .select("sort_order")
+    .eq("property_id", propertyId)
+    .order("sort_order", {
+      ascending: false
+    })
+    .limit(1);
+
+  if (existingImagesError) {
+    throw existingImagesError;
+  }
+
+  let startOrder = 0;
+
+  if (
+    existingImages &&
+    existingImages.length &&
+    existingImages[0].sort_order != null
+  ) {
+
+    startOrder =
+      Number(existingImages[0].sort_order) + 1;
+
+  }
+
+  for (
+    let index = 0;
+    index < files.length;
+    index++
+  ) {
+
+    const file =
+      files[index];
+
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+    const filePath =
+      `${propertyId}/${crypto.randomUUID()}.${extension}`;
+
+    const {
+      error: uploadError
+    } = await db
+      .storage
+      .from("property-images")
+      .upload(
+        filePath,
+        file,
+        {
+          cacheControl: "31536000",
+          upsert: false
+        }
+      );
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const {
+      data: publicUrlData
+    } =
+      db
+        .storage
+        .from("property-images")
+        .getPublicUrl(filePath);
+
+    const imageUrl =
+      publicUrlData.publicUrl;
+
+    const {
+      error: imageError
+    } = await db
+      .from("property_images")
+      .insert({
+
+        property_id:
+          propertyId,
+
+        image_url:
+          imageUrl,
+
+        sort_order:
+          startOrder + index
+
+      });
+
+    if (imageError) {
+      throw imageError;
+    }
+
+  }
+
+}
 
 
 /* =========================
@@ -1106,7 +1565,7 @@ async function loadProperties() {
   if (!data || !data.length) {
 
     adminProperties.innerHTML =
-      `<p>هنوز ملکی ثبت نشده است.`;
+      `<p>هنوز ملکی ثبت نشده است.</p>`;
 
     return;
   }
@@ -1157,10 +1616,23 @@ async function loadProperties() {
 
           </div>
 
-          <div
-            style="margin-top:15px;">
+          <div style="margin-top:15px;">
 
             <button
+              type="button"
+              class="category-btn"
+              onclick="
+                editProperty(
+                  '${property.id}'
+                )
+              ">
+
+              ویرایش
+
+            </button>
+
+            <button
+              type="button"
               class="category-btn"
               onclick="
                 toggleProperty(
@@ -1178,6 +1650,7 @@ async function loadProperties() {
             </button>
 
             <button
+              type="button"
               class="category-btn"
               onclick="
                 deleteProperty(
@@ -1266,6 +1739,10 @@ async function deleteProperty(id) {
     console.error(error);
 
     return;
+  }
+
+  if (editingPropertyId === id) {
+    cancelEditProperty();
   }
 
   await loadProperties();
