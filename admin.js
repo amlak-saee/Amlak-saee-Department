@@ -53,13 +53,9 @@ const adminNeighborhoods =
 
 
 let currentUser = null;
-
 let categories = [];
-
 let neighborhoods = [];
-
 let filters = [];
-
 let editingPropertyId = null;
 
 
@@ -569,13 +565,11 @@ async function loadAdminNeighborhoods() {
                   )
                 "
               >
-
                 ${
                   item.is_active
                     ? "غیرفعال کردن"
                     : "فعال کردن"
                 }
-
               </button>
 
               <button
@@ -587,9 +581,7 @@ async function loadAdminNeighborhoods() {
                   )
                 "
               >
-
                 حذف
-
               </button>
 
             </div>
@@ -1086,10 +1078,6 @@ async function deletePropertyImage(
 
   try {
 
-    /*
-      دریافت آدرس عکس
-    */
-
     const {
       data: image,
       error: imageFetchError
@@ -1110,10 +1098,6 @@ async function deletePropertyImage(
       throw imageFetchError;
     }
 
-    /*
-      حذف رکورد از دیتابیس
-    */
-
     const {
       error: deleteDbError
     } =
@@ -1129,10 +1113,6 @@ async function deletePropertyImage(
 
       throw deleteDbError;
     }
-
-    /*
-      حذف فایل واقعی از Storage
-    */
 
     const marker =
       "/storage/v1/object/public/property-images/";
@@ -1177,10 +1157,6 @@ async function deletePropertyImage(
       }
 
     }
-
-    /*
-      تازه‌سازی لیست عکس‌ها
-    */
 
     if (editingPropertyId) {
 
@@ -1433,10 +1409,6 @@ async function editProperty(
 
     createCancelEditButton();
 
-    /*
-      نمایش عکس‌های قبلی
-    */
-
     await loadExistingPropertyImages(
       id
     );
@@ -1505,10 +1477,6 @@ function cancelEditProperty() {
 
   }
 
-  /*
-    حذف بخش عکس‌های قبلی
-  */
-
   const existingImagesBox =
     document.getElementById(
       "existingPropertyImages"
@@ -1544,17 +1512,13 @@ propertyForm.addEventListener(
 
     const title =
       document
-        .getElementById(
-          "title"
-        )
+        .getElementById("title")
         .value
         .trim();
 
     const description =
       document
-        .getElementById(
-          "description"
-        )
+        .getElementById("description")
         .value
         .trim();
 
@@ -1575,8 +1539,7 @@ propertyForm.addEventListener(
 
     const selectedNeighborhoods =
       Array.from(
-        neighborhoodSelect
-          .selectedOptions
+        neighborhoodSelect.selectedOptions
       )
       .map(
         option =>
@@ -1765,10 +1728,6 @@ propertyForm.addEventListener(
         propertyId =
           editingPropertyId;
 
-        /*
-          حذف روابط قبلی محله‌ها
-        */
-
         const {
           error:
             deleteNeighborhoodError
@@ -1789,10 +1748,6 @@ propertyForm.addEventListener(
 
           throw deleteNeighborhoodError;
         }
-
-        /*
-          ثبت محله‌های جدید
-        */
 
         const neighborhoodRows =
           selectedNeighborhoods.map(
@@ -1824,10 +1779,6 @@ propertyForm.addEventListener(
           throw neighborhoodError;
         }
 
-        /*
-          حذف فیلترهای قبلی
-        */
-
         const {
           error:
             deleteFilterError
@@ -1846,10 +1797,6 @@ propertyForm.addEventListener(
 
           throw deleteFilterError;
         }
-
-        /*
-          ثبت فیلترهای جدید
-        */
 
         if (
           selectedFilterIds.length
@@ -1886,10 +1833,6 @@ propertyForm.addEventListener(
           }
 
         }
-
-        /*
-          اضافه کردن عکس‌های جدید
-        */
 
         await uploadNewPropertyImages(
           propertyId
@@ -1989,13 +1932,13 @@ propertyForm.addEventListener(
             error:
               filterError
           } =
-            await db
-              .from(
-                "property_filters"
-              )
-              .insert(
-                filterRows
-              );
+          await db
+            .from(
+              "property_filters"
+            )
+            .insert(
+              filterRows
+            );
 
           if (filterError) {
 
@@ -2015,10 +1958,6 @@ propertyForm.addEventListener(
           "green";
 
       }
-
-      /*
-        پایان عملیات
-      */
 
       editingPropertyId =
         null;
@@ -2045,10 +1984,6 @@ propertyForm.addEventListener(
 
       }
 
-      /*
-        حذف نمایش عکس‌های قبلی
-      */
-
       const existingImagesBox =
         document.getElementById(
           "existingPropertyImages"
@@ -2064,7 +1999,10 @@ propertyForm.addEventListener(
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        "PROPERTY SAVE ERROR:",
+        error
+      );
 
       propertyMessage.textContent =
         "عملیات انجام نشد: " +
@@ -2081,17 +2019,10 @@ propertyForm.addEventListener(
       submitPropertyButton.disabled =
         false;
 
-      if (editingPropertyId) {
-
-        submitPropertyButton.textContent =
-          "ذخیره تغییرات";
-
-      } else {
-
-        submitPropertyButton.textContent =
-          "ثبت فایل ملک";
-
-      }
+      submitPropertyButton.textContent =
+        editingPropertyId
+          ? "ذخیره تغییرات"
+          : "ثبت فایل ملک";
 
     }
 
@@ -2101,6 +2032,9 @@ propertyForm.addEventListener(
 
 /* =========================
    UPLOAD NEW IMAGES
+   NO ARTIFICIAL SIZE LIMIT
+   NO COMPRESSION
+   NO RESIZE
 ========================= */
 
 async function uploadNewPropertyImages(
@@ -2115,7 +2049,12 @@ async function uploadNewPropertyImages(
   if (!files.length) {
 
     return;
+
   }
+
+  /*
+    دریافت آخرین ترتیب عکس
+  */
 
   const {
     data: existingImages,
@@ -2141,25 +2080,28 @@ async function uploadNewPropertyImages(
   if (existingImagesError) {
 
     throw existingImagesError;
+
   }
 
-  let startOrder =
-    0;
+  let startOrder = 0;
 
   if (
     existingImages &&
     existingImages.length &&
-    existingImages[0]
-      .sort_order != null
+    existingImages[0].sort_order != null
   ) {
 
     startOrder =
       Number(
-        existingImages[0]
-          .sort_order
+        existingImages[0].sort_order
       ) + 1;
 
   }
+
+
+  /*
+    آپلود تک‌تک عکس‌ها
+  */
 
   for (
     let index = 0;
@@ -2170,16 +2112,74 @@ async function uploadNewPropertyImages(
     const file =
       files[index];
 
+    /*
+      هیچ محدودیت حجمی اینجا وجود ندارد.
+      هیچ resize یا compression انجام نمی‌شود.
+    */
+
+    if (!file) {
+
+      continue;
+
+    }
+
+    /*
+      نام امن و یکتا
+    */
+
     const extension =
-      file.name
-        .split(".")
-        .pop()
-        .toLowerCase();
+      file.name.includes(".")
+        ? file.name
+            .split(".")
+            .pop()
+            .toLowerCase()
+        : "jpg";
+
+    const uniqueId =
+      typeof crypto !== "undefined" &&
+      crypto.randomUUID
+        ? crypto.randomUUID()
+        : (
+            Date.now() +
+            "-" +
+            Math.random()
+              .toString(36)
+              .substring(2)
+          );
 
     const filePath =
-      `${propertyId}/${crypto.randomUUID()}.${extension}`;
+      `${propertyId}/${uniqueId}.${extension}`;
+
+
+    /*
+      تشخیص نوع فایل
+    */
+
+    const contentType =
+      file.type ||
+      "application/octet-stream";
+
+
+    /*
+      پیام پیشرفت
+    */
+
+    propertyMessage.textContent =
+      `در حال آپلود عکس ${index + 1} از ${files.length}...`;
+
+    propertyMessage.style.color =
+      "#b8860b";
+
+
+    /*
+      آپلود فایل اصلی
+      بدون فشرده‌سازی
+      بدون تغییر کیفیت
+      بدون تغییر رزولوشن
+    */
 
     const {
+      data: uploadData,
       error: uploadError
     } =
       await db
@@ -2194,15 +2194,40 @@ async function uploadNewPropertyImages(
             cacheControl:
               "31536000",
 
+            contentType:
+              contentType,
+
             upsert:
               false
           }
         );
 
+
+    /*
+      اگر Storage خطا داد،
+      خطای واقعی را نشان بده
+    */
+
     if (uploadError) {
 
-      throw uploadError;
+      console.error(
+        "IMAGE UPLOAD ERROR:",
+        uploadError
+      );
+
+      throw new Error(
+        `آپلود عکس «${file.name}» انجام نشد: ${
+          uploadError.message ||
+          "خطای نامشخص Storage"
+        }`
+      );
+
     }
+
+
+    /*
+      دریافت URL عمومی
+    */
 
     const {
       data:
@@ -2217,8 +2242,25 @@ async function uploadNewPropertyImages(
           filePath
         );
 
+    if (
+      !publicUrlData ||
+      !publicUrlData.publicUrl
+    ) {
+
+      throw new Error(
+        `آدرس عمومی عکس «${file.name}» دریافت نشد.`
+      );
+
+    }
+
+
     const imageUrl =
       publicUrlData.publicUrl;
+
+
+    /*
+      ثبت عکس در دیتابیس
+    */
 
     const {
       error: imageError
@@ -2240,12 +2282,88 @@ async function uploadNewPropertyImages(
 
         });
 
+
+    /*
+      اگر فایل در Storage ذخیره شده
+      ولی ثبت دیتابیس شکست خورد،
+      فایل را هم پاک می‌کنیم
+      تا فایل اضافی باقی نماند.
+    */
+
     if (imageError) {
 
-      throw imageError;
+      console.error(
+        "IMAGE DATABASE ERROR:",
+        imageError
+      );
+
+      try {
+
+        await db
+          .storage
+          .from(
+            "property-images"
+          )
+          .remove([
+            filePath
+          ]);
+
+      } catch (
+        cleanupError
+      ) {
+
+        console.error(
+          "IMAGE CLEANUP ERROR:",
+          cleanupError
+        );
+
+      }
+
+      throw new Error(
+        `عکس «${file.name}» آپلود شد اما ثبت آن در دیتابیس انجام نشد: ${
+          imageError.message ||
+          "خطای نامشخص"
+        }`
+      );
+
     }
 
+
+    /*
+      اطلاعات موفقیت
+    */
+
+    console.log(
+      "IMAGE UPLOADED:",
+      {
+        fileName:
+          file.name,
+
+        fileSize:
+          file.size,
+
+        fileType:
+          contentType,
+
+        path:
+          filePath,
+
+        url:
+          imageUrl,
+
+        uploadData:
+          uploadData
+      }
+    );
+
   }
+
+
+  propertyMessage.textContent =
+    `هر ${files.length} عکس با موفقیت ذخیره شد.`;
+
+  propertyMessage.style.color =
+    "green";
 
 }
 
