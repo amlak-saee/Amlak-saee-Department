@@ -23,6 +23,7 @@ const frontageBox = document.getElementById("frontageBox");
 const frontageType = document.getElementById("frontageType");
 
 const propertyImages = document.getElementById("propertyImages");
+
 const submitPropertyButton =
   document.getElementById("submitPropertyButton");
 
@@ -52,8 +53,11 @@ const adminNeighborhoods =
 
 
 let currentUser = null;
+
 let categories = [];
+
 let neighborhoods = [];
+
 let filters = [];
 
 let editingPropertyId = null;
@@ -63,43 +67,53 @@ let editingPropertyId = null;
    LOGIN
 ========================= */
 
-loginForm.addEventListener("submit", async (event) => {
+loginForm.addEventListener(
+  "submit",
+  async (event) => {
 
-  event.preventDefault();
+    event.preventDefault();
 
-  const email = loginEmail.value.trim();
-  const password = loginPassword.value;
+    const email =
+      loginEmail.value.trim();
 
-  if (!email || !password) {
-    authStatus.textContent =
-      "ایمیل و رمز عبور را وارد کنید.";
-    return;
-  }
+    const password =
+      loginPassword.value;
 
-  authStatus.textContent =
-    "در حال ورود...";
+    if (!email || !password) {
 
-  const { error } =
-    await db.auth.signInWithPassword({
-      email,
-      password
-    });
+      authStatus.textContent =
+        "ایمیل و رمز عبور را وارد کنید.";
 
-  if (error) {
-
-    console.error(error);
+      return;
+    }
 
     authStatus.textContent =
-      "ورود ناموفق بود. ایمیل یا رمز عبور را بررسی کنید.";
+      "در حال ورود...";
 
-    return;
+    const {
+      error
+    } =
+      await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) {
+
+      console.error(error);
+
+      authStatus.textContent =
+        "ورود ناموفق بود. ایمیل یا رمز عبور را بررسی کنید.";
+
+      return;
+    }
+
+    loginPassword.value = "";
+
+    await checkAdmin();
+
   }
-
-  loginPassword.value = "";
-
-  await checkAdmin();
-
-});
+);
 
 
 /* =========================
@@ -108,24 +122,36 @@ loginForm.addEventListener("submit", async (event) => {
 
 async function checkAdmin() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await db.auth.getSession();
 
   if (error || !data.session) {
+
     showLoggedOut();
+
     return;
   }
 
-  currentUser = data.session.user;
+  currentUser =
+    data.session.user;
 
   const {
     data: admin,
     error: adminError
-  } = await db
-    .from("admin_users")
-    .select("user_id, display_name")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
+  } =
+    await db
+      .from("admin_users")
+      .select(
+        "user_id, display_name"
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+      .maybeSingle();
 
   if (adminError || !admin) {
 
@@ -140,7 +166,8 @@ async function checkAdmin() {
   }
 
   showLoggedIn(
-    admin.display_name || "مدیر سایت"
+    admin.display_name ||
+    "مدیر سایت"
   );
 
   await Promise.all([
@@ -160,9 +187,11 @@ async function checkAdmin() {
 
 function showLoggedOut() {
 
-  loginSection.style.display = "block";
+  loginSection.style.display =
+    "block";
 
-  adminPanel.style.display = "none";
+  adminPanel.style.display =
+    "none";
 
   authStatus.textContent =
     "برای ورود به پنل مدیریت، اطلاعات مدیر را وارد کنید.";
@@ -176,9 +205,11 @@ function showLoggedOut() {
 
 function showLoggedIn(name) {
 
-  loginSection.style.display = "none";
+  loginSection.style.display =
+    "none";
 
-  adminPanel.style.display = "block";
+  adminPanel.style.display =
+    "block";
 
   welcomeText.textContent =
     `خوش آمدید، ${name}`;
@@ -213,11 +244,19 @@ async function loadCategories() {
   const {
     data,
     error
-  } = await db
-    .from("categories")
-    .select("id, title, slug")
-    .eq("is_active", true)
-    .order("sort_order");
+  } =
+    await db
+      .from("categories")
+      .select(
+        "id, title, slug"
+      )
+      .eq(
+        "is_active",
+        true
+      )
+      .order(
+        "sort_order"
+      );
 
   if (error) {
 
@@ -229,18 +268,23 @@ async function loadCategories() {
     return;
   }
 
-  categories = data || [];
+  categories =
+    data || [];
 
   categorySelect.innerHTML = `
     <option value="">
       انتخاب دسته‌بندی
     </option>
 
-    ${categories.map(category => `
-      <option value="${category.id}">
-        ${escapeHtml(category.title)}
-      </option>
-    `).join("")}
+    ${
+      categories.map(
+        category => `
+          <option value="${category.id}">
+            ${escapeHtml(category.title)}
+          </option>
+        `
+      ).join("")
+    }
   `;
 
 }
@@ -257,19 +301,24 @@ categorySelect.addEventListener(
     const categoryId =
       categorySelect.value;
 
-    propertyFilters.innerHTML = "";
+    propertyFilters.innerHTML =
+      "";
 
-    frontageBox.style.display = "none";
+    frontageBox.style.display =
+      "none";
 
-    frontageType.value = "";
+    frontageType.value =
+      "";
 
     if (!categoryId) {
+
       return;
     }
 
     const category =
       categories.find(
-        item => item.id === categoryId
+        item =>
+          item.id === categoryId
       );
 
     if (
@@ -282,7 +331,9 @@ categorySelect.addEventListener(
 
     }
 
-    await loadFilters(categoryId);
+    await loadFilters(
+      categoryId
+    );
 
   }
 );
@@ -297,12 +348,22 @@ async function loadNeighborhoods() {
   const {
     data,
     error
-  } = await db
-    .from("neighborhoods")
-    .select("id, name")
-    .eq("is_active", true)
-    .order("sort_order")
-    .order("name");
+  } =
+    await db
+      .from("neighborhoods")
+      .select(
+        "id, name"
+      )
+      .eq(
+        "is_active",
+        true
+      )
+      .order(
+        "sort_order"
+      )
+      .order(
+        "name"
+      );
 
   if (error) {
 
@@ -314,20 +375,23 @@ async function loadNeighborhoods() {
     return;
   }
 
-  neighborhoods = data || [];
+  neighborhoods =
+    data || [];
 
   neighborhoodSelect.innerHTML =
     neighborhoods.length
-      ? neighborhoods.map(item => `
-          <option value="${item.id}">
-            ${escapeHtml(item.name)}
-          </option>
-        `).join("")
+      ? neighborhoods.map(
+          item => `
+            <option value="${item.id}">
+              ${escapeHtml(item.name)}
+            </option>
+          `
+        ).join("")
       : `
-        <option value="">
-          هنوز محله‌ای ثبت نشده است
-        </option>
-      `;
+          <option value="">
+            هنوز محله‌ای ثبت نشده است
+          </option>
+        `;
 
 }
 
@@ -368,19 +432,22 @@ if (neighborhoodForm) {
 
       const {
         error
-      } = await db
-        .from("neighborhoods")
-        .insert({
-          name: name,
-          sort_order: 0,
-          is_active: true
-        });
+      } =
+        await db
+          .from("neighborhoods")
+          .insert({
+            name: name,
+            sort_order: 0,
+            is_active: true
+          });
 
       if (error) {
 
         console.error(error);
 
-        if (error.code === "23505") {
+        if (
+          error.code === "23505"
+        ) {
 
           neighborhoodMessage.textContent =
             "این محله قبلاً ثبت شده است.";
@@ -389,19 +456,24 @@ if (neighborhoodForm) {
 
           neighborhoodMessage.textContent =
             "افزودن محله انجام نشد: " +
-            (error.message || "خطای نامشخص");
+            (
+              error.message ||
+              "خطای نامشخص"
+            );
 
         }
 
         return;
       }
 
-      neighborhoodName.value = "";
+      neighborhoodName.value =
+        "";
 
       neighborhoodMessage.textContent =
         "محله با موفقیت اضافه شد.";
 
       await loadNeighborhoods();
+
       await loadAdminNeighborhoods();
 
     }
@@ -417,17 +489,25 @@ if (neighborhoodForm) {
 async function loadAdminNeighborhoods() {
 
   if (!adminNeighborhoods) {
+
     return;
   }
 
   const {
     data,
     error
-  } = await db
-    .from("neighborhoods")
-    .select("id, name, is_active")
-    .order("sort_order")
-    .order("name");
+  } =
+    await db
+      .from("neighborhoods")
+      .select(
+        "id, name, is_active"
+      )
+      .order(
+        "sort_order"
+      )
+      .order(
+        "name"
+      );
 
   if (error) {
 
@@ -439,7 +519,10 @@ async function loadAdminNeighborhoods() {
     return;
   }
 
-  if (!data || !data.length) {
+  if (
+    !data ||
+    !data.length
+  ) {
 
     adminNeighborhoods.innerHTML =
       "<p>هنوز محله‌ای ثبت نشده است.</p>";
@@ -448,70 +531,75 @@ async function loadAdminNeighborhoods() {
   }
 
   adminNeighborhoods.innerHTML =
-    data.map(item => `
+    data.map(
+      item => `
 
-      <div
-        class="property-card"
-        style="margin-top:15px;">
+        <div
+          class="property-card"
+          style="margin-top:15px;"
+        >
 
-        <div class="property-content">
+          <div class="property-content">
 
-          <h3>
-            ${escapeHtml(item.name)}
-          </h3>
+            <h3>
+              ${escapeHtml(item.name)}
+            </h3>
 
-          <div class="property-meta">
+            <div class="property-meta">
 
-            <span>
-              ${
-                item.is_active
-                  ? "فعال"
-                  : "غیرفعال"
-              }
-            </span>
+              <span>
+                ${
+                  item.is_active
+                    ? "فعال"
+                    : "غیرفعال"
+                }
+              </span>
 
-          </div>
+            </div>
 
-          <div style="margin-top:15px;">
+            <div style="margin-top:15px;">
 
-            <button
-              type="button"
-              class="category-btn"
-              onclick="
-                toggleNeighborhood(
-                  '${item.id}',
-                  ${item.is_active}
-                )
-              ">
+              <button
+                type="button"
+                class="category-btn"
+                onclick="
+                  toggleNeighborhood(
+                    '${item.id}',
+                    ${item.is_active}
+                  )
+                "
+              >
 
-              ${
-                item.is_active
-                  ? "غیرفعال کردن"
-                  : "فعال کردن"
-              }
+                ${
+                  item.is_active
+                    ? "غیرفعال کردن"
+                    : "فعال کردن"
+                }
 
-            </button>
+              </button>
 
-            <button
-              type="button"
-              class="category-btn"
-              onclick="
-                deleteNeighborhood(
-                  '${item.id}'
-                )
-              ">
+              <button
+                type="button"
+                class="category-btn"
+                onclick="
+                  deleteNeighborhood(
+                    '${item.id}'
+                  )
+                "
+              >
 
-              حذف
+                حذف
 
-            </button>
+              </button>
+
+            </div>
 
           </div>
 
         </div>
 
-      </div>
-
-    `).join("");
+      `
+    ).join("");
 
 }
 
@@ -527,12 +615,17 @@ async function toggleNeighborhood(
 
   const {
     error
-  } = await db
-    .from("neighborhoods")
-    .update({
-      is_active: !currentStatus
-    })
-    .eq("id", id);
+  } =
+    await db
+      .from("neighborhoods")
+      .update({
+        is_active:
+          !currentStatus
+      })
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -546,6 +639,7 @@ async function toggleNeighborhood(
   }
 
   await loadNeighborhoods();
+
   await loadAdminNeighborhoods();
 
 }
@@ -555,7 +649,9 @@ async function toggleNeighborhood(
    DELETE NEIGHBORHOOD
 ========================= */
 
-async function deleteNeighborhood(id) {
+async function deleteNeighborhood(
+  id
+) {
 
   const confirmed =
     confirm(
@@ -563,15 +659,20 @@ async function deleteNeighborhood(id) {
     );
 
   if (!confirmed) {
+
     return;
   }
 
   const {
     error
-  } = await db
-    .from("neighborhoods")
-    .delete()
-    .eq("id", id);
+  } =
+    await db
+      .from("neighborhoods")
+      .delete()
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -585,6 +686,7 @@ async function deleteNeighborhood(id) {
   }
 
   await loadNeighborhoods();
+
   await loadAdminNeighborhoods();
 
 }
@@ -594,17 +696,28 @@ async function deleteNeighborhood(id) {
    FILTERS
 ========================= */
 
-async function loadFilters(categoryId) {
+async function loadFilters(
+  categoryId
+) {
 
   const {
     data,
     error
-  } = await db
-    .from("filter_options")
-    .select("*")
-    .eq("category_id", categoryId)
-    .eq("is_active", true)
-    .order("sort_order");
+  } =
+    await db
+      .from("filter_options")
+      .select("*")
+      .eq(
+        "category_id",
+        categoryId
+      )
+      .eq(
+        "is_active",
+        true
+      )
+      .order(
+        "sort_order"
+      );
 
   if (error) {
 
@@ -613,7 +726,8 @@ async function loadFilters(categoryId) {
     return;
   }
 
-  filters = data || [];
+  filters =
+    data || [];
 
   renderPropertyFilters();
 
@@ -630,19 +744,22 @@ function renderPropertyFilters(
 
   if (!filters.length) {
 
-    propertyFilters.innerHTML = "";
+    propertyFilters.innerHTML =
+      "";
 
     return;
   }
 
   const parents =
     filters.filter(
-      item => !item.parent_id
+      item =>
+        !item.parent_id
     );
 
   const children =
     filters.filter(
-      item => item.parent_id
+      item =>
+        item.parent_id
     );
 
   propertyFilters.innerHTML = `
@@ -652,63 +769,94 @@ function renderPropertyFilters(
 
     <div class="admin-filter-list">
 
-      ${parents.map(parent => {
+      ${
+        parents.map(
+          parent => {
 
-        const childItems =
-          children.filter(
-            child =>
-              child.parent_id === parent.id
-          );
+            const childItems =
+              children.filter(
+                child =>
+                  child.parent_id ===
+                  parent.id
+              );
 
-        if (!childItems.length) {
+            if (
+              !childItems.length
+            ) {
 
-          return `
-            <label>
-              <input
-                type="checkbox"
-                class="property-filter"
-                value="${parent.id}"
-                ${
-                  selectedFilterIds.includes(parent.id)
-                    ? "checked"
-                    : ""
-                }>
-              ${escapeHtml(parent.title)}
-            </label>
-          `;
-
-        }
-
-        return `
-          <div class="filter-parent">
-
-            <strong>
-              ${escapeHtml(parent.title)}
-            </strong>
-
-            <div>
-
-              ${childItems.map(child => `
+              return `
                 <label>
+
                   <input
                     type="checkbox"
                     class="property-filter"
-                    value="${child.id}"
+                    value="${parent.id}"
                     ${
-                      selectedFilterIds.includes(child.id)
+                      selectedFilterIds.includes(
+                        parent.id
+                      )
                         ? "checked"
                         : ""
-                    }>
-                  ${escapeHtml(child.title)}
+                    }
+                  >
+
+                  ${escapeHtml(
+                    parent.title
+                  )}
+
                 </label>
-              `).join("")}
+              `;
 
-            </div>
+            }
 
-          </div>
-        `;
+            return `
+              <div
+                class="filter-parent"
+              >
 
-      }).join("")}
+                <strong>
+                  ${escapeHtml(
+                    parent.title
+                  )}
+                </strong>
+
+                <div>
+
+                  ${
+                    childItems.map(
+                      child => `
+                        <label>
+
+                          <input
+                            type="checkbox"
+                            class="property-filter"
+                            value="${child.id}"
+                            ${
+                              selectedFilterIds.includes(
+                                child.id
+                              )
+                                ? "checked"
+                                : ""
+                            }
+                          >
+
+                          ${escapeHtml(
+                            child.title
+                          )}
+
+                        </label>
+                      `
+                    ).join("")
+                  }
+
+                </div>
+
+              </div>
+            `;
+
+          }
+        ).join("")
+      }
 
     </div>
   `;
@@ -728,13 +876,17 @@ function createCancelEditButton() {
     );
 
   if (button) {
+
     return button;
   }
 
   button =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
-  button.type = "button";
+  button.type =
+    "button";
 
   button.id =
     "cancelEditPropertyButton";
@@ -764,10 +916,304 @@ function createCancelEditButton() {
 
 
 /* =========================
+   EXISTING PROPERTY IMAGES
+========================= */
+
+async function loadExistingPropertyImages(
+  propertyId
+) {
+
+  let box =
+    document.getElementById(
+      "existingPropertyImages"
+    );
+
+  if (!box) {
+
+    box =
+      document.createElement(
+        "div"
+      );
+
+    box.id =
+      "existingPropertyImages";
+
+    box.style.marginTop =
+      "15px";
+
+    propertyImages.parentNode.insertBefore(
+      box,
+      propertyImages
+    );
+
+  }
+
+  box.innerHTML =
+    "<p>در حال دریافت عکس‌های قبلی...</p>";
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("property_images")
+      .select(
+        "id, image_url, sort_order"
+      )
+      .eq(
+        "property_id",
+        propertyId
+      )
+      .order(
+        "sort_order"
+      );
+
+  if (error) {
+
+    console.error(error);
+
+    box.innerHTML =
+      "<p>دریافت عکس‌های قبلی انجام نشد.</p>";
+
+    return;
+  }
+
+  if (
+    !data ||
+    !data.length
+  ) {
+
+    box.innerHTML =
+      "<p>این ملک هنوز عکسی ندارد.</p>";
+
+    return;
+  }
+
+  box.innerHTML = `
+
+    <div
+      style="
+        margin-bottom:10px;
+        font-weight:bold;
+      "
+    >
+      عکس‌های فعلی ملک
+    </div>
+
+    <div
+      style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+      "
+    >
+
+      ${
+        data.map(
+          image => `
+
+            <div
+              style="
+                width:120px;
+                border:1px solid #ddd;
+                border-radius:12px;
+                padding:6px;
+                background:#fff;
+              "
+            >
+
+              <img
+                src="${escapeHtml(
+                  image.image_url
+                )}"
+                alt="تصویر ملک"
+                style="
+                  width:100%;
+                  height:90px;
+                  object-fit:cover;
+                  border-radius:8px;
+                  display:block;
+                "
+              >
+
+              <button
+                type="button"
+                class="category-btn"
+                style="
+                  width:100%;
+                  margin-top:6px;
+                  font-size:12px;
+                "
+                onclick="
+                  deletePropertyImage(
+                    '${image.id}'
+                  )
+                "
+              >
+                حذف عکس
+              </button>
+
+            </div>
+
+          `
+        ).join("")
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================
+   DELETE PROPERTY IMAGE
+========================= */
+
+async function deletePropertyImage(
+  imageId
+) {
+
+  const confirmed =
+    confirm(
+      "آیا مطمئن هستید که این عکس حذف شود؟"
+    );
+
+  if (!confirmed) {
+
+    return;
+  }
+
+  try {
+
+    /*
+      دریافت آدرس عکس
+    */
+
+    const {
+      data: image,
+      error: imageFetchError
+    } =
+      await db
+        .from("property_images")
+        .select(
+          "image_url"
+        )
+        .eq(
+          "id",
+          imageId
+        )
+        .single();
+
+    if (imageFetchError) {
+
+      throw imageFetchError;
+    }
+
+    /*
+      حذف رکورد از دیتابیس
+    */
+
+    const {
+      error: deleteDbError
+    } =
+      await db
+        .from("property_images")
+        .delete()
+        .eq(
+          "id",
+          imageId
+        );
+
+    if (deleteDbError) {
+
+      throw deleteDbError;
+    }
+
+    /*
+      حذف فایل واقعی از Storage
+    */
+
+    const marker =
+      "/storage/v1/object/public/property-images/";
+
+    const imageUrl =
+      image.image_url || "";
+
+    const markerIndex =
+      imageUrl.indexOf(
+        marker
+      );
+
+    if (
+      markerIndex !== -1
+    ) {
+
+      const filePath =
+        imageUrl.substring(
+          markerIndex +
+          marker.length
+        );
+
+      const {
+        error: storageError
+      } =
+        await db
+          .storage
+          .from(
+            "property-images"
+          )
+          .remove([
+            filePath
+          ]);
+
+      if (storageError) {
+
+        console.error(
+          "Storage delete error:",
+          storageError
+        );
+
+      }
+
+    }
+
+    /*
+      تازه‌سازی لیست عکس‌ها
+    */
+
+    if (editingPropertyId) {
+
+      await loadExistingPropertyImages(
+        editingPropertyId
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "حذف عکس انجام نشد: " +
+      (
+        error.message ||
+        "خطای نامشخص"
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================
    START EDIT PROPERTY
 ========================= */
 
-async function editProperty(id) {
+async function editProperty(
+  id
+) {
 
   try {
 
@@ -777,88 +1223,140 @@ async function editProperty(id) {
     const {
       data: property,
       error: propertyError
-    } = await db
-      .from("properties")
-      .select(`
-        *,
-        categories(id, title, slug)
-      `)
-      .eq("id", id)
-      .single();
+    } =
+      await db
+        .from("properties")
+        .select(`
+          *,
+          categories(
+            id,
+            title,
+            slug
+          )
+        `)
+        .eq(
+          "id",
+          id
+        )
+        .single();
 
     if (propertyError) {
+
       throw propertyError;
     }
 
     const {
       data: propertyNeighborhoods,
       error: neighborhoodError
-    } = await db
-      .from("property_neighborhoods")
-      .select("neighborhood_id")
-      .eq("property_id", id);
+    } =
+      await db
+        .from("property_neighborhoods")
+        .select(
+          "neighborhood_id"
+        )
+        .eq(
+          "property_id",
+          id
+        );
 
     if (neighborhoodError) {
+
       throw neighborhoodError;
     }
 
     const {
       data: propertyFilters,
       error: filterError
-    } = await db
-      .from("property_filters")
-      .select("filter_option_id")
-      .eq("property_id", id);
+    } =
+      await db
+        .from("property_filters")
+        .select(
+          "filter_option_id"
+        )
+        .eq(
+          "property_id",
+          id
+        );
 
     if (filterError) {
+
       throw filterError;
     }
 
-    editingPropertyId = id;
+    editingPropertyId =
+      id;
 
-    document.getElementById("title").value =
+    document.getElementById(
+      "title"
+    ).value =
       property.title || "";
 
-    document.getElementById("description").value =
+    document.getElementById(
+      "description"
+    ).value =
       property.description || "";
 
     categorySelect.value =
       property.category_id || "";
 
-    document.getElementById("price").value =
+    document.getElementById(
+      "price"
+    ).value =
       property.price ?? "";
 
-    document.getElementById("monthlyRent").value =
+    document.getElementById(
+      "monthlyRent"
+    ).value =
       property.monthly_rent ?? "";
 
-    document.getElementById("deposit").value =
+    document.getElementById(
+      "deposit"
+    ).value =
       property.deposit ?? "";
 
-    document.getElementById("area").value =
+    document.getElementById(
+      "area"
+    ).value =
       property.area ?? "";
 
-    document.getElementById("bedrooms").value =
+    document.getElementById(
+      "bedrooms"
+    ).value =
       property.bedrooms ?? "";
 
-    document.getElementById("floor").value =
+    document.getElementById(
+      "floor"
+    ).value =
       property.floor ?? "";
 
-    document.getElementById("location").value =
+    document.getElementById(
+      "location"
+    ).value =
       property.location_text || "";
 
-    document.getElementById("address").value =
+    document.getElementById(
+      "address"
+    ).value =
       property.address || "";
 
-    document.getElementById("parking").checked =
+    document.getElementById(
+      "parking"
+    ).checked =
       !!property.parking;
 
-    document.getElementById("elevator").checked =
+    document.getElementById(
+      "elevator"
+    ).checked =
       !!property.elevator;
 
-    document.getElementById("storage").checked =
+    document.getElementById(
+      "storage"
+    ).checked =
       !!property.storage;
 
-    document.getElementById("terrace").checked =
+    document.getElementById(
+      "terrace"
+    ).checked =
       !!property.terrace;
 
     frontageType.value =
@@ -866,7 +1364,8 @@ async function editProperty(id) {
 
     if (
       property.categories &&
-      property.categories.slug === "shop"
+      property.categories.slug ===
+        "shop"
     ) {
 
       frontageBox.style.display =
@@ -880,25 +1379,39 @@ async function editProperty(id) {
     }
 
     const selectedNeighborhoodIds =
-      (propertyNeighborhoods || [])
-        .map(item => item.neighborhood_id);
+      (
+        propertyNeighborhoods ||
+        []
+      ).map(
+        item =>
+          item.neighborhood_id
+      );
 
     Array.from(
       neighborhoodSelect.options
-    ).forEach(option => {
+    ).forEach(
+      option => {
 
-      option.selected =
-        selectedNeighborhoodIds.includes(
-          option.value
-        );
+        option.selected =
+          selectedNeighborhoodIds.includes(
+            option.value
+          );
 
-    });
+      }
+    );
 
     const selectedFilterIds =
-      (propertyFilters || [])
-        .map(item => item.filter_option_id);
+      (
+        propertyFilters ||
+        []
+      ).map(
+        item =>
+          item.filter_option_id
+      );
 
-    if (property.category_id) {
+    if (
+      property.category_id
+    ) {
 
       await loadFilters(
         property.category_id
@@ -910,7 +1423,8 @@ async function editProperty(id) {
 
     } else {
 
-      propertyFilters.innerHTML = "";
+      propertyFilters.innerHTML =
+        "";
 
     }
 
@@ -918,6 +1432,14 @@ async function editProperty(id) {
       "ذخیره تغییرات";
 
     createCancelEditButton();
+
+    /*
+      نمایش عکس‌های قبلی
+    */
+
+    await loadExistingPropertyImages(
+      id
+    );
 
     propertyMessage.textContent =
       "حالت ویرایش فعال شد.";
@@ -936,8 +1458,10 @@ async function editProperty(id) {
 
     propertyMessage.textContent =
       "دریافت اطلاعات ملک انجام نشد: " +
-      (error.message ||
-        "خطای نامشخص");
+      (
+        error.message ||
+        "خطای نامشخص"
+      );
 
     propertyMessage.style.color =
       "crimson";
@@ -953,11 +1477,13 @@ async function editProperty(id) {
 
 function cancelEditProperty() {
 
-  editingPropertyId = null;
+  editingPropertyId =
+    null;
 
   propertyForm.reset();
 
-  propertyFilters.innerHTML = "";
+  propertyFilters.innerHTML =
+    "";
 
   frontageBox.style.display =
     "none";
@@ -974,7 +1500,24 @@ function cancelEditProperty() {
     );
 
   if (button) {
+
     button.remove();
+
+  }
+
+  /*
+    حذف بخش عکس‌های قبلی
+  */
+
+  const existingImagesBox =
+    document.getElementById(
+      "existingPropertyImages"
+    );
+
+  if (existingImagesBox) {
+
+    existingImagesBox.remove();
+
   }
 
 }
@@ -1001,20 +1544,27 @@ propertyForm.addEventListener(
 
     const title =
       document
-        .getElementById("title")
+        .getElementById(
+          "title"
+        )
         .value
         .trim();
 
     const description =
       document
-        .getElementById("description")
+        .getElementById(
+          "description"
+        )
         .value
         .trim();
 
     const categoryId =
       categorySelect.value;
 
-    if (!title || !categoryId) {
+    if (
+      !title ||
+      !categoryId
+    ) {
 
       alert(
         "عنوان و دسته‌بندی الزامی هستند."
@@ -1025,12 +1575,18 @@ propertyForm.addEventListener(
 
     const selectedNeighborhoods =
       Array.from(
-        neighborhoodSelect.selectedOptions
+        neighborhoodSelect
+          .selectedOptions
       )
-      .map(option => option.value)
+      .map(
+        option =>
+          option.value
+      )
       .filter(Boolean);
 
-    if (!selectedNeighborhoods.length) {
+    if (
+      !selectedNeighborhoods.length
+    ) {
 
       alert(
         "حداقل یک محله انتخاب کنید."
@@ -1045,42 +1601,62 @@ propertyForm.addEventListener(
           ".property-filter:checked"
         )
       )
-      .map(input => input.value);
+      .map(
+        input =>
+          input.value
+      );
 
     const price =
-      document.getElementById("price").value;
+      document.getElementById(
+        "price"
+      ).value;
 
     const monthlyRent =
-      document.getElementById("monthlyRent").value;
+      document.getElementById(
+        "monthlyRent"
+      ).value;
 
     const deposit =
-      document.getElementById("deposit").value;
+      document.getElementById(
+        "deposit"
+      ).value;
 
     const area =
-      document.getElementById("area").value;
+      document.getElementById(
+        "area"
+      ).value;
 
     const bedrooms =
-      document.getElementById("bedrooms").value;
+      document.getElementById(
+        "bedrooms"
+      ).value;
 
     const floor =
-      document.getElementById("floor").value;
+      document.getElementById(
+        "floor"
+      ).value;
 
     const location =
-      document.getElementById("location")
-        .value
-        .trim();
+      document.getElementById(
+        "location"
+      )
+      .value
+      .trim();
 
     const address =
-      document.getElementById("address")
-        .value
-        .trim();
+      document.getElementById(
+        "address"
+      )
+      .value
+      .trim();
 
     const property = {
 
       title,
 
       description:
-        description || null,
+        description ||
+        null,
 
       category_id:
         categoryId,
@@ -1116,25 +1692,36 @@ propertyForm.addEventListener(
           : null,
 
       parking:
-        document.getElementById("parking").checked,
+        document.getElementById(
+          "parking"
+        ).checked,
 
       elevator:
-        document.getElementById("elevator").checked,
+        document.getElementById(
+          "elevator"
+        ).checked,
 
       storage:
-        document.getElementById("storage").checked,
+        document.getElementById(
+          "storage"
+        ).checked,
 
       terrace:
-        document.getElementById("terrace").checked,
+        document.getElementById(
+          "terrace"
+        ).checked,
 
       frontage_type:
-        frontageType.value || null,
+        frontageType.value ||
+        null,
 
       address:
-        address || null,
+        address ||
+        null,
 
       location_text:
-        location || null
+        location ||
+        null
 
     };
 
@@ -1161,95 +1748,148 @@ propertyForm.addEventListener(
 
         const {
           error: updateError
-        } = await db
-          .from("properties")
-          .update(property)
-          .eq("id", editingPropertyId);
+        } =
+          await db
+            .from("properties")
+            .update(property)
+            .eq(
+              "id",
+              editingPropertyId
+            );
 
         if (updateError) {
+
           throw updateError;
         }
 
         propertyId =
           editingPropertyId;
 
-        /* حذف روابط قبلی محله‌ها */
+        /*
+          حذف روابط قبلی محله‌ها
+        */
 
         const {
-          error: deleteNeighborhoodError
-        } = await db
-          .from("property_neighborhoods")
-          .delete()
-          .eq("property_id", propertyId);
+          error:
+            deleteNeighborhoodError
+        } =
+          await db
+            .from(
+              "property_neighborhoods"
+            )
+            .delete()
+            .eq(
+              "property_id",
+              propertyId
+            );
 
-        if (deleteNeighborhoodError) {
+        if (
+          deleteNeighborhoodError
+        ) {
+
           throw deleteNeighborhoodError;
         }
 
-        /* ثبت محله‌های جدید */
+        /*
+          ثبت محله‌های جدید
+        */
 
         const neighborhoodRows =
           selectedNeighborhoods.map(
             neighborhoodId => ({
+
               property_id:
                 propertyId,
 
               neighborhood_id:
                 neighborhoodId
+
             })
           );
 
         const {
-          error: neighborhoodError
-        } = await db
-          .from("property_neighborhoods")
-          .insert(neighborhoodRows);
+          error:
+            neighborhoodError
+        } =
+          await db
+            .from(
+              "property_neighborhoods"
+            )
+            .insert(
+              neighborhoodRows
+            );
 
         if (neighborhoodError) {
+
           throw neighborhoodError;
         }
 
-        /* حذف فیلترهای قبلی */
+        /*
+          حذف فیلترهای قبلی
+        */
 
         const {
-          error: deleteFilterError
-        } = await db
-          .from("property_filters")
-          .delete()
-          .eq("property_id", propertyId);
+          error:
+            deleteFilterError
+        } =
+          await db
+            .from(
+              "property_filters"
+            )
+            .delete()
+            .eq(
+              "property_id",
+              propertyId
+            );
 
         if (deleteFilterError) {
+
           throw deleteFilterError;
         }
 
-        /* ثبت فیلترهای جدید */
+        /*
+          ثبت فیلترهای جدید
+        */
 
-        if (selectedFilterIds.length) {
+        if (
+          selectedFilterIds.length
+        ) {
 
           const filterRows =
             selectedFilterIds.map(
               filterId => ({
+
                 property_id:
                   propertyId,
 
                 filter_option_id:
                   filterId
+
               })
             );
 
           const {
-            error: filterError
-          } = await db
-            .from("property_filters")
-            .insert(filterRows);
+            error:
+              filterError
+          } =
+            await db
+              .from(
+                "property_filters"
+              )
+              .insert(
+                filterRows
+              );
 
           if (filterError) {
+
             throw filterError;
           }
 
         }
 
-        /* تصاویر جدید */
+        /*
+          اضافه کردن عکس‌های جدید
+        */
 
         await uploadNewPropertyImages(
           propertyId
@@ -1269,18 +1909,29 @@ propertyForm.addEventListener(
 
       else {
 
-        property.is_active = true;
+        property.is_active =
+          true;
 
         const {
-          data: insertedProperty,
-          error: propertyError
-        } = await db
-          .from("properties")
-          .insert(property)
-          .select("id")
-          .single();
+          data:
+            insertedProperty,
+          error:
+            propertyError
+        } =
+          await db
+            .from(
+              "properties"
+            )
+            .insert(
+              property
+            )
+            .select(
+              "id"
+            )
+            .single();
 
         if (propertyError) {
+
           throw propertyError;
         }
 
@@ -1290,44 +1941,64 @@ propertyForm.addEventListener(
         const neighborhoodRows =
           selectedNeighborhoods.map(
             neighborhoodId => ({
+
               property_id:
                 propertyId,
 
               neighborhood_id:
                 neighborhoodId
+
             })
           );
 
         const {
-          error: neighborhoodError
-        } = await db
-          .from("property_neighborhoods")
-          .insert(neighborhoodRows);
+          error:
+            neighborhoodError
+        } =
+          await db
+            .from(
+              "property_neighborhoods"
+            )
+            .insert(
+              neighborhoodRows
+            );
 
         if (neighborhoodError) {
+
           throw neighborhoodError;
         }
 
-        if (selectedFilterIds.length) {
+        if (
+          selectedFilterIds.length
+        ) {
 
           const filterRows =
             selectedFilterIds.map(
               filterId => ({
+
                 property_id:
                   propertyId,
 
                 filter_option_id:
                   filterId
+
               })
             );
 
           const {
-            error: filterError
-          } = await db
-            .from("property_filters")
-            .insert(filterRows);
+            error:
+              filterError
+          } =
+            await db
+              .from(
+                "property_filters"
+              )
+              .insert(
+                filterRows
+              );
 
           if (filterError) {
+
             throw filterError;
           }
 
@@ -1345,7 +2016,12 @@ propertyForm.addEventListener(
 
       }
 
-      editingPropertyId = null;
+      /*
+        پایان عملیات
+      */
+
+      editingPropertyId =
+        null;
 
       propertyForm.reset();
 
@@ -1364,7 +2040,24 @@ propertyForm.addEventListener(
         );
 
       if (cancelButton) {
+
         cancelButton.remove();
+
+      }
+
+      /*
+        حذف نمایش عکس‌های قبلی
+      */
+
+      const existingImagesBox =
+        document.getElementById(
+          "existingPropertyImages"
+        );
+
+      if (existingImagesBox) {
+
+        existingImagesBox.remove();
+
       }
 
       await loadProperties();
@@ -1375,8 +2068,10 @@ propertyForm.addEventListener(
 
       propertyMessage.textContent =
         "عملیات انجام نشد: " +
-        (error.message ||
-          "خطای نامشخص");
+        (
+          error.message ||
+          "خطای نامشخص"
+        );
 
       propertyMessage.style.color =
         "crimson";
@@ -1418,35 +2113,51 @@ async function uploadNewPropertyImages(
     );
 
   if (!files.length) {
+
     return;
   }
 
   const {
     data: existingImages,
     error: existingImagesError
-  } = await db
-    .from("property_images")
-    .select("sort_order")
-    .eq("property_id", propertyId)
-    .order("sort_order", {
-      ascending: false
-    })
-    .limit(1);
+  } =
+    await db
+      .from("property_images")
+      .select(
+        "sort_order"
+      )
+      .eq(
+        "property_id",
+        propertyId
+      )
+      .order(
+        "sort_order",
+        {
+          ascending: false
+        }
+      )
+      .limit(1);
 
   if (existingImagesError) {
+
     throw existingImagesError;
   }
 
-  let startOrder = 0;
+  let startOrder =
+    0;
 
   if (
     existingImages &&
     existingImages.length &&
-    existingImages[0].sort_order != null
+    existingImages[0]
+      .sort_order != null
   ) {
 
     startOrder =
-      Number(existingImages[0].sort_order) + 1;
+      Number(
+        existingImages[0]
+          .sort_order
+      ) + 1;
 
   }
 
@@ -1470,51 +2181,67 @@ async function uploadNewPropertyImages(
 
     const {
       error: uploadError
-    } = await db
-      .storage
-      .from("property-images")
-      .upload(
-        filePath,
-        file,
-        {
-          cacheControl: "31536000",
-          upsert: false
-        }
-      );
+    } =
+      await db
+        .storage
+        .from(
+          "property-images"
+        )
+        .upload(
+          filePath,
+          file,
+          {
+            cacheControl:
+              "31536000",
+
+            upsert:
+              false
+          }
+        );
 
     if (uploadError) {
+
       throw uploadError;
     }
 
     const {
-      data: publicUrlData
+      data:
+        publicUrlData
     } =
       db
         .storage
-        .from("property-images")
-        .getPublicUrl(filePath);
+        .from(
+          "property-images"
+        )
+        .getPublicUrl(
+          filePath
+        );
 
     const imageUrl =
       publicUrlData.publicUrl;
 
     const {
       error: imageError
-    } = await db
-      .from("property_images")
-      .insert({
+    } =
+      await db
+        .from(
+          "property_images"
+        )
+        .insert({
 
-        property_id:
-          propertyId,
+          property_id:
+            propertyId,
 
-        image_url:
-          imageUrl,
+          image_url:
+            imageUrl,
 
-        sort_order:
-          startOrder + index
+          sort_order:
+            startOrder + index
 
-      });
+        });
 
     if (imageError) {
+
       throw imageError;
     }
 
@@ -1532,25 +2259,26 @@ async function loadProperties() {
   const {
     data,
     error
-  } = await db
-    .from("properties")
-    .select(`
-      id,
-      title,
-      price,
-      monthly_rent,
-      deposit,
-      area,
-      is_active,
-      created_at,
-      categories(title)
-    `)
-    .order(
-      "created_at",
-      {
-        ascending: false
-      }
-    );
+  } =
+    await db
+      .from("properties")
+      .select(`
+        id,
+        title,
+        price,
+        monthly_rent,
+        deposit,
+        area,
+        is_active,
+        created_at,
+        categories(title)
+      `)
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
 
   if (error) {
 
@@ -1562,7 +2290,10 @@ async function loadProperties() {
     return;
   }
 
-  if (!data || !data.length) {
+  if (
+    !data ||
+    !data.length
+  ) {
 
     adminProperties.innerHTML =
       `<p>هنوز ملکی ثبت نشده است.</p>`;
@@ -1571,104 +2302,116 @@ async function loadProperties() {
   }
 
   adminProperties.innerHTML =
-    data.map(property => `
+    data.map(
+      property => `
 
-      <div
-        class="property-card"
-        style="margin-top:15px;">
+        <div
+          class="property-card"
+          style="margin-top:15px;"
+        >
 
-        <div class="property-content">
+          <div class="property-content">
 
-          <h3>
-            ${escapeHtml(
-              property.title
-            )}
-          </h3>
-
-          <div class="property-meta">
-
-            <span>
+            <h3>
               ${escapeHtml(
-                property.categories?.title || ""
+                property.title
               )}
-            </span>
+            </h3>
 
-            ${
-              property.area
-                ? `<span>
-                    ${property.area} متر
-                   </span>`
-                : ""
-            }
+            <div class="property-meta">
 
-            ${
-              property.price
-                ? `<span>
-                    ${Number(
-                      property.price
-                    ).toLocaleString(
-                      "fa-IR"
-                    )}
-                    تومان
-                   </span>`
-                : ""
-            }
-
-          </div>
-
-          <div style="margin-top:15px;">
-
-            <button
-              type="button"
-              class="category-btn"
-              onclick="
-                editProperty(
-                  '${property.id}'
-                )
-              ">
-
-              ویرایش
-
-            </button>
-
-            <button
-              type="button"
-              class="category-btn"
-              onclick="
-                toggleProperty(
-                  '${property.id}',
-                  ${property.is_active}
-                )
-              ">
+              <span>
+                ${escapeHtml(
+                  property.categories?.title ||
+                  ""
+                )}
+              </span>
 
               ${
-                property.is_active
-                  ? "غیرفعال کردن"
-                  : "فعال کردن"
+                property.area
+                  ? `
+                    <span>
+                      ${property.area}
+                      متر
+                    </span>
+                  `
+                  : ""
               }
 
-            </button>
+              ${
+                property.price
+                  ? `
+                    <span>
+                      ${
+                        Number(
+                          property.price
+                        ).toLocaleString(
+                          "fa-IR"
+                        )
+                      }
+                      تومان
+                    </span>
+                  `
+                  : ""
+              }
 
-            <button
-              type="button"
-              class="category-btn"
-              onclick="
-                deleteProperty(
-                  '${property.id}'
-                )
-              ">
+            </div>
 
-              حذف
+            <div
+              style="margin-top:15px;"
+            >
 
-            </button>
+              <button
+                type="button"
+                class="category-btn"
+                onclick="
+                  editProperty(
+                    '${property.id}'
+                  )
+                "
+              >
+                ویرایش
+              </button>
+
+              <button
+                type="button"
+                class="category-btn"
+                onclick="
+                  toggleProperty(
+                    '${property.id}',
+                    ${property.is_active}
+                  )
+                "
+              >
+
+                ${
+                  property.is_active
+                    ? "غیرفعال کردن"
+                    : "فعال کردن"
+                }
+
+              </button>
+
+              <button
+                type="button"
+                class="category-btn"
+                onclick="
+                  deleteProperty(
+                    '${property.id}'
+                  )
+                "
+              >
+                حذف
+              </button>
+
+            </div>
 
           </div>
 
         </div>
 
-      </div>
-
-    `).join("");
+      `
+    ).join("");
 
 }
 
@@ -1684,13 +2427,17 @@ async function toggleProperty(
 
   const {
     error
-  } = await db
-    .from("properties")
-    .update({
-      is_active:
-        !currentStatus
-    })
-    .eq("id", id);
+  } =
+    await db
+      .from("properties")
+      .update({
+        is_active:
+          !currentStatus
+      })
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -1712,7 +2459,9 @@ async function toggleProperty(
    DELETE PROPERTY
 ========================= */
 
-async function deleteProperty(id) {
+async function deleteProperty(
+  id
+) {
 
   const confirmed =
     confirm(
@@ -1720,15 +2469,20 @@ async function deleteProperty(id) {
     );
 
   if (!confirmed) {
+
     return;
   }
 
   const {
     error
-  } = await db
-    .from("properties")
-    .delete()
-    .eq("id", id);
+  } =
+    await db
+      .from("properties")
+      .delete()
+      .eq(
+        "id",
+        id
+      );
 
   if (error) {
 
@@ -1741,8 +2495,12 @@ async function deleteProperty(id) {
     return;
   }
 
-  if (editingPropertyId === id) {
+  if (
+    editingPropertyId === id
+  ) {
+
     cancelEditProperty();
+
   }
 
   await loadProperties();
@@ -1759,11 +2517,12 @@ async function loadSettings() {
   const {
     data,
     error
-  } = await db
-    .from("site_settings")
-    .select(
-      "setting_key, setting_value"
-    );
+  } =
+    await db
+      .from("site_settings")
+      .select(
+        "setting_key, setting_value"
+      );
 
   if (error) {
 
@@ -1774,69 +2533,85 @@ async function loadSettings() {
 
   const settings = {};
 
-  (data || []).forEach(item => {
+  (
+    data || []
+  ).forEach(
+    item => {
 
-    settings[
-      item.setting_key
-    ] =
-      item.setting_value || "";
+      settings[
+        item.setting_key
+      ] =
+        item.setting_value ||
+        "";
 
-  });
+    }
+  );
 
   document.getElementById(
     "settingSiteName"
   ).value =
-    settings.site_name || "";
+    settings.site_name ||
+    "";
 
   document.getElementById(
     "settingSiteNameEn"
   ).value =
-    settings.site_name_en || "";
+    settings.site_name_en ||
+    "";
 
   document.getElementById(
     "settingFooterSlogan"
   ).value =
-    settings.footer_slogan || "";
+    settings.footer_slogan ||
+    "";
 
   document.getElementById(
     "settingAboutText"
   ).value =
-    settings.about_text || "";
+    settings.about_text ||
+    "";
 
   document.getElementById(
     "settingPhone1"
   ).value =
-    settings.contact_phone_1 || "";
+    settings.contact_phone_1 ||
+    "";
 
   document.getElementById(
     "settingPhone2"
   ).value =
-    settings.contact_phone_2 || "";
+    settings.contact_phone_2 ||
+    "";
 
   document.getElementById(
     "settingPhone3"
   ).value =
-    settings.contact_phone_3 || "";
+    settings.contact_phone_3 ||
+    "";
 
   document.getElementById(
     "settingInstagram"
   ).value =
-    settings.instagram_url || "";
+    settings.instagram_url ||
+    "";
 
   document.getElementById(
     "settingWhatsapp"
   ).value =
-    settings.whatsapp_url || "";
+    settings.whatsapp_url ||
+    "";
 
   document.getElementById(
     "settingHero"
   ).value =
-    settings.hero_image_url || "";
+    settings.hero_image_url ||
+    "";
 
   document.getElementById(
     "settingLogo"
   ).value =
-    settings.logo_url || "";
+    settings.logo_url ||
+    "";
 
 }
 
@@ -1916,26 +2691,38 @@ settingsForm.addEventListener(
     try {
 
       for (
-        const [key, value]
-        of Object.entries(settings)
+        const [
+          key,
+          value
+        ]
+        of Object.entries(
+          settings
+        )
       ) {
 
         const {
           error
-        } = await db
-          .from("site_settings")
-          .upsert(
-            {
-              setting_key: key,
-              setting_value: value
-            },
-            {
-              onConflict:
-                "setting_key"
-            }
-          );
+        } =
+          await db
+            .from(
+              "site_settings"
+            )
+            .upsert(
+              {
+                setting_key:
+                  key,
+
+                setting_value:
+                  value
+              },
+              {
+                onConflict:
+                  "setting_key"
+              }
+            );
 
         if (error) {
+
           throw error;
         }
 
@@ -1953,8 +2740,10 @@ settingsForm.addEventListener(
 
       settingsMessage.textContent =
         "ذخیره تنظیمات انجام نشد: " +
-        (error.message ||
-          "خطای نامشخص");
+        (
+          error.message ||
+          "خطای نامشخص"
+        );
 
       settingsMessage.style.color =
         "crimson";
@@ -1969,14 +2758,33 @@ settingsForm.addEventListener(
    ESCAPE HTML
 ========================= */
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 
 }
 
