@@ -1,6 +1,7 @@
+
 "use strict";
 
-const { createClient } = supabase;
+const { createClient } = window.supabase;
 
 const db = createClient(
   window.SUPABASE_URL,
@@ -29,6 +30,11 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function getErrorMessage(error) {
+  if (!error) return "خطای نامشخص";
+  return error.message || error.error_description || String(error);
+}
+
 function setMessage(id, message, isError = false) {
   const element = $(id);
   if (!element) return;
@@ -38,23 +44,43 @@ function setMessage(id, message, isError = false) {
   element.style.whiteSpace = "pre-wrap";
 }
 
-function getErrorMessage(error) {
-  if (!error) return "خطای نامشخص";
-  return error.message || error.error_description || String(error);
+function setAuthMessage(message, isError = false) {
+  setMessage("authStatus", message, isError);
 }
 
+/* -----------------------------
+   نمایش فرم ورود و پنل
+----------------------------- */
+
 function showLogin() {
-  if ($("loginSection")) $("loginSection").style.display = "";
-  if ($("adminPanel")) $("adminPanel").style.display = "none";
+  const login = $("loginSection");
+  const panel = $("adminPanel");
+
+  // نمایش صریح فرم ورود، حتی اگر CSS آن را مخفی کرده باشد
+  if (login) {
+    login.style.display = "block";
+    login.hidden = false;
+  }
+
+  if (panel) {
+    panel.style.display = "none";
+    panel.hidden = true;
+  }
 }
 
 function showAdmin() {
-  if ($("loginSection")) $("loginSection").style.display = "none";
-  if ($("adminPanel")) $("adminPanel").style.display = "";
-}
+  const login = $("loginSection");
+  const panel = $("adminPanel");
 
-function setAuthMessage(message, isError = false) {
-  setMessage("authStatus", message, isError);
+  if (login) {
+    login.style.display = "none";
+    login.hidden = true;
+  }
+
+  if (panel) {
+    panel.style.display = "block";
+    panel.hidden = false;
+  }
 }
 
 async function getValidSession() {
@@ -68,6 +94,10 @@ async function getValidSession() {
 
   return data.session;
 }
+
+/* -----------------------------
+   بررسی مدیر و ورود
+----------------------------- */
 
 async function checkAdmin() {
   try {
@@ -84,7 +114,7 @@ async function checkAdmin() {
     if (!data) {
       showLogin();
       setAuthMessage(
-        "این حساب در فهرست مدیران سایت نیست.",
+        "این حساب در فهرست مدیران سایت نیست. حساب مدیر را بررسی کن.",
         true
       );
       return false;
@@ -99,10 +129,13 @@ async function checkAdmin() {
 
     setAuthMessage("ورود موفق بود.");
 
+    // خطای بارگذاری اطلاعات نباید فرم و پنل را هر دو مخفی کند
     await loadAdminData();
+
     return true;
   } catch (error) {
     console.error("checkAdmin:", error);
+
     showLogin();
 
     if (error.message !== "ابتدا وارد حساب مدیر شو.") {
@@ -131,6 +164,8 @@ async function login(event) {
     'button[type="submit"]'
   );
 
+  const originalText = button?.textContent;
+
   if (button) {
     button.disabled = true;
     button.textContent = "در حال ورود...";
@@ -150,9 +185,11 @@ async function login(event) {
 
     if (!success) {
       await db.auth.signOut();
+      showLogin();
     }
   } catch (error) {
     console.error("login:", error);
+
     showLogin();
 
     setAuthMessage(
@@ -162,7 +199,7 @@ async function login(event) {
   } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = "ورود به پنل";
+      button.textContent = originalText || "ورود به پنل";
     }
   }
 }
@@ -174,26 +211,47 @@ async function logout() {
 
     showLogin();
 
-    if ($("loginPassword")) $("loginPassword").value = "";
+    if ($("loginPassword")) {
+      $("loginPassword").value = "";
+    }
 
     setAuthMessage("از حساب خارج شدی.");
   } catch (error) {
     console.error("logout:", error);
-    setAuthMessage(
+
+    setMessage(
+      "authStatus",
       "خطا در خروج: " + getErrorMessage(error),
       true
     );
   }
 }
 
+/* -----------------------------
+   بارگذاری اطلاعات پنل
+----------------------------- */
+
 async function loadAdminData() {
-  await Promise.allSettled([
-    loadCategories(),
-    loadNeighborhoods(),
-    loadFilterOptions(),
-    loadProperties(),
-    loadSiteSettings()
-  ]);
+  const tasks = [
+    ["دسته‌بندی‌ها", loadCategories],
+    ["محله‌ها", loadNeighborhoods],
+    ["گزینه‌های تکمیلی", loadFilterOptions],
+    ["فایل‌های ملکی", loadProperties],
+    ["تنظیمات سایت", loadSiteSettings]
+  ];
+
+  const results = await Promise.allSettled(
+    tasks.map(([, task]) => task())
+  );
+
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      console.error(
+        "خطا در بارگذاری " + tasks[index][0],
+        result.reason
+      );
+    }
+  });
 }
 
 /* -----------------------------
@@ -227,13 +285,13 @@ async function loadCategories() {
     if (currentValue) select.value = currentValue;
 
     updateFrontageBox();
+    renderFilterOptions(filterOptionsCache);
   } catch (error) {
     console.error("loadCategories:", error);
 
     setMessage(
       "propertyMessage",
-      "خطا در دریافت دسته‌بندی‌ها: " +
-        getErrorMessage(error),
+      "خطا در دریافت دسته‌بندی‌ها: " + getErrorMessage(error),
       true
     );
   }
@@ -250,7 +308,7 @@ function updateFrontageBox() {
 
   const isShop = selectedText.includes("مغازه");
 
-  box.style.display = isShop ? "" : "none";
+  box.style.display = isShop ? "block" : "none";
 
   if (!isShop && $("frontageType")) {
     $("frontageType").value = "";
@@ -277,8 +335,7 @@ async function loadNeighborhoods() {
 
     setMessage(
       "neighborhoodMessage",
-      "خطا در دریافت محله‌ها: " +
-        getErrorMessage(error),
+      "خطا در دریافت محله‌ها: " + getErrorMessage(error),
       true
     );
   }
@@ -352,11 +409,7 @@ async function addNeighborhood(event) {
   const name = input?.value.trim();
 
   if (!name) {
-    setMessage(
-      "neighborhoodMessage",
-      "نام محله را وارد کن.",
-      true
-    );
+    setMessage("neighborhoodMessage", "نام محله را وارد کن.", true);
     return;
   }
 
@@ -371,7 +424,6 @@ async function addNeighborhood(event) {
     if (input) input.value = "";
 
     setMessage("neighborhoodMessage", "محله اضافه شد.");
-
     await loadNeighborhoods();
   } catch (error) {
     console.error("addNeighborhood:", error);
@@ -393,14 +445,14 @@ async function toggleNeighborhood(id, isActive) {
 
     if (error) throw error;
 
+    setMessage("neighborhoodMessage", "وضعیت محله تغییر کرد.");
     await loadNeighborhoods();
   } catch (error) {
     console.error("toggleNeighborhood:", error);
 
     setMessage(
       "neighborhoodMessage",
-      "خطا در تغییر وضعیت محله: " +
-        getErrorMessage(error),
+      "خطا در تغییر وضعیت محله: " + getErrorMessage(error),
       true
     );
   }
@@ -418,7 +470,6 @@ async function deleteNeighborhood(id) {
     if (error) throw error;
 
     setMessage("neighborhoodMessage", "محله حذف شد.");
-
     await loadNeighborhoods();
   } catch (error) {
     console.error("deleteNeighborhood:", error);
@@ -432,7 +483,7 @@ async function deleteNeighborhood(id) {
 }
 
 /* -----------------------------
-   فیلترهای ملک
+   فیلترهای تکمیلی ملک
 ----------------------------- */
 
 async function loadFilterOptions() {
@@ -453,8 +504,7 @@ async function loadFilterOptions() {
 
     if (container) {
       container.textContent =
-        "خطا در دریافت گزینه‌ها: " +
-        getErrorMessage(error);
+        "خطا در دریافت گزینه‌ها: " + getErrorMessage(error);
     }
   }
 }
@@ -463,17 +513,8 @@ function renderFilterOptions(options, selectedIds = []) {
   const container = $("propertyFilters");
   if (!container) return;
 
-  const activeOptions = options.filter(
+  const activeOptions = (options || []).filter(
     (item) => item.is_active !== false
-  );
-
-  if (!activeOptions.length) {
-    container.innerHTML = "";
-    return;
-  }
-
-  const selectedSet = new Set(
-    selectedIds.map(String)
   );
 
   const categoryId = $("category")?.value;
@@ -483,6 +524,13 @@ function renderFilterOptions(options, selectedIds = []) {
       !categoryId ||
       String(item.category_id) === String(categoryId);
   });
+
+  if (!relevantOptions.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const selectedSet = new Set(selectedIds.map(String));
 
   container.innerHTML = `
     <div class="admin-filter-options">
@@ -496,7 +544,7 @@ function renderFilterOptions(options, selectedIds = []) {
             value="${escapeHtml(item.id)}"
             ${selectedSet.has(String(item.id)) ? "checked" : ""}
           >
-          ${escapeHtml(item.label || item.value)}
+          ${escapeHtml(item.label || item.value || "")}
         </label>
       `).join("")}
     </div>
@@ -546,9 +594,7 @@ function setSelectedValues(id, values) {
   const select = $(id);
   if (!select) return;
 
-  const selectedSet = new Set(
-    (values || []).map(String)
-  );
+  const selectedSet = new Set((values || []).map(String));
 
   Array.from(select.options).forEach((option) => {
     option.selected = selectedSet.has(String(option.value));
@@ -559,13 +605,8 @@ function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
 
-  if (!title) {
-    throw new Error("عنوان ملک را وارد کن.");
-  }
-
-  if (!categoryId) {
-    throw new Error("دسته‌بندی ملک را انتخاب کن.");
-  }
+  if (!title) throw new Error("عنوان ملک را وارد کن.");
+  if (!categoryId) throw new Error("دسته‌بندی ملک را انتخاب کن.");
 
   const numericValue = (id) => {
     const value = getInputValue(id).trim();
@@ -602,20 +643,39 @@ function getPropertyPayload() {
 }
 
 /* -----------------------------
-   نمایش و ویرایش تصاویر قبلی
+   تصاویر قبلی ملک
 ----------------------------- */
+
+function ensureExistingImagesContainer() {
+  let container = $("existingPropertyImages");
+
+  if (container) return container;
+
+  const form = $("propertyForm");
+  if (!form) return null;
+
+  container = document.createElement("div");
+  container.id = "existingPropertyImages";
+  container.className = "admin-existing-images";
+
+  const fileInput = $("propertyImages");
+
+  if (fileInput?.parentElement) {
+    fileInput.parentElement.insertAdjacentElement("afterend", container);
+  } else {
+    form.appendChild(container);
+  }
+
+  return container;
+}
 
 function getStoragePathFromPublicUrl(url) {
   try {
     const parsed = new URL(url);
-
     const marker =
-      "/storage/v1/object/public/" +
-      BUCKET_NAME +
-      "/";
+      "/storage/v1/object/public/" + BUCKET_NAME + "/";
 
     const index = parsed.pathname.indexOf(marker);
-
     if (index === -1) return null;
 
     return decodeURIComponent(
@@ -627,7 +687,7 @@ function getStoragePathFromPublicUrl(url) {
 }
 
 async function loadExistingPropertyImages(propertyId) {
-  const container = $("existingPropertyImages");
+  const container = ensureExistingImagesContainer();
   if (!container) return;
 
   container.innerHTML = "<p>در حال دریافت تصاویر قبلی...</p>";
@@ -701,7 +761,6 @@ async function deleteExistingPropertyImage(imageId) {
     }
 
     await loadExistingPropertyImages(image.property_id);
-
     setMessage("propertyMessage", "تصویر حذف شد.");
   } catch (error) {
     console.error("deleteExistingPropertyImage:", error);
@@ -719,17 +778,11 @@ async function deleteExistingPropertyImage(imageId) {
 ----------------------------- */
 
 function loadTusLibrary() {
-  if (window.tus?.Upload) {
-    return Promise.resolve(window.tus);
-  }
-
-  if (tusLibraryPromise) {
-    return tusLibraryPromise;
-  }
+  if (window.tus?.Upload) return Promise.resolve(window.tus);
+  if (tusLibraryPromise) return tusLibraryPromise;
 
   tusLibraryPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-
     script.src = TUS_SCRIPT_URL;
     script.async = true;
 
@@ -744,12 +797,7 @@ function loadTusLibrary() {
 
     script.onerror = () => {
       tusLibraryPromise = null;
-
-      reject(
-        new Error(
-          "کتابخانه آپلود دریافت نشد. اتصال اینترنت را بررسی کن."
-        )
-      );
+      reject(new Error("کتابخانه آپلود دریافت نشد. اینترنت را بررسی کن."));
     };
 
     document.head.appendChild(script);
@@ -770,9 +818,7 @@ function getProjectRef() {
     return parts[0];
   }
 
-  throw new Error(
-    "آدرس پروژه Supabase قابل شناسایی نیست."
-  );
+  throw new Error("آدرس پروژه Supabase قابل شناسایی نیست.");
 }
 
 function makeUniqueFileName(file) {
@@ -784,7 +830,6 @@ function makeUniqueFileName(file) {
 
   const originalName = file.name || "";
   const dotIndex = originalName.lastIndexOf(".");
-
   let extension = "bin";
 
   if (dotIndex >= 0 && dotIndex < originalName.length - 1) {
@@ -810,15 +855,7 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
 
       const upload = new tus.Upload(file, {
         endpoint,
-
-        retryDelays: [
-          0,
-          3000,
-          5000,
-          10000,
-          20000,
-          30000
-        ],
+        retryDelays: [0, 3000, 5000, 10000, 20000, 30000],
 
         headers: {
           authorization: `Bearer ${session.access_token}`,
@@ -840,12 +877,9 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
           if (settled) return;
           settled = true;
 
-          reject(
-            new Error(
-              `آپلود «${file.name}» ناموفق بود: ` +
-              getErrorMessage(error)
-            )
-          );
+          reject(new Error(
+            `آپلود «${file.name}» ناموفق بود: ${getErrorMessage(error)}`
+          ));
         },
 
         onProgress(bytesUploaded, bytesTotal) {
@@ -879,9 +913,7 @@ function getSelectedFiles() {
 async function uploadNewPropertyImages(propertyId) {
   const files = getSelectedFiles();
 
-  if (!files.length) {
-    return { uploaded: 0, failed: 0 };
-  }
+  if (!files.length) return { uploaded: 0, failed: 0 };
 
   const { data: existing, error: existingError } = await db
     .from("property_images")
@@ -897,14 +929,12 @@ async function uploadNewPropertyImages(propertyId) {
     : 0;
 
   const session = await getValidSession();
-
   let uploaded = 0;
   const errors = [];
 
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
-    const filePath =
-      `${propertyId}/${makeUniqueFileName(file)}`;
+    const filePath = `${propertyId}/${makeUniqueFileName(file)}`;
 
     try {
       setMessage(
@@ -912,17 +942,12 @@ async function uploadNewPropertyImages(propertyId) {
         `در حال آپلود تصویر ${index + 1} از ${files.length}: ${file.name}`
       );
 
-      await uploadFileWithTus(
-        file,
-        filePath,
-        session,
-        (percent) => {
-          setMessage(
-            "propertyMessage",
-            `تصویر ${index + 1} از ${files.length}: ${percent}%`
-          );
-        }
-      );
+      await uploadFileWithTus(file, filePath, session, (percent) => {
+        setMessage(
+          "propertyMessage",
+          `تصویر ${index + 1} از ${files.length}: ${percent}%`
+        );
+      });
 
       const { data: urlData } = db.storage
         .from(BUCKET_NAME)
@@ -931,9 +956,7 @@ async function uploadNewPropertyImages(propertyId) {
       const imageUrl = urlData?.publicUrl;
 
       if (!imageUrl) {
-        errors.push(
-          `${file.name}: آپلود شد اما نشانی تصویر ساخته نشد. مسیر: ${filePath}`
-        );
+        errors.push(`${file.name}: نشانی تصویر ساخته نشد. مسیر: ${filePath}`);
         continue;
       }
 
@@ -947,34 +970,23 @@ async function uploadNewPropertyImages(propertyId) {
 
       if (insertError) {
         errors.push(
-          `${file.name}: فایل در Storage قرار گرفت، اما ثبت آن در دیتابیس ناموفق بود. مسیر: ${filePath}. خطا: ${getErrorMessage(insertError)}`
+          `${file.name}: فایل آپلود شد اما ثبت در دیتابیس ناموفق بود. ` +
+          `مسیر: ${filePath}. خطا: ${getErrorMessage(insertError)}`
         );
-
-        console.error("Image database insert failed:", {
-          filePath,
-          error: insertError
-        });
-
+        console.error("Image database insert failed:", insertError);
         continue;
       }
 
       uploaded++;
     } catch (error) {
-      errors.push(
-        `${file.name}: ${getErrorMessage(error)}`
-      );
-
-      console.error("Image upload failed:", {
-        filePath,
-        error
-      });
+      errors.push(`${file.name}: ${getErrorMessage(error)}`);
+      console.error("Image upload failed:", error);
     }
   }
 
   if (errors.length) {
     throw new Error(
-      `تعداد تصاویر ثبت‌شده: ${uploaded}\n` +
-      errors.join("\n")
+      `تعداد تصاویر ثبت‌شده: ${uploaded}\n${errors.join("\n")}`
     );
   }
 
@@ -982,7 +994,7 @@ async function uploadNewPropertyImages(propertyId) {
 }
 
 /* -----------------------------
-   ذخیره و ثبت ملک
+   ثبت و ویرایش ملک
 ----------------------------- */
 
 async function saveProperty(event) {
@@ -1021,7 +1033,6 @@ async function saveProperty(event) {
         .single();
 
       if (error) throw error;
-
       propertyId = data.id;
     }
 
@@ -1030,9 +1041,7 @@ async function saveProperty(event) {
       .delete()
       .eq("property_id", propertyId);
 
-    if (deleteNeighborhoodsError) {
-      throw deleteNeighborhoodsError;
-    }
+    if (deleteNeighborhoodsError) throw deleteNeighborhoodsError;
 
     if (neighborhoodIds.length) {
       const rows = neighborhoodIds.map((neighborhoodId) => ({
@@ -1067,8 +1076,7 @@ async function saveProperty(event) {
       if (error) throw error;
     }
 
-    const uploadResult =
-      await uploadNewPropertyImages(propertyId);
+    const uploadResult = await uploadNewPropertyImages(propertyId);
 
     resetPropertyForm();
 
@@ -1106,17 +1114,15 @@ function resetPropertyForm() {
     $("submitPropertyButton").textContent = "ثبت فایل ملک";
   }
 
-  const container = $("existingPropertyImages");
+  const container = ensureExistingImagesContainer();
   if (container) container.innerHTML = "";
 
-  const filterContainer = $("propertyFilters");
-  if (filterContainer) {
-    renderFilterOptions(filterOptionsCache);
-  }
+  renderFilterOptions(filterOptionsCache);
 
   const cancelButton = $("cancelEditButton");
   if (cancelButton) cancelButton.style.display = "none";
 
+  updateFrontageBox();
   setMessage("propertyMessage", "");
 }
 
@@ -1126,7 +1132,6 @@ function ensureCancelEditButton() {
   if (!form || $("cancelEditButton")) return;
 
   const button = document.createElement("button");
-
   button.type = "button";
   button.id = "cancelEditButton";
   button.className = "category-btn";
@@ -1134,7 +1139,6 @@ function ensureCancelEditButton() {
   button.style.display = "none";
 
   button.addEventListener("click", resetPropertyForm);
-
   form.appendChild(button);
 }
 
@@ -1243,9 +1247,7 @@ async function editProperty(id) {
 
     setSelectedValues(
       "neighborhood",
-      (neighborhoodRows || []).map(
-        (item) => item.neighborhood_id
-      )
+      (neighborhoodRows || []).map((item) => item.neighborhood_id)
     );
 
     const { data: filterRows, error: filterError } = await db
@@ -1263,7 +1265,7 @@ async function editProperty(id) {
     ensureCancelEditButton();
 
     if ($("cancelEditButton")) {
-      $("cancelEditButton").style.display = "";
+      $("cancelEditButton").style.display = "block";
     }
 
     if ($("submitPropertyButton")) {
@@ -1306,9 +1308,7 @@ async function toggleProperty(id, isActive) {
 }
 
 async function deleteProperty(id) {
-  if (!confirm("این ملک حذف شود؟ این کار قابل بازگشت نیست.")) {
-    return;
-  }
+  if (!confirm("این ملک حذف شود؟ این کار قابل بازگشت نیست.")) return;
 
   try {
     const { data: images, error: imagesError } = await db
@@ -1353,11 +1353,9 @@ async function deleteProperty(id) {
     if (error) throw error;
 
     setMessage("propertyMessage", "ملک حذف شد.");
-
     await loadProperties();
   } catch (error) {
     console.error("deleteProperty:", error);
-
     alert("خطا در حذف ملک: " + getErrorMessage(error));
   }
 }
@@ -1419,10 +1417,7 @@ async function saveSiteSettings(event) {
 
       const { error } = await db
         .from("site_settings")
-        .upsert(
-          { key, value },
-          { onConflict: "key" }
-        );
+        .upsert({ key, value }, { onConflict: "key" });
 
       if (error) throw error;
     }
@@ -1447,9 +1442,7 @@ function setupAdminEvents() {
   ensureCancelEditButton();
 
   $("loginForm")?.addEventListener("submit", login);
-
   $("logoutButton")?.addEventListener("click", logout);
-
   $("propertyForm")?.addEventListener("submit", saveProperty);
 
   $("category")?.addEventListener("change", () => {
@@ -1457,15 +1450,8 @@ function setupAdminEvents() {
     renderFilterOptions(filterOptionsCache);
   });
 
-  $("neighborhoodForm")?.addEventListener(
-    "submit",
-    addNeighborhood
-  );
-
-  $("settingsForm")?.addEventListener(
-    "submit",
-    saveSiteSettings
-  );
+  $("neighborhoodForm")?.addEventListener("submit", addNeighborhood);
+  $("settingsForm")?.addEventListener("submit", saveSiteSettings);
 
   $("adminNeighborhoods")?.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
@@ -1501,34 +1487,47 @@ function setupAdminEvents() {
     }
   });
 
-  $("existingPropertyImages")?.addEventListener("click", (event) => {
+  ensureExistingImagesContainer()?.addEventListener("click", (event) => {
     const button = event.target.closest(
       'button[data-action="delete-property-image"]'
     );
 
-    if (!button) return;
-
-    deleteExistingPropertyImage(button.dataset.id);
+    if (button) deleteExistingPropertyImage(button.dataset.id);
   });
 }
 
+/* -----------------------------
+   شروع صفحه
+----------------------------- */
+
 document.addEventListener("DOMContentLoaded", async () => {
-  setupAdminEvents();
+  // ابتدا فرم ورود را نمایش بده تا هیچ‌وقت هر دو بخش مخفی نمانند
+  showLogin();
+  setAuthMessage("در حال بررسی وضعیت ورود...");
 
   if (
     !window.SUPABASE_URL ||
     !window.SUPABASE_ANON_KEY ||
     !window.supabase
   ) {
-    showLogin();
-
     setAuthMessage(
       "تنظیمات Supabase بارگذاری نشده است. فایل supabase-config.js را بررسی کن.",
       true
     );
-
     return;
   }
 
-  await checkAdmin();
+  setupAdminEvents();
+
+  try {
+    await checkAdmin();
+  } catch (error) {
+    console.error("راه‌اندازی پنل:", error);
+    showLogin();
+
+    setAuthMessage(
+      "خطا در راه‌اندازی پنل: " + getErrorMessage(error),
+      true
+    );
+  }
 });
