@@ -1,4 +1,3 @@
-
 "use strict";
 
 const { createClient } = window.supabase;
@@ -56,7 +55,6 @@ function showLogin() {
   const login = $("loginSection");
   const panel = $("adminPanel");
 
-  // نمایش صریح فرم ورود، حتی اگر CSS آن را مخفی کرده باشد
   if (login) {
     login.style.display = "block";
     login.hidden = false;
@@ -113,10 +111,12 @@ async function checkAdmin() {
 
     if (!data) {
       showLogin();
+
       setAuthMessage(
         "این حساب در فهرست مدیران سایت نیست. حساب مدیر را بررسی کن.",
         true
       );
+
       return false;
     }
 
@@ -129,7 +129,6 @@ async function checkAdmin() {
 
     setAuthMessage("ورود موفق بود.");
 
-    // خطای بارگذاری اطلاعات نباید فرم و پنل را هر دو مخفی کند
     await loadAdminData();
 
     return true;
@@ -256,6 +255,7 @@ async function loadAdminData() {
 
 /* -----------------------------
    دسته‌بندی‌ها
+   ستون نام دسته‌بندی: title
 ----------------------------- */
 
 async function loadCategories() {
@@ -263,7 +263,7 @@ async function loadCategories() {
     const { data, error } = await db
       .from("categories")
       .select("*")
-      .order("id");
+      .order("sort_order", { ascending: true });
 
     if (error) throw error;
 
@@ -275,14 +275,18 @@ async function loadCategories() {
     select.innerHTML =
       '<option value="">انتخاب دسته‌بندی</option>';
 
-    (data || []).forEach((category) => {
-      const option = document.createElement("option");
-      option.value = category.id;
-      option.textContent = category.name;
-      select.appendChild(option);
-    });
+    (data || [])
+      .filter((category) => category.is_active !== false)
+      .forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.title;
+        select.appendChild(option);
+      });
 
-    if (currentValue) select.value = currentValue;
+    if (currentValue) {
+      select.value = currentValue;
+    }
 
     updateFrontageBox();
     renderFilterOptions(filterOptionsCache);
@@ -324,7 +328,7 @@ async function loadNeighborhoods() {
     const { data, error } = await db
       .from("neighborhoods")
       .select("*")
-      .order("name");
+      .order("name", { ascending: true });
 
     if (error) throw error;
 
@@ -356,15 +360,18 @@ function renderNeighborhoodList(neighborhoods) {
     return `
       <div class="admin-item">
         <span>${escapeHtml(item.name)}</span>
+
         <span>
-          <button type="button"
+          <button
+            type="button"
             data-action="toggle-neighborhood"
             data-id="${escapeHtml(item.id)}"
             data-active="${String(!active)}">
             ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
           </button>
 
-          <button type="button"
+          <button
+            type="button"
             data-action="delete-neighborhood"
             data-id="${escapeHtml(item.id)}">
             حذف
@@ -409,15 +416,21 @@ async function addNeighborhood(event) {
   const name = input?.value.trim();
 
   if (!name) {
-    setMessage("neighborhoodMessage", "نام محله را وارد کن.", true);
+    setMessage(
+      "neighborhoodMessage",
+      "نام محله را وارد کن.",
+      true
+    );
     return;
   }
 
   try {
-    const { error } = await db.from("neighborhoods").insert({
-      name,
-      is_active: true
-    });
+    const { error } = await db
+      .from("neighborhoods")
+      .insert({
+        name,
+        is_active: true
+      });
 
     if (error) throw error;
 
@@ -445,7 +458,11 @@ async function toggleNeighborhood(id, isActive) {
 
     if (error) throw error;
 
-    setMessage("neighborhoodMessage", "وضعیت محله تغییر کرد.");
+    setMessage(
+      "neighborhoodMessage",
+      "وضعیت محله تغییر کرد."
+    );
+
     await loadNeighborhoods();
   } catch (error) {
     console.error("toggleNeighborhood:", error);
@@ -483,7 +500,8 @@ async function deleteNeighborhood(id) {
 }
 
 /* -----------------------------
-   فیلترهای تکمیلی ملک
+   گزینه‌های تکمیلی ملک
+   ستون عنوان گزینه: title
 ----------------------------- */
 
 async function loadFilterOptions() {
@@ -491,7 +509,7 @@ async function loadFilterOptions() {
     const { data, error } = await db
       .from("filter_options")
       .select("*")
-      .order("sort_order");
+      .order("created_at", { ascending: true });
 
     if (error) throw error;
 
@@ -520,9 +538,11 @@ function renderFilterOptions(options, selectedIds = []) {
   const categoryId = $("category")?.value;
 
   const relevantOptions = activeOptions.filter((item) => {
-    return !item.category_id ||
+    return (
+      !item.category_id ||
       !categoryId ||
-      String(item.category_id) === String(categoryId);
+      String(item.category_id) === String(categoryId)
+    );
   });
 
   if (!relevantOptions.length) {
@@ -544,7 +564,7 @@ function renderFilterOptions(options, selectedIds = []) {
             value="${escapeHtml(item.id)}"
             ${selectedSet.has(String(item.id)) ? "checked" : ""}
           >
-          ${escapeHtml(item.label || item.value || "")}
+          ${escapeHtml(item.title || "")}
         </label>
       `).join("")}
     </div>
@@ -605,8 +625,13 @@ function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
 
-  if (!title) throw new Error("عنوان ملک را وارد کن.");
-  if (!categoryId) throw new Error("دسته‌بندی ملک را انتخاب کن.");
+  if (!title) {
+    throw new Error("عنوان ملک را وارد کن.");
+  }
+
+  if (!categoryId) {
+    throw new Error("دسته‌بندی ملک را انتخاب کن.");
+  }
 
   const numericValue = (id) => {
     const value = getInputValue(id).trim();
@@ -632,7 +657,10 @@ function getPropertyPayload() {
     area: numericValue("area"),
     bedrooms: numericValue("bedrooms"),
     floor: numericValue("floor"),
-    location: getInputValue("location").trim() || null,
+
+    // در جدول properties نام ستون موقعیت location_text است
+    location_text: getInputValue("location").trim() || null,
+
     address: getInputValue("address").trim() || null,
     parking: getChecked("parking"),
     elevator: getChecked("elevator"),
@@ -661,7 +689,10 @@ function ensureExistingImagesContainer() {
   const fileInput = $("propertyImages");
 
   if (fileInput?.parentElement) {
-    fileInput.parentElement.insertAdjacentElement("afterend", container);
+    fileInput.parentElement.insertAdjacentElement(
+      "afterend",
+      container
+    );
   } else {
     form.appendChild(container);
   }
@@ -672,10 +703,12 @@ function ensureExistingImagesContainer() {
 function getStoragePathFromPublicUrl(url) {
   try {
     const parsed = new URL(url);
+
     const marker =
       "/storage/v1/object/public/" + BUCKET_NAME + "/";
 
     const index = parsed.pathname.indexOf(marker);
+
     if (index === -1) return null;
 
     return decodeURIComponent(
@@ -697,7 +730,7 @@ async function loadExistingPropertyImages(propertyId) {
       .from("property_images")
       .select("*")
       .eq("property_id", propertyId)
-      .order("sort_order");
+      .order("sort_order", { ascending: true });
 
     if (error) throw error;
 
@@ -710,13 +743,15 @@ async function loadExistingPropertyImages(propertyId) {
 
     container.innerHTML = currentPropertyImages.map((image) => `
       <div class="admin-item">
-        <a href="${escapeHtml(image.image_url)}"
+        <a
+          href="${escapeHtml(image.image_url)}"
           target="_blank"
           rel="noopener noreferrer">
           مشاهده تصویر
         </a>
 
-        <button type="button"
+        <button
+          type="button"
           data-action="delete-property-image"
           data-id="${escapeHtml(image.id)}">
           حذف تصویر
@@ -756,11 +791,15 @@ async function deleteExistingPropertyImage(imageId) {
         .remove([path]);
 
       if (storageError) {
-        console.error("Storage image deletion:", storageError);
+        console.error(
+          "Storage image deletion:",
+          storageError
+        );
       }
     }
 
     await loadExistingPropertyImages(image.property_id);
+
     setMessage("propertyMessage", "تصویر حذف شد.");
   } catch (error) {
     console.error("deleteExistingPropertyImage:", error);
@@ -778,7 +817,10 @@ async function deleteExistingPropertyImage(imageId) {
 ----------------------------- */
 
 function loadTusLibrary() {
-  if (window.tus?.Upload) return Promise.resolve(window.tus);
+  if (window.tus?.Upload) {
+    return Promise.resolve(window.tus);
+  }
+
   if (tusLibraryPromise) return tusLibraryPromise;
 
   tusLibraryPromise = new Promise((resolve, reject) => {
@@ -791,13 +833,19 @@ function loadTusLibrary() {
         resolve(window.tus);
       } else {
         tusLibraryPromise = null;
-        reject(new Error("کتابخانه آپلود بارگذاری نشد."));
+        reject(
+          new Error("کتابخانه آپلود بارگذاری نشد.")
+        );
       }
     };
 
     script.onerror = () => {
       tusLibraryPromise = null;
-      reject(new Error("کتابخانه آپلود دریافت نشد. اینترنت را بررسی کن."));
+      reject(
+        new Error(
+          "کتابخانه آپلود دریافت نشد. اینترنت را بررسی کن."
+        )
+      );
     };
 
     document.head.appendChild(script);
@@ -818,7 +866,9 @@ function getProjectRef() {
     return parts[0];
   }
 
-  throw new Error("آدرس پروژه Supabase قابل شناسایی نیست.");
+  throw new Error(
+    "آدرس پروژه Supabase قابل شناسایی نیست."
+  );
 }
 
 function makeUniqueFileName(file) {
@@ -877,9 +927,11 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
           if (settled) return;
           settled = true;
 
-          reject(new Error(
-            `آپلود «${file.name}» ناموفق بود: ${getErrorMessage(error)}`
-          ));
+          reject(
+            new Error(
+              `آپلود «${file.name}» ناموفق بود: ${getErrorMessage(error)}`
+            )
+          );
         },
 
         onProgress(bytesUploaded, bytesTotal) {
@@ -913,7 +965,9 @@ function getSelectedFiles() {
 async function uploadNewPropertyImages(propertyId) {
   const files = getSelectedFiles();
 
-  if (!files.length) return { uploaded: 0, failed: 0 };
+  if (!files.length) {
+    return { uploaded: 0, failed: 0 };
+  }
 
   const { data: existing, error: existingError } = await db
     .from("property_images")
@@ -934,7 +988,8 @@ async function uploadNewPropertyImages(propertyId) {
 
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
-    const filePath = `${propertyId}/${makeUniqueFileName(file)}`;
+    const filePath =
+      `${propertyId}/${makeUniqueFileName(file)}`;
 
     try {
       setMessage(
@@ -942,12 +997,17 @@ async function uploadNewPropertyImages(propertyId) {
         `در حال آپلود تصویر ${index + 1} از ${files.length}: ${file.name}`
       );
 
-      await uploadFileWithTus(file, filePath, session, (percent) => {
-        setMessage(
-          "propertyMessage",
-          `تصویر ${index + 1} از ${files.length}: ${percent}%`
-        );
-      });
+      await uploadFileWithTus(
+        file,
+        filePath,
+        session,
+        (percent) => {
+          setMessage(
+            "propertyMessage",
+            `تصویر ${index + 1} از ${files.length}: ${percent}%`
+          );
+        }
+      );
 
       const { data: urlData } = db.storage
         .from(BUCKET_NAME)
@@ -956,7 +1016,9 @@ async function uploadNewPropertyImages(propertyId) {
       const imageUrl = urlData?.publicUrl;
 
       if (!imageUrl) {
-        errors.push(`${file.name}: نشانی تصویر ساخته نشد. مسیر: ${filePath}`);
+        errors.push(
+          `${file.name}: نشانی تصویر ساخته نشد. مسیر: ${filePath}`
+        );
         continue;
       }
 
@@ -973,7 +1035,12 @@ async function uploadNewPropertyImages(propertyId) {
           `${file.name}: فایل آپلود شد اما ثبت در دیتابیس ناموفق بود. ` +
           `مسیر: ${filePath}. خطا: ${getErrorMessage(insertError)}`
         );
-        console.error("Image database insert failed:", insertError);
+
+        console.error(
+          "Image database insert failed:",
+          insertError
+        );
+
         continue;
       }
 
@@ -1033,6 +1100,7 @@ async function saveProperty(event) {
         .single();
 
       if (error) throw error;
+
       propertyId = data.id;
     }
 
@@ -1041,7 +1109,9 @@ async function saveProperty(event) {
       .delete()
       .eq("property_id", propertyId);
 
-    if (deleteNeighborhoodsError) throw deleteNeighborhoodsError;
+    if (deleteNeighborhoodsError) {
+      throw deleteNeighborhoodsError;
+    }
 
     if (neighborhoodIds.length) {
       const rows = neighborhoodIds.map((neighborhoodId) => ({
@@ -1076,7 +1146,8 @@ async function saveProperty(event) {
       if (error) throw error;
     }
 
-    const uploadResult = await uploadNewPropertyImages(propertyId);
+    const uploadResult =
+      await uploadNewPropertyImages(propertyId);
 
     resetPropertyForm();
 
@@ -1115,12 +1186,18 @@ function resetPropertyForm() {
   }
 
   const container = ensureExistingImagesContainer();
-  if (container) container.innerHTML = "";
+
+  if (container) {
+    container.innerHTML = "";
+  }
 
   renderFilterOptions(filterOptionsCache);
 
   const cancelButton = $("cancelEditButton");
-  if (cancelButton) cancelButton.style.display = "none";
+
+  if (cancelButton) {
+    cancelButton.style.display = "none";
+  }
 
   updateFrontageBox();
   setMessage("propertyMessage", "");
@@ -1151,7 +1228,7 @@ async function loadProperties() {
   try {
     const { data, error } = await db
       .from("properties")
-      .select("*, categories(name)")
+      .select("*, categories(title)")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -1168,25 +1245,28 @@ async function loadProperties() {
         <div class="admin-item">
           <div>
             <strong>${escapeHtml(property.title)}</strong>
-            <div>${escapeHtml(property.categories?.name || "")}</div>
+            <div>${escapeHtml(property.categories?.title || "")}</div>
             <div>${active ? "فعال" : "غیرفعال"}</div>
           </div>
 
           <div>
-            <button type="button"
+            <button
+              type="button"
               data-action="edit-property"
               data-id="${escapeHtml(property.id)}">
               ویرایش
             </button>
 
-            <button type="button"
+            <button
+              type="button"
               data-action="toggle-property"
               data-id="${escapeHtml(property.id)}"
               data-active="${String(!active)}">
               ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
             </button>
 
-            <button type="button"
+            <button
+              type="button"
               data-action="delete-property"
               data-id="${escapeHtml(property.id)}">
               حذف
@@ -1205,7 +1285,10 @@ async function loadProperties() {
 
 async function editProperty(id) {
   try {
-    setMessage("propertyMessage", "در حال دریافت اطلاعات ملک...");
+    setMessage(
+      "propertyMessage",
+      "در حال دریافت اطلاعات ملک..."
+    );
 
     const { data: property, error } = await db
       .from("properties")
@@ -1226,7 +1309,10 @@ async function editProperty(id) {
     setInputValue("area", property.area);
     setInputValue("bedrooms", property.bedrooms);
     setInputValue("floor", property.floor);
-    setInputValue("location", property.location);
+
+    // ستون دیتابیس location_text است؛ ورودی HTML همچنان location است
+    setInputValue("location", property.location_text);
+
     setInputValue("address", property.address);
     setInputValue("frontageType", property.frontage_type);
 
@@ -1237,17 +1323,21 @@ async function editProperty(id) {
 
     updateFrontageBox();
 
-    const { data: neighborhoodRows, error: neighborhoodError } =
-      await db
-        .from("property_neighborhoods")
-        .select("neighborhood_id")
-        .eq("property_id", id);
+    const {
+      data: neighborhoodRows,
+      error: neighborhoodError
+    } = await db
+      .from("property_neighborhoods")
+      .select("neighborhood_id")
+      .eq("property_id", id);
 
     if (neighborhoodError) throw neighborhoodError;
 
     setSelectedValues(
       "neighborhood",
-      (neighborhoodRows || []).map((item) => item.neighborhood_id)
+      (neighborhoodRows || []).map(
+        (item) => item.neighborhood_id
+      )
     );
 
     const { data: filterRows, error: filterError } = await db
@@ -1259,7 +1349,9 @@ async function editProperty(id) {
 
     renderFilterOptions(
       filterOptionsCache,
-      (filterRows || []).map((item) => item.filter_option_id)
+      (filterRows || []).map(
+        (item) => item.filter_option_id
+      )
     );
 
     ensureCancelEditButton();
@@ -1274,7 +1366,10 @@ async function editProperty(id) {
 
     await loadExistingPropertyImages(id);
 
-    setMessage("propertyMessage", "اطلاعات ملک آماده ویرایش است.");
+    setMessage(
+      "propertyMessage",
+      "اطلاعات ملک آماده ویرایش است."
+    );
 
     $("propertyForm")?.scrollIntoView({
       behavior: "smooth",
@@ -1303,12 +1398,17 @@ async function toggleProperty(id, isActive) {
     await loadProperties();
   } catch (error) {
     console.error("toggleProperty:", error);
-    alert("خطا در تغییر وضعیت ملک: " + getErrorMessage(error));
+
+    alert(
+      "خطا در تغییر وضعیت ملک: " + getErrorMessage(error)
+    );
   }
 }
 
 async function deleteProperty(id) {
-  if (!confirm("این ملک حذف شود؟ این کار قابل بازگشت نیست.")) return;
+  if (!confirm("این ملک حذف شود؟ این کار قابل بازگشت نیست.")) {
+    return;
+  }
 
   try {
     const { data: images, error: imagesError } = await db
@@ -1319,7 +1419,9 @@ async function deleteProperty(id) {
     if (imagesError) throw imagesError;
 
     const paths = (images || [])
-      .map((image) => getStoragePathFromPublicUrl(image.image_url))
+      .map((image) =>
+        getStoragePathFromPublicUrl(image.image_url)
+      )
       .filter(Boolean);
 
     if (paths.length) {
@@ -1353,10 +1455,14 @@ async function deleteProperty(id) {
     if (error) throw error;
 
     setMessage("propertyMessage", "ملک حذف شد.");
+
     await loadProperties();
   } catch (error) {
     console.error("deleteProperty:", error);
-    alert("خطا در حذف ملک: " + getErrorMessage(error));
+
+    alert(
+      "خطا در حذف ملک: " + getErrorMessage(error)
+    );
   }
 }
 
@@ -1410,14 +1516,20 @@ async function saveSiteSettings(event) {
   if (event) event.preventDefault();
 
   try {
-    setMessage("settingsMessage", "در حال ذخیره تنظیمات...");
+    setMessage(
+      "settingsMessage",
+      "در حال ذخیره تنظیمات..."
+    );
 
     for (const [key, id] of SITE_SETTING_FIELDS) {
       const value = getInputValue(id).trim();
 
       const { error } = await db
         .from("site_settings")
-        .upsert({ key, value }, { onConflict: "key" });
+        .upsert(
+          { key, value },
+          { onConflict: "key" }
+        );
 
       if (error) throw error;
     }
@@ -1450,50 +1562,80 @@ function setupAdminEvents() {
     renderFilterOptions(filterOptionsCache);
   });
 
-  $("neighborhoodForm")?.addEventListener("submit", addNeighborhood);
-  $("settingsForm")?.addEventListener("submit", saveSiteSettings);
+  $("neighborhoodForm")?.addEventListener(
+    "submit",
+    addNeighborhood
+  );
 
-  $("adminNeighborhoods")?.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
+  $("settingsForm")?.addEventListener(
+    "submit",
+    saveSiteSettings
+  );
 
-    const id = button.dataset.id;
+  $("adminNeighborhoods")?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest(
+        "button[data-action]"
+      );
 
-    if (button.dataset.action === "toggle-neighborhood") {
-      toggleNeighborhood(id, button.dataset.active === "true");
+      if (!button) return;
+
+      const id = button.dataset.id;
+
+      if (button.dataset.action === "toggle-neighborhood") {
+        toggleNeighborhood(
+          id,
+          button.dataset.active === "true"
+        );
+      }
+
+      if (button.dataset.action === "delete-neighborhood") {
+        deleteNeighborhood(id);
+      }
     }
+  );
 
-    if (button.dataset.action === "delete-neighborhood") {
-      deleteNeighborhood(id);
+  $("adminProperties")?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest(
+        "button[data-action]"
+      );
+
+      if (!button) return;
+
+      const id = button.dataset.id;
+
+      if (button.dataset.action === "edit-property") {
+        editProperty(id);
+      }
+
+      if (button.dataset.action === "toggle-property") {
+        toggleProperty(
+          id,
+          button.dataset.active === "true"
+        );
+      }
+
+      if (button.dataset.action === "delete-property") {
+        deleteProperty(id);
+      }
     }
-  });
+  );
 
-  $("adminProperties")?.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
+  ensureExistingImagesContainer()?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest(
+        'button[data-action="delete-property-image"]'
+      );
 
-    const id = button.dataset.id;
-
-    if (button.dataset.action === "edit-property") {
-      editProperty(id);
+      if (button) {
+        deleteExistingPropertyImage(button.dataset.id);
+      }
     }
-
-    if (button.dataset.action === "toggle-property") {
-      toggleProperty(id, button.dataset.active === "true");
-    }
-
-    if (button.dataset.action === "delete-property") {
-      deleteProperty(id);
-    }
-  });
-
-  ensureExistingImagesContainer()?.addEventListener("click", (event) => {
-    const button = event.target.closest(
-      'button[data-action="delete-property-image"]'
-    );
-
-    if (button) deleteExistingPropertyImage(button.dataset.id);
-  });
+  );
 }
 
 /* -----------------------------
@@ -1501,8 +1643,8 @@ function setupAdminEvents() {
 ----------------------------- */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // ابتدا فرم ورود را نمایش بده تا هیچ‌وقت هر دو بخش مخفی نمانند
   showLogin();
+
   setAuthMessage("در حال بررسی وضعیت ورود...");
 
   if (
@@ -1523,6 +1665,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await checkAdmin();
   } catch (error) {
     console.error("راه‌اندازی پنل:", error);
+
     showLogin();
 
     setAuthMessage(
