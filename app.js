@@ -16,6 +16,7 @@ let selectedNeighborhoods = new Set();
 
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
+let filterRequestId = 0;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -28,7 +29,7 @@ async function loadSite() {
       loadProperties()
     ]);
   } catch (error) {
-    console.error(error);
+    console.error("Site loading error:", error);
   }
 }
 
@@ -44,7 +45,7 @@ async function loadSettings() {
 
   const settings = {};
 
-  data.forEach(item => {
+  (data || []).forEach(item => {
     settings[item.setting_key] = item.setting_value || "";
   });
 
@@ -52,15 +53,21 @@ async function loadSettings() {
     document.title = settings.site_name;
   }
 
-  if (settings.about_title) {
-    $("#aboutTitle").textContent = settings.about_title;
+  if ($("#aboutTitle")) {
+    $("#aboutTitle").textContent =
+      settings.about_title || "درباره ما";
   }
 
-  $("#aboutText").textContent =
-    settings.about_text || "اطلاعات این بخش به‌زودی تکمیل می‌شود.";
+  if ($("#aboutText")) {
+    $("#aboutText").textContent =
+      settings.about_text ||
+      "اطلاعات این بخش به‌زودی تکمیل می‌شود.";
+  }
 
-  $("#footerSlogan").textContent =
-    settings.footer_slogan || "انتخاب درست، آینده روشن";
+  if ($("#footerSlogan")) {
+    $("#footerSlogan").textContent =
+      settings.footer_slogan || "انتخاب درست، آینده روشن";
+  }
 
   const phones = [
     settings.contact_phone_1,
@@ -68,30 +75,36 @@ async function loadSettings() {
     settings.contact_phone_3
   ].filter(Boolean);
 
-  $("#contactPhones").innerHTML = phones.length
-    ? phones.map(phone => `
-        <a href="tel:${escapeAttribute(phone)}">
-          ${escapeHtml(phone)}
-        </a>
-      `).join("")
-    : "<span>شماره تماسی ثبت نشده است.</span>";
-
-  if (settings.instagram_url) {
-    $("#instagramLink").href = settings.instagram_url;
-    $("#instagramLink").style.display = "";
-  } else {
-    $("#instagramLink").style.display = "none";
+  if ($("#contactPhones")) {
+    $("#contactPhones").innerHTML = phones.length
+      ? phones.map(phone => `
+          <a href="tel:${escapeAttribute(phone)}">
+            ${escapeHtml(phone)}
+          </a>
+        `).join("")
+      : "<span>شماره تماسی ثبت نشده است.</span>";
   }
 
-  if (settings.whatsapp_url) {
-    $("#whatsappLink").href = settings.whatsapp_url;
-    $("#whatsappLink").style.display = "";
-  } else {
-    $("#whatsappLink").style.display = "none";
+  if ($("#instagramLink")) {
+    if (settings.instagram_url) {
+      $("#instagramLink").href = settings.instagram_url;
+      $("#instagramLink").style.display = "";
+    } else {
+      $("#instagramLink").style.display = "none";
+    }
   }
 
-  if (settings.hero_image_url) {
-    document.querySelector(".hero").style.backgroundImage =
+  if ($("#whatsappLink")) {
+    if (settings.whatsapp_url) {
+      $("#whatsappLink").href = settings.whatsapp_url;
+      $("#whatsappLink").style.display = "";
+    } else {
+      $("#whatsappLink").style.display = "none";
+    }
+  }
+
+  if (settings.hero_image_url && $(".hero")) {
+    $(".hero").style.backgroundImage =
       `linear-gradient(rgba(17,17,15,.55), rgba(17,17,15,.95)), url("${settings.hero_image_url}")`;
   }
 }
@@ -105,7 +118,12 @@ async function loadCategories() {
 
   if (error) {
     console.error("Categories error:", error);
-    $("#categories").textContent = "خطا در دریافت دسته‌بندی‌ها";
+
+    if ($("#categories")) {
+      $("#categories").textContent =
+        "خطا در دریافت دسته‌بندی‌ها";
+    }
+
     return;
   }
 
@@ -118,69 +136,110 @@ async function loadCategories() {
       categories.find(category => category.slug === "sale") ||
       categories[0];
 
-    selectCategory(sale.id);
+    await selectCategory(sale.id);
+  } else if ($("#filters")) {
+    $("#filters").innerHTML = "";
   }
 }
 
 function renderCategories() {
+  if (!$("#categories")) return;
+
   $("#categories").innerHTML = categories.map(category => `
     <button
-      class="category-btn"
-      data-category-id="${category.id}"
-      onclick="selectCategory('${category.id}')">
+      type="button"
+      class="category-btn ${String(category.id) === String(selectedCategory) ? "active" : ""}"
+      data-category-id="${escapeAttribute(category.id)}"
+      onclick="selectCategory('${escapeAttribute(category.id)}')">
       ${escapeHtml(category.title)}
     </button>
   `).join("");
 }
 
 async function selectCategory(categoryId) {
-  selectedCategory = categoryId;
-  selectedFilters.clear();
+  const normalizedCategoryId = String(categoryId);
+
+  if (String(selectedCategory) !== normalizedCategoryId) {
+    selectedFilters.clear();
+  }
+
+  selectedCategory = normalizedCategoryId;
 
   document.querySelectorAll(".category-btn").forEach(button => {
     button.classList.toggle(
       "active",
-      button.dataset.categoryId === categoryId
+      String(button.dataset.categoryId) === normalizedCategoryId
     );
   });
 
-  await loadFilters(categoryId);
+  await loadFilters(normalizedCategoryId);
   renderProperties();
 }
 
 async function loadFilters(categoryId) {
+  const requestId = ++filterRequestId;
+  const normalizedCategoryId = String(categoryId);
+
+  if ($("#filters")) {
+    $("#filters").innerHTML = "";
+  }
+
   const { data, error } = await db
     .from("filter_options")
     .select("*")
-    .eq("category_id", categoryId)
+    .eq("category_id", normalizedCategoryId)
     .eq("is_active", true)
     .order("sort_order");
 
+  // جلوگیری از نمایش نتیجه‌ی درخواست قدیمی هنگام تعویض سریع دسته‌ها
+  if (
+    requestId !== filterRequestId ||
+    String(selectedCategory) !== normalizedCategoryId
+  ) {
+    return;
+  }
+
   if (error) {
     console.error("Filters error:", error);
-    $("#filters").innerHTML = "";
+    filters = [];
+    renderFilters();
     return;
   }
 
   filters = data || [];
 
+  // فقط فیلترهایی نگه داشته شوند که متعلق به دسته‌ی فعلی‌اند
+  const availableIds = new Set(
+    filters.map(filter => String(filter.id))
+  );
+
+  selectedFilters = new Set(
+    Array.from(selectedFilters).filter(id => availableIds.has(id))
+  );
+
   renderFilters();
 }
 
 function renderFilters() {
+  if (!$("#filters")) return;
+
   const parents = filters.filter(filter => !filter.parent_id);
   const children = filters.filter(filter => filter.parent_id);
 
   $("#filters").innerHTML = parents.map(parent => {
+    const parentId = String(parent.id);
+
     const childFilters = children.filter(
-      child => child.parent_id === parent.id
+      child => String(child.parent_id) === parentId
     );
 
     return `
       <div class="filter-group">
         <button
-          class="filter-btn"
-          onclick="toggleFilter('${parent.id}')">
+          type="button"
+          class="filter-btn ${selectedFilters.has(parentId) ? "active" : ""}"
+          data-filter-id="${escapeAttribute(parentId)}"
+          onclick="toggleFilter('${escapeAttribute(parentId)}')">
           ${escapeHtml(parent.title)}
         </button>
 
@@ -188,13 +247,19 @@ function renderFilters() {
           childFilters.length
             ? `
               <div class="filter-children">
-                ${childFilters.map(child => `
-                  <button
-                    class="filter-btn"
-                    onclick="toggleFilter('${child.id}')">
-                    ${escapeHtml(child.title)}
-                  </button>
-                `).join("")}
+                ${childFilters.map(child => {
+                  const childId = String(child.id);
+
+                  return `
+                    <button
+                      type="button"
+                      class="filter-btn ${selectedFilters.has(childId) ? "active" : ""}"
+                      data-filter-id="${escapeAttribute(childId)}"
+                      onclick="toggleFilter('${escapeAttribute(childId)}')">
+                      ${escapeHtml(child.title)}
+                    </button>
+                  `;
+                }).join("")}
               </div>
             `
             : ""
@@ -205,24 +270,23 @@ function renderFilters() {
 }
 
 function toggleFilter(filterId) {
-  if (selectedFilters.has(filterId)) {
-    selectedFilters.delete(filterId);
+  const id = String(filterId);
+
+  // اگر فیلتر فعال باشد، خاموش می‌شود؛ در غیر این صورت فعال می‌شود
+  if (selectedFilters.has(id)) {
+    selectedFilters.delete(id);
   } else {
-    selectedFilters.add(filterId);
+    selectedFilters.add(id);
   }
 
-  document.querySelectorAll(".filter-btn").forEach(button => {
-    const match = button.getAttribute("onclick");
-    if (!match) return;
+  // وضعیت ظاهری دکمه‌ها مطابق انتخاب واقعی به‌روزرسانی می‌شود
+  document.querySelectorAll(".filter-btn[data-filter-id]").forEach(button => {
+    const buttonId = String(button.dataset.filterId);
 
-    const id = match.match(/'([^']+)'/)?.[1];
-
-    if (id) {
-      button.classList.toggle(
-        "active",
-        selectedFilters.has(id)
-      );
-    }
+    button.classList.toggle(
+      "active",
+      selectedFilters.has(buttonId)
+    );
   });
 
   renderProperties();
@@ -242,14 +306,20 @@ async function loadNeighborhoods() {
 
   neighborhoods = data || [];
 
-  $("#neighborhoodSelect").innerHTML =
-    neighborhoods.length
-      ? neighborhoods.map(item => `
-          <option value="${item.id}">
-            ${escapeHtml(item.name)}
-          </option>
-        `).join("")
-      : `<option value="">محله‌ای ثبت نشده است</option>`;
+  if (!$("#neighborhoodSelect")) return;
+
+  $("#neighborhoodSelect").innerHTML = neighborhoods.length
+    ? neighborhoods.map(item => `
+        <option value="${escapeAttribute(item.id)}">
+          ${escapeHtml(item.name)}
+        </option>
+      `).join("")
+    : `<option value="">محله‌ای ثبت نشده است</option>`;
+
+  $("#neighborhoodSelect").removeEventListener(
+    "change",
+    handleNeighborhoodChange
+  );
 
   $("#neighborhoodSelect").addEventListener(
     "change",
@@ -260,7 +330,7 @@ async function loadNeighborhoods() {
 function handleNeighborhoodChange(event) {
   selectedNeighborhoods = new Set(
     Array.from(event.target.selectedOptions)
-      .map(option => option.value)
+      .map(option => String(option.value))
       .filter(Boolean)
   );
 
@@ -272,7 +342,6 @@ async function loadProperties() {
     .from("properties")
     .select(`
       *,
-      category_id,
       property_images (
         image_url,
         sort_order
@@ -290,8 +359,12 @@ async function loadProperties() {
 
   if (error) {
     console.error("Properties error:", error);
-    $("#properties").innerHTML =
-      "<p>خطا در دریافت فایل‌های ملکی.</p>";
+
+    if ($("#properties")) {
+      $("#properties").innerHTML =
+        "<p>خطا در دریافت فایل‌های ملکی.</p>";
+    }
+
     return;
   }
 
@@ -301,34 +374,41 @@ async function loadProperties() {
 }
 
 function renderProperties() {
+  if (!$("#properties")) return;
+
   let result = [...properties];
 
+  // فیلتر دسته‌بندی
   if (selectedCategory) {
     result = result.filter(
-      property => property.category_id === selectedCategory
+      property =>
+        String(property.category_id) === String(selectedCategory)
     );
   }
 
+  // چند محله با منطق OR:
+  // ملک باید در حداقل یکی از محله‌های انتخاب‌شده باشد
   if (selectedNeighborhoods.size) {
     result = result.filter(property => {
-      const ids =
-        property.property_neighborhoods?.map(
-          item => item.neighborhood_id
-        ) || [];
+      const ids = (
+        property.property_neighborhoods || []
+      ).map(item => String(item.neighborhood_id));
 
       return ids.some(id => selectedNeighborhoods.has(id));
     });
   }
 
+  // چند فیلتر با منطق OR:
+  // ملک باید با حداقل یکی از فیلترهای انتخاب‌شده مطابقت داشته باشد
   if (selectedFilters.size) {
     result = result.filter(property => {
-      const ids =
-        property.property_filters?.map(
-          item => item.filter_option_id
-        ) || [];
+      const ids = (
+        property.property_filters || []
+      ).map(item => String(item.filter_option_id));
 
-      return Array.from(selectedFilters)
-        .every(filterId => ids.includes(filterId));
+      return Array.from(selectedFilters).some(
+        filterId => ids.includes(String(filterId))
+      );
     });
   }
 
@@ -349,7 +429,7 @@ function renderProperties() {
 function getPropertyImages(property) {
   const images = [...(property.property_images || [])]
     .filter(image => image.image_url)
-    .sort((a, b) => a.sort_order - b.sort_order)
+    .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
     .map(image => image.image_url);
 
   return images.length
@@ -366,33 +446,22 @@ function renderPropertyCard(property) {
   const features = [];
 
   if (property.area) {
-    features.push(`${property.area} متر`);
+    features.push(`${formatNumber(property.area)} متر`);
   }
 
   if (property.bedrooms) {
-    features.push(`${property.bedrooms} خواب`);
+    features.push(`${formatNumber(property.bedrooms)} خواب`);
   }
 
-  if (property.parking) {
-    features.push("پارکینگ");
-  }
-
-  if (property.elevator) {
-    features.push("آسانسور");
-  }
-
-  if (property.storage) {
-    features.push("انباری");
-  }
-
-  if (property.terrace) {
-    features.push("تراس");
-  }
+  if (property.parking) features.push("پارکینگ");
+  if (property.elevator) features.push("آسانسور");
+  if (property.storage) features.push("انباری");
+  if (property.terrace) features.push("تراس");
 
   return `
     <article
       class="property-card"
-      onclick="openPropertyDetails('${property.id}')"
+      onclick="openPropertyDetails('${escapeAttribute(property.id)}')"
       style="cursor:pointer">
 
       <div class="property-image-wrap">
@@ -439,14 +508,12 @@ function renderPropertyCard(property) {
 
 function openPropertyDetails(propertyId) {
   const property = properties.find(
-    item => item.id === propertyId
+    item => String(item.id) === String(propertyId)
   );
 
   if (!property) return;
 
-  const images = getPropertyImages(property);
-
-  currentGalleryImages = images;
+  currentGalleryImages = getPropertyImages(property);
   currentGalleryIndex = 0;
 
   let modal = document.getElementById("propertyModal");
@@ -475,7 +542,6 @@ function createPropertyModal() {
     </div>
 
     <div class="property-modal-box">
-
       <button
         class="property-modal-close"
         onclick="closePropertyDetails()"
@@ -484,7 +550,6 @@ function createPropertyModal() {
       </button>
 
       <div id="propertyModalContent"></div>
-
     </div>
   `;
 
@@ -493,6 +558,7 @@ function createPropertyModal() {
 
 function renderPropertyModal(property) {
   const modalContent = $("#propertyModalContent");
+  if (!modalContent) return;
 
   const images = getPropertyImages(property);
   currentGalleryImages = images;
@@ -503,7 +569,7 @@ function renderPropertyModal(property) {
   const neighborhoodNames = neighborhoodsForProperty
     .map(item => {
       const neighborhood = neighborhoods.find(
-        n => n.id === item.neighborhood_id
+        n => String(n.id) === String(item.neighborhood_id)
       );
 
       return neighborhood?.name;
@@ -512,14 +578,12 @@ function renderPropertyModal(property) {
 
   const category =
     categories.find(
-      item => item.id === property.category_id
+      item => String(item.id) === String(property.category_id)
     )?.title || "";
 
   modalContent.innerHTML = `
     <div class="property-detail">
-
       <div class="property-gallery">
-
         <div class="property-main-image">
           <img
             id="propertyGalleryImage"
@@ -531,12 +595,14 @@ function renderPropertyModal(property) {
             images.length > 1
               ? `
                 <button
+                  type="button"
                   class="gallery-arrow gallery-prev"
                   onclick="previousGalleryImage()">
                   ‹
                 </button>
 
                 <button
+                  type="button"
                   class="gallery-arrow gallery-next"
                   onclick="nextGalleryImage()">
                   ›
@@ -545,9 +611,7 @@ function renderPropertyModal(property) {
               : ""
           }
 
-          <div
-            id="galleryCounter"
-            class="gallery-counter">
+          <div id="galleryCounter" class="gallery-counter">
             1 / ${images.length}
           </div>
         </div>
@@ -558,6 +622,7 @@ function renderPropertyModal(property) {
               <div class="property-thumbnails">
                 ${images.map((image, index) => `
                   <button
+                    type="button"
                     class="property-thumbnail ${index === 0 ? "active" : ""}"
                     onclick="goToGalleryImage(${index})">
                     <img
@@ -570,11 +635,9 @@ function renderPropertyModal(property) {
             `
             : ""
         }
-
       </div>
 
       <div class="property-detail-content">
-
         <span class="property-detail-category">
           ${escapeHtml(category)}
         </span>
@@ -604,7 +667,6 @@ function renderPropertyModal(property) {
         }
 
         <div class="detail-features">
-
           ${
             property.area
               ? `
@@ -629,48 +691,27 @@ function renderPropertyModal(property) {
 
           ${
             property.parking
-              ? `
-                <div>
-                  <span>پارکینگ</span>
-                  <strong>دارد</strong>
-                </div>
-              `
+              ? `<div><span>پارکینگ</span><strong>دارد</strong></div>`
               : ""
           }
 
           ${
             property.elevator
-              ? `
-                <div>
-                  <span>آسانسور</span>
-                  <strong>دارد</strong>
-                </div>
-              `
+              ? `<div><span>آسانسور</span><strong>دارد</strong></div>`
               : ""
           }
 
           ${
             property.storage
-              ? `
-                <div>
-                  <span>انباری</span>
-                  <strong>دارد</strong>
-                </div>
-              `
+              ? `<div><span>انباری</span><strong>دارد</strong></div>`
               : ""
           }
 
           ${
             property.terrace
-              ? `
-                <div>
-                  <span>تراس</span>
-                  <strong>دارد</strong>
-                </div>
-              `
+              ? `<div><span>تراس</span><strong>دارد</strong></div>`
               : ""
           }
-
         </div>
 
         ${
@@ -738,9 +779,7 @@ function renderPropertyModal(property) {
             `
             : ""
         }
-
       </div>
-
     </div>
   `;
 }
@@ -748,8 +787,9 @@ function renderPropertyModal(property) {
 function goToGalleryImage(index) {
   if (!currentGalleryImages.length) return;
 
-  currentGalleryIndex = index;
+  if (index < 0 || index >= currentGalleryImages.length) return;
 
+  currentGalleryIndex = index;
   updateGalleryImage();
 }
 
@@ -757,8 +797,7 @@ function nextGalleryImage() {
   if (currentGalleryImages.length <= 1) return;
 
   currentGalleryIndex =
-    (currentGalleryIndex + 1) %
-    currentGalleryImages.length;
+    (currentGalleryIndex + 1) % currentGalleryImages.length;
 
   updateGalleryImage();
 }
@@ -778,11 +817,8 @@ function updateGalleryImage() {
   const counter = $("#galleryCounter");
 
   if (image) {
-    image.src =
-      currentGalleryImages[currentGalleryIndex];
-
-    image.alt =
-      `تصویر ${currentGalleryIndex + 1}`;
+    image.src = currentGalleryImages[currentGalleryIndex];
+    image.alt = `تصویر ${currentGalleryIndex + 1}`;
   }
 
   if (counter) {
@@ -790,14 +826,20 @@ function updateGalleryImage() {
       `${currentGalleryIndex + 1} / ${currentGalleryImages.length}`;
   }
 
-  document
-    .querySelectorAll(".property-thumbnail")
-    .forEach((thumbnail, index) => {
+  document.querySelectorAll(".property-thumbnail").forEach(
+    (thumbnail, index) => {
       thumbnail.classList.toggle(
         "active",
         index === currentGalleryIndex
       );
-    });
+    }
+  );
+
+  const viewer = $("#imageViewer");
+
+  if (viewer?.classList.contains("open")) {
+    updateFullscreenImage();
+  }
 }
 
 function openFullscreenImage() {
@@ -813,12 +855,14 @@ function openFullscreenImage() {
 
     viewer.innerHTML = `
       <button
+        type="button"
         class="image-viewer-close"
         onclick="closeFullscreenImage()">
         ×
       </button>
 
       <button
+        type="button"
         class="image-viewer-arrow image-viewer-prev"
         onclick="previousFullscreenImage()">
         ‹
@@ -830,22 +874,19 @@ function openFullscreenImage() {
         alt="تصویر ملک">
 
       <button
+        type="button"
         class="image-viewer-arrow image-viewer-next"
         onclick="nextFullscreenImage()">
         ›
       </button>
 
-      <div
-        id="fullscreenCounter"
-        class="image-viewer-counter">
-      </div>
+      <div id="fullscreenCounter" class="image-viewer-counter"></div>
     `;
 
     document.body.appendChild(viewer);
   }
 
   updateFullscreenImage();
-
   viewer.classList.add("open");
 }
 
@@ -853,12 +894,11 @@ function updateFullscreenImage() {
   const image = $("#fullscreenImage");
   const counter = $("#fullscreenCounter");
 
-  if (image) {
-    image.src =
-      currentGalleryImages[currentGalleryIndex];
+  if (image && currentGalleryImages.length) {
+    image.src = currentGalleryImages[currentGalleryIndex];
   }
 
-  if (counter) {
+  if (counter && currentGalleryImages.length) {
     counter.textContent =
       `${currentGalleryIndex + 1} / ${currentGalleryImages.length}`;
   }
@@ -866,12 +906,10 @@ function updateFullscreenImage() {
 
 function nextFullscreenImage() {
   nextGalleryImage();
-  updateFullscreenImage();
 }
 
 function previousFullscreenImage() {
   previousGalleryImage();
-  updateFullscreenImage();
 }
 
 function closeFullscreenImage() {
@@ -890,7 +928,6 @@ function closePropertyDetails() {
   }
 
   closeFullscreenImage();
-
   document.body.classList.remove("modal-open");
 }
 
@@ -900,14 +937,19 @@ document.addEventListener("keydown", event => {
     closePropertyDetails();
   }
 
-  if (event.key === "ArrowRight") {
-    nextGalleryImage();
-    updateFullscreenImage();
-  }
+  const viewer = $("#imageViewer");
 
-  if (event.key === "ArrowLeft") {
-    previousGalleryImage();
-    updateFullscreenImage();
+  if (
+    viewer?.classList.contains("open") ||
+    $("#propertyModal")?.classList.contains("open")
+  ) {
+    if (event.key === "ArrowRight") {
+      previousGalleryImage();
+    }
+
+    if (event.key === "ArrowLeft") {
+      nextGalleryImage();
+    }
   }
 });
 
