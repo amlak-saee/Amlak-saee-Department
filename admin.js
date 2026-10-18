@@ -1,3 +1,4 @@
+
 "use strict";
 
 const { createClient } = window.supabase;
@@ -10,6 +11,8 @@ const db = createClient(
 const BUCKET_NAME = "property-images";
 const TUS_SCRIPT_URL =
   "https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js";
+
+const RESUME_STORAGE_PREFIX = "amlak-saee-tus-resume:";
 
 let tusLibraryPromise = null;
 let editingPropertyId = null;
@@ -48,7 +51,7 @@ function setAuthMessage(message, isError = false) {
 }
 
 /* -----------------------------
-   نمایش فرم ورود و پنل
+   ورود و نمایش پنل
 ----------------------------- */
 
 function showLogin() {
@@ -92,10 +95,6 @@ async function getValidSession() {
 
   return data.session;
 }
-
-/* -----------------------------
-   بررسی مدیر و ورود
------------------------------ */
 
 async function checkAdmin() {
   try {
@@ -188,7 +187,6 @@ async function login(event) {
     }
   } catch (error) {
     console.error("login:", error);
-
     showLogin();
 
     setAuthMessage(
@@ -255,7 +253,6 @@ async function loadAdminData() {
 
 /* -----------------------------
    دسته‌بندی‌ها
-   ستون نام دسته‌بندی: title
 ----------------------------- */
 
 async function loadCategories() {
@@ -320,7 +317,7 @@ function updateFrontageBox() {
 }
 
 /* -----------------------------
-   مدیریت محله‌ها
+   محله‌ها
 ----------------------------- */
 
 async function loadNeighborhoods() {
@@ -427,10 +424,7 @@ async function addNeighborhood(event) {
   try {
     const { error } = await db
       .from("neighborhoods")
-      .insert({
-        name,
-        is_active: true
-      });
+      .insert({ name, is_active: true });
 
     if (error) throw error;
 
@@ -458,11 +452,7 @@ async function toggleNeighborhood(id, isActive) {
 
     if (error) throw error;
 
-    setMessage(
-      "neighborhoodMessage",
-      "وضعیت محله تغییر کرد."
-    );
-
+    setMessage("neighborhoodMessage", "وضعیت محله تغییر کرد.");
     await loadNeighborhoods();
   } catch (error) {
     console.error("toggleNeighborhood:", error);
@@ -500,8 +490,7 @@ async function deleteNeighborhood(id) {
 }
 
 /* -----------------------------
-   گزینه‌های تکمیلی ملک
-   ستون عنوان گزینه: title
+   گزینه‌های تکمیلی
 ----------------------------- */
 
 async function loadFilterOptions() {
@@ -537,13 +526,11 @@ function renderFilterOptions(options, selectedIds = []) {
 
   const categoryId = $("category")?.value;
 
-  const relevantOptions = activeOptions.filter((item) => {
-    return (
-      !item.category_id ||
-      !categoryId ||
-      String(item.category_id) === String(categoryId)
-    );
-  });
+  const relevantOptions = activeOptions.filter((item) => (
+    !item.category_id ||
+    !categoryId ||
+    String(item.category_id) === String(categoryId)
+  ));
 
   if (!relevantOptions.length) {
     container.innerHTML = "";
@@ -580,7 +567,7 @@ function getSelectedFilterIds() {
 }
 
 /* -----------------------------
-   ابزارهای فرم ملک
+   ابزارهای فرم
 ----------------------------- */
 
 function getSelectedValues(id) {
@@ -625,13 +612,8 @@ function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
 
-  if (!title) {
-    throw new Error("عنوان ملک را وارد کن.");
-  }
-
-  if (!categoryId) {
-    throw new Error("دسته‌بندی ملک را انتخاب کن.");
-  }
+  if (!title) throw new Error("عنوان ملک را وارد کن.");
+  if (!categoryId) throw new Error("دسته‌بندی ملک را انتخاب کن.");
 
   const numericValue = (id) => {
     const value = getInputValue(id).trim();
@@ -657,10 +639,7 @@ function getPropertyPayload() {
     area: numericValue("area"),
     bedrooms: numericValue("bedrooms"),
     floor: numericValue("floor"),
-
-    // در جدول properties نام ستون موقعیت location_text است
     location_text: getInputValue("location").trim() || null,
-
     address: getInputValue("address").trim() || null,
     parking: getChecked("parking"),
     elevator: getChecked("elevator"),
@@ -671,7 +650,7 @@ function getPropertyPayload() {
 }
 
 /* -----------------------------
-   تصاویر قبلی ملک
+   تصاویر قبلی
 ----------------------------- */
 
 function ensureExistingImagesContainer() {
@@ -689,10 +668,7 @@ function ensureExistingImagesContainer() {
   const fileInput = $("propertyImages");
 
   if (fileInput?.parentElement) {
-    fileInput.parentElement.insertAdjacentElement(
-      "afterend",
-      container
-    );
+    fileInput.parentElement.insertAdjacentElement("afterend", container);
   } else {
     form.appendChild(container);
   }
@@ -703,10 +679,8 @@ function ensureExistingImagesContainer() {
 function getStoragePathFromPublicUrl(url) {
   try {
     const parsed = new URL(url);
-
     const marker =
       "/storage/v1/object/public/" + BUCKET_NAME + "/";
-
     const index = parsed.pathname.indexOf(marker);
 
     if (index === -1) return null;
@@ -760,7 +734,6 @@ async function loadExistingPropertyImages(propertyId) {
     `).join("");
   } catch (error) {
     console.error("loadExistingPropertyImages:", error);
-
     container.textContent =
       "خطا در دریافت تصاویر: " + getErrorMessage(error);
   }
@@ -791,15 +764,11 @@ async function deleteExistingPropertyImage(imageId) {
         .remove([path]);
 
       if (storageError) {
-        console.error(
-          "Storage image deletion:",
-          storageError
-        );
+        console.error("Storage image deletion:", storageError);
       }
     }
 
     await loadExistingPropertyImages(image.property_id);
-
     setMessage("propertyMessage", "تصویر حذف شد.");
   } catch (error) {
     console.error("deleteExistingPropertyImage:", error);
@@ -813,7 +782,7 @@ async function deleteExistingPropertyImage(imageId) {
 }
 
 /* -----------------------------
-   آپلود تصاویر بدون فشرده‌سازی
+   کتابخانه TUS
 ----------------------------- */
 
 function loadTusLibrary() {
@@ -833,18 +802,14 @@ function loadTusLibrary() {
         resolve(window.tus);
       } else {
         tusLibraryPromise = null;
-        reject(
-          new Error("کتابخانه آپلود بارگذاری نشد.")
-        );
+        reject(new Error("کتابخانه آپلود بارگذاری نشد."));
       }
     };
 
     script.onerror = () => {
       tusLibraryPromise = null;
       reject(
-        new Error(
-          "کتابخانه آپلود دریافت نشد. اینترنت را بررسی کن."
-        )
+        new Error("کتابخانه آپلود دریافت نشد. اینترنت را بررسی کن.")
       );
     };
 
@@ -866,9 +831,7 @@ function getProjectRef() {
     return parts[0];
   }
 
-  throw new Error(
-    "آدرس پروژه Supabase قابل شناسایی نیست."
-  );
+  throw new Error("آدرس پروژه Supabase قابل شناسایی نیست.");
 }
 
 function makeUniqueFileName(file) {
@@ -892,6 +855,60 @@ function makeUniqueFileName(file) {
   return randomPart + "." + extension;
 }
 
+/* -----------------------------
+   بازیابی مسیر آپلود
+----------------------------- */
+
+function getResumablePathKey(propertyId, file) {
+  const identity = [
+    propertyId,
+    file.name,
+    file.size,
+    file.lastModified || 0,
+    file.type || ""
+  ].map((part) => String(part)).join("|");
+
+  return RESUME_STORAGE_PREFIX + identity;
+}
+
+function getOrCreateResumableFilePath(propertyId, file) {
+  const key = getResumablePathKey(propertyId, file);
+
+  try {
+    const savedPath = localStorage.getItem(key);
+
+    if (savedPath) return savedPath;
+
+    const newPath =
+      `${propertyId}/${makeUniqueFileName(file)}`;
+
+    localStorage.setItem(key, newPath);
+
+    return newPath;
+  } catch (error) {
+    console.error("Resume path storage:", error);
+
+    throw new Error(
+      "ذخیره مسیر بازیابی آپلود در مرورگر ممکن نشد. " +
+      "فضای ذخیره‌سازی مرورگر را بررسی کن."
+    );
+  }
+}
+
+function clearResumableFilePath(propertyId, file) {
+  try {
+    localStorage.removeItem(
+      getResumablePathKey(propertyId, file)
+    );
+  } catch (error) {
+    console.error("Resume path cleanup:", error);
+  }
+}
+
+/* -----------------------------
+   آپلود قابل ادامه با TUS
+----------------------------- */
+
 function uploadFileWithTus(file, filePath, session, onProgress) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -905,16 +922,28 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
 
       const upload = new tus.Upload(file, {
         endpoint,
-        retryDelays: [0, 3000, 5000, 10000, 20000, 30000],
+
+        retryDelays: [
+          0,
+          3000,
+          5000,
+          10000,
+          20000,
+          30000,
+          60000,
+          120000,
+          300000
+        ],
 
         headers: {
           authorization: `Bearer ${session.access_token}`,
           apikey: window.SUPABASE_ANON_KEY,
-          "x-upsert": "false"
+          "x-upsert": "true"
         },
 
         uploadDataDuringCreation: true,
         removeFingerprintOnSuccess: true,
+        chunkSize: 6 * 1024 * 1024,
 
         metadata: {
           bucketName: BUCKET_NAME,
@@ -923,13 +952,41 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
           cacheControl: "31536000"
         },
 
+        fingerprint(currentFile, options) {
+          return [
+            "amlak-saee",
+            endpoint,
+            options.metadata?.bucketName || BUCKET_NAME,
+            options.metadata?.objectName || filePath,
+            currentFile.name,
+            currentFile.size,
+            currentFile.lastModified || 0,
+            currentFile.type || ""
+          ].join("::");
+        },
+
+        onShouldRetry(error) {
+          const status =
+            error?.originalResponse?.getStatus?.() || 0;
+
+          return (
+            status === 0 ||
+            status === 408 ||
+            status === 429 ||
+            status >= 500
+          );
+        },
+
         onError(error) {
           if (settled) return;
           settled = true;
 
           reject(
             new Error(
-              `آپلود «${file.name}» ناموفق بود: ${getErrorMessage(error)}`
+              `آپلود «${file.name}» کامل نشد. ` +
+              `اتصال اینترنت را بررسی کن و همان فایل را دوباره انتخاب کن. ` +
+              `اگر اطلاعات آپلود قبلی هنوز معتبر باشد، سیستم تلاش می‌کند ` +
+              `از بخش قبلی ادامه دهد. جزئیات: ${getErrorMessage(error)}`
             )
           );
         },
@@ -937,7 +994,7 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
         onProgress(bytesUploaded, bytesTotal) {
           if (typeof onProgress === "function") {
             const percent = bytesTotal
-              ? Math.round(bytesUploaded / bytesTotal * 100)
+              ? Math.round((bytesUploaded / bytesTotal) * 100)
               : 0;
 
             onProgress(percent);
@@ -951,6 +1008,20 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
         }
       });
 
+      const previousUploads =
+        await upload.findPreviousUploads();
+
+      const previousUpload = previousUploads.find((item) => {
+        return (
+          item.metadata?.bucketName === BUCKET_NAME &&
+          item.metadata?.objectName === filePath
+        );
+      });
+
+      if (previousUpload) {
+        upload.resumeFromPreviousUpload(previousUpload);
+      }
+
       upload.start();
     } catch (error) {
       reject(error);
@@ -961,6 +1032,10 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
 function getSelectedFiles() {
   return Array.from($("propertyImages")?.files || []);
 }
+
+/* -----------------------------
+   آپلود تصاویر ملک
+----------------------------- */
 
 async function uploadNewPropertyImages(propertyId) {
   const files = getSelectedFiles();
@@ -988,10 +1063,12 @@ async function uploadNewPropertyImages(propertyId) {
 
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
-    const filePath =
-      `${propertyId}/${makeUniqueFileName(file)}`;
+
+    let filePath;
 
     try {
+      filePath = getOrCreateResumableFilePath(propertyId, file);
+
       setMessage(
         "propertyMessage",
         `در حال آپلود تصویر ${index + 1} از ${files.length}: ${file.name}`
@@ -1032,19 +1109,19 @@ async function uploadNewPropertyImages(propertyId) {
 
       if (insertError) {
         errors.push(
-          `${file.name}: فایل آپلود شد اما ثبت در دیتابیس ناموفق بود. ` +
-          `مسیر: ${filePath}. خطا: ${getErrorMessage(insertError)}`
+          `${file.name}: فایل در فضای ذخیره‌سازی آپلود شد، ` +
+          `اما ثبت در دیتابیس انجام نشد. مسیر: ${filePath}. ` +
+          `خطا: ${getErrorMessage(insertError)}`
         );
 
-        console.error(
-          "Image database insert failed:",
-          insertError
-        );
-
+        console.error("Image database insert failed:", insertError);
         continue;
       }
 
       uploaded++;
+
+      // فقط پس از ثبت موفق تصویر در دیتابیس پاک می‌شود.
+      clearResumableFilePath(propertyId, file);
     } catch (error) {
       errors.push(`${file.name}: ${getErrorMessage(error)}`);
       console.error("Image upload failed:", error);
@@ -1187,9 +1264,7 @@ function resetPropertyForm() {
 
   const container = ensureExistingImagesContainer();
 
-  if (container) {
-    container.innerHTML = "";
-  }
+  if (container) container.innerHTML = "";
 
   renderFilterOptions(filterOptionsCache);
 
@@ -1285,10 +1360,7 @@ async function loadProperties() {
 
 async function editProperty(id) {
   try {
-    setMessage(
-      "propertyMessage",
-      "در حال دریافت اطلاعات ملک..."
-    );
+    setMessage("propertyMessage", "در حال دریافت اطلاعات ملک...");
 
     const { data: property, error } = await db
       .from("properties")
@@ -1309,10 +1381,7 @@ async function editProperty(id) {
     setInputValue("area", property.area);
     setInputValue("bedrooms", property.bedrooms);
     setInputValue("floor", property.floor);
-
-    // ستون دیتابیس location_text است؛ ورودی HTML همچنان location است
     setInputValue("location", property.location_text);
-
     setInputValue("address", property.address);
     setInputValue("frontageType", property.frontage_type);
 
@@ -1335,9 +1404,7 @@ async function editProperty(id) {
 
     setSelectedValues(
       "neighborhood",
-      (neighborhoodRows || []).map(
-        (item) => item.neighborhood_id
-      )
+      (neighborhoodRows || []).map((item) => item.neighborhood_id)
     );
 
     const { data: filterRows, error: filterError } = await db
@@ -1349,9 +1416,7 @@ async function editProperty(id) {
 
     renderFilterOptions(
       filterOptionsCache,
-      (filterRows || []).map(
-        (item) => item.filter_option_id
-      )
+      (filterRows || []).map((item) => item.filter_option_id)
     );
 
     ensureCancelEditButton();
@@ -1366,10 +1431,7 @@ async function editProperty(id) {
 
     await loadExistingPropertyImages(id);
 
-    setMessage(
-      "propertyMessage",
-      "اطلاعات ملک آماده ویرایش است."
-    );
+    setMessage("propertyMessage", "اطلاعات ملک آماده ویرایش است.");
 
     $("propertyForm")?.scrollIntoView({
       behavior: "smooth",
@@ -1399,9 +1461,7 @@ async function toggleProperty(id, isActive) {
   } catch (error) {
     console.error("toggleProperty:", error);
 
-    alert(
-      "خطا در تغییر وضعیت ملک: " + getErrorMessage(error)
-    );
+    alert("خطا در تغییر وضعیت ملک: " + getErrorMessage(error));
   }
 }
 
@@ -1419,9 +1479,7 @@ async function deleteProperty(id) {
     if (imagesError) throw imagesError;
 
     const paths = (images || [])
-      .map((image) =>
-        getStoragePathFromPublicUrl(image.image_url)
-      )
+      .map((image) => getStoragePathFromPublicUrl(image.image_url))
       .filter(Boolean);
 
     if (paths.length) {
@@ -1455,14 +1513,11 @@ async function deleteProperty(id) {
     if (error) throw error;
 
     setMessage("propertyMessage", "ملک حذف شد.");
-
     await loadProperties();
   } catch (error) {
     console.error("deleteProperty:", error);
 
-    alert(
-      "خطا در حذف ملک: " + getErrorMessage(error)
-    );
+    alert("خطا در حذف ملک: " + getErrorMessage(error));
   }
 }
 
@@ -1516,20 +1571,14 @@ async function saveSiteSettings(event) {
   if (event) event.preventDefault();
 
   try {
-    setMessage(
-      "settingsMessage",
-      "در حال ذخیره تنظیمات..."
-    );
+    setMessage("settingsMessage", "در حال ذخیره تنظیمات...");
 
     for (const [key, id] of SITE_SETTING_FIELDS) {
       const value = getInputValue(id).trim();
 
       const { error } = await db
         .from("site_settings")
-        .upsert(
-          { key, value },
-          { onConflict: "key" }
-        );
+        .upsert({ key, value }, { onConflict: "key" });
 
       if (error) throw error;
     }
@@ -1562,80 +1611,52 @@ function setupAdminEvents() {
     renderFilterOptions(filterOptionsCache);
   });
 
-  $("neighborhoodForm")?.addEventListener(
-    "submit",
-    addNeighborhood
-  );
+  $("neighborhoodForm")?.addEventListener("submit", addNeighborhood);
+  $("settingsForm")?.addEventListener("submit", saveSiteSettings);
 
-  $("settingsForm")?.addEventListener(
-    "submit",
-    saveSiteSettings
-  );
+  $("adminNeighborhoods")?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
 
-  $("adminNeighborhoods")?.addEventListener(
-    "click",
-    (event) => {
-      const button = event.target.closest(
-        "button[data-action]"
-      );
+    const id = button.dataset.id;
 
-      if (!button) return;
-
-      const id = button.dataset.id;
-
-      if (button.dataset.action === "toggle-neighborhood") {
-        toggleNeighborhood(
-          id,
-          button.dataset.active === "true"
-        );
-      }
-
-      if (button.dataset.action === "delete-neighborhood") {
-        deleteNeighborhood(id);
-      }
+    if (button.dataset.action === "toggle-neighborhood") {
+      toggleNeighborhood(id, button.dataset.active === "true");
     }
-  );
 
-  $("adminProperties")?.addEventListener(
-    "click",
-    (event) => {
-      const button = event.target.closest(
-        "button[data-action]"
-      );
-
-      if (!button) return;
-
-      const id = button.dataset.id;
-
-      if (button.dataset.action === "edit-property") {
-        editProperty(id);
-      }
-
-      if (button.dataset.action === "toggle-property") {
-        toggleProperty(
-          id,
-          button.dataset.active === "true"
-        );
-      }
-
-      if (button.dataset.action === "delete-property") {
-        deleteProperty(id);
-      }
+    if (button.dataset.action === "delete-neighborhood") {
+      deleteNeighborhood(id);
     }
-  );
+  });
 
-  ensureExistingImagesContainer()?.addEventListener(
-    "click",
-    (event) => {
-      const button = event.target.closest(
-        'button[data-action="delete-property-image"]'
-      );
+  $("adminProperties")?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
 
-      if (button) {
-        deleteExistingPropertyImage(button.dataset.id);
-      }
+    const id = button.dataset.id;
+
+    if (button.dataset.action === "edit-property") {
+      editProperty(id);
     }
-  );
+
+    if (button.dataset.action === "toggle-property") {
+      toggleProperty(id, button.dataset.active === "true");
+    }
+
+    if (button.dataset.action === "delete-property") {
+      deleteProperty(id);
+    }
+  });
+
+  ensureExistingImagesContainer()?.addEventListener("click", (event) => {
+    const button = event.target.closest(
+      'button[data-action="delete-property-image"]'
+    );
+
+    if (button) {
+      deleteExistingPropertyImage(button.dataset.id);
+    }
+  });
 }
 
 /* -----------------------------
@@ -1644,7 +1665,6 @@ function setupAdminEvents() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   showLogin();
-
   setAuthMessage("در حال بررسی وضعیت ورود...");
 
   if (
