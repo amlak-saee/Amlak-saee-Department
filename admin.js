@@ -778,8 +778,7 @@ async function deleteExistingPropertyImage(imageId) {
       true
     );
   }
-}
-
+        }
 /* -----------------------------
    کتابخانه TUS
 ----------------------------- */
@@ -905,123 +904,45 @@ function clearResumableFilePath(propertyId, file) {
 }
 
 /* -----------------------------
-   آپلود قابل ادامه با TUS
+   آپلود مستقیم تصاویر
 ----------------------------- */
 
-function uploadFileWithTus(file, filePath, session, onProgress) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const tus = await loadTusLibrary();
-      const projectRef = getProjectRef();
+async function uploadFileWithTus(file, filePath, session, onProgress) {
+  try {
+    const MAX_IMAGE_SIZE = 950 * 1024;
 
-      const endpoint =
-        `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`;
-
-      let settled = false;
-
-      const upload = new tus.Upload(file, {
-        endpoint,
-
-        retryDelays: [
-          0,
-          3000,
-          5000,
-          10000,
-          20000,
-          30000,
-          60000,
-          120000,
-          300000
-        ],
-
-        headers: {
-          authorization: `Bearer ${session.access_token}`,
-          apikey: window.SUPABASE_ANON_KEY,
-          "x-upsert": "true"
-        },
-
-        uploadDataDuringCreation: true,
-        removeFingerprintOnSuccess: true,
-        chunkSize: 6 * 1024 * 1024,
-
-        // اصلاح اصلی: fingerprint باید Promise برگرداند.
-        fingerprint(currentFile, options) {
-          const fingerprintValue = [
-            "amlak-saee",
-            endpoint,
-            options.metadata?.bucketName || BUCKET_NAME,
-            options.metadata?.objectName || filePath,
-            currentFile.name,
-            currentFile.size,
-            currentFile.lastModified || 0,
-            currentFile.type || ""
-          ].join("::");
-
-          return Promise.resolve(fingerprintValue);
-        },
-
-        onShouldRetry(error) {
-          const status =
-            error?.originalResponse?.getStatus?.() || 0;
-
-          return (
-            status === 0 ||
-            status === 408 ||
-            status === 429 ||
-            status >= 500
-          );
-        },
-
-        onError(error) {
-          if (settled) return;
-          settled = true;
-
-          reject(
-            new Error(
-              `آپلود «${file.name}» کامل نشد. ` +
-              `اتصال اینترنت را بررسی کن و همان فایل را دوباره انتخاب کن. ` +
-              `اگر اطلاعات آپلود قبلی هنوز معتبر باشد، سیستم تلاش می‌کند ` +
-              `از بخش قبلی ادامه دهد. جزئیات: ${getErrorMessage(error)}`
-            )
-          );
-        },
-
-        onProgress(bytesUploaded, bytesTotal) {
-          if (typeof onProgress === "function") {
-            const percent = bytesTotal
-              ? Math.round((bytesUploaded / bytesTotal) * 100)
-              : 0;
-
-            onProgress(percent);
-          }
-        },
-
-        onSuccess() {
-          if (settled) return;
-          settled = true;
-          resolve();
-        }
-      });
-
-      const previousUploads =
-        await upload.findPreviousUploads();
-
-      const previousUpload = previousUploads.find((item) => {
-        return (
-          item.metadata?.bucketName === BUCKET_NAME &&
-          item.metadata?.objectName === filePath
-        );
-      });
-
-      if (previousUpload) {
-        upload.resumeFromPreviousUpload(previousUpload);
-      }
-
-      upload.start();
-    } catch (error) {
-      reject(error);
+    if (file.size > MAX_IMAGE_SIZE) {
+      throw new Error(
+        "حجم عکس بیشتر از ۹۵۰ کیلوبایت است. لطفاً عکس کم‌حجم‌تری انتخاب کن."
+      );
     }
-  });
+
+    if (typeof onProgress === "function") {
+      onProgress(0);
+    }
+
+    const { data, error } = await db.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, file, {
+        cacheControl: "31536000",
+        contentType: file.type || "application/octet-stream",
+        upsert: true
+      });
+
+    if (error) {
+      throw new Error(error.message || "آپلود عکس ناموفق بود.");
+    }
+
+    if (typeof onProgress === "function") {
+      onProgress(100);
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error(
+      `آپلود عکس «${file.name}» ناموفق بود: ${getErrorMessage(error)}`
+    );
+  }
 }
 
 function getSelectedFiles() {
@@ -1350,8 +1271,7 @@ async function loadProperties() {
     container.textContent =
       "خطا در دریافت فایل‌ها: " + getErrorMessage(error);
   }
-}
-
+        }
 async function editProperty(id) {
   try {
     setMessage("propertyMessage", "در حال دریافت اطلاعات ملک...");
@@ -1587,8 +1507,7 @@ async function saveSiteSettings(event) {
       true
     );
   }
-}
-
+    }
 /* -----------------------------
    اتصال رویدادها
 ----------------------------- */
