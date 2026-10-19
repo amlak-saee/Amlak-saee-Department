@@ -1,4 +1,3 @@
-
 "use strict";
 
 const { createClient } = window.supabase;
@@ -945,15 +944,9 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
         removeFingerprintOnSuccess: true,
         chunkSize: 6 * 1024 * 1024,
 
-        metadata: {
-          bucketName: BUCKET_NAME,
-          objectName: filePath,
-          contentType: file.type || "application/octet-stream",
-          cacheControl: "31536000"
-        },
-
+        // اصلاح اصلی: fingerprint باید Promise برگرداند.
         fingerprint(currentFile, options) {
-          return [
+          const fingerprintValue = [
             "amlak-saee",
             endpoint,
             options.metadata?.bucketName || BUCKET_NAME,
@@ -963,6 +956,8 @@ function uploadFileWithTus(file, filePath, session, onProgress) {
             currentFile.lastModified || 0,
             currentFile.type || ""
           ].join("::");
+
+          return Promise.resolve(fingerprintValue);
         },
 
         onShouldRetry(error) {
@@ -1120,7 +1115,6 @@ async function uploadNewPropertyImages(propertyId) {
 
       uploaded++;
 
-      // فقط پس از ثبت موفق تصویر در دیتابیس پاک می‌شود.
       clearResumableFilePath(propertyId, file);
     } catch (error) {
       errors.push(`${file.name}: ${getErrorMessage(error)}`);
