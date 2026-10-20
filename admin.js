@@ -1,3 +1,4 @@
+
 "use strict";
 
 const { createClient } = window.supabase;
@@ -18,6 +19,7 @@ let editingPropertyId = null;
 let isSavingProperty = false;
 let filterOptionsCache = [];
 let currentPropertyImages = [];
+let allAdminProperties = [];
 
 const $ = (id) => document.getElementById(id);
 
@@ -487,7 +489,6 @@ async function deleteNeighborhood(id) {
     );
   }
 }
-
 /* -----------------------------
    گزینه‌های تکمیلی
 ----------------------------- */
@@ -607,9 +608,52 @@ function setSelectedValues(id, values) {
   });
 }
 
+/* -----------------------------
+   فیلد کد اختصاصی ملک
+----------------------------- */
+
+function ensurePropertyCodeField() {
+  const form = $("propertyForm");
+  if (!form || $("propertyCode")) return;
+
+  const titleInput = $("title");
+  const titleLabel = titleInput?.closest("label");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "admin-property-code-field";
+  wrapper.style.marginBottom = "12px";
+
+  wrapper.innerHTML = `
+    <label for="propertyCode">
+      کد اختصاصی ملک
+      <input
+        type="text"
+        id="propertyCode"
+        name="property_code"
+        inputmode="text"
+        autocomplete="off"
+        maxlength="50"
+        placeholder="مثلاً 107 یا 707"
+      >
+    </label>
+    <small>
+      این کد برای جست‌وجوی فایل در پنل مدیریت و نمایش در جزئیات آگهی است.
+    </small>
+  `;
+
+  if (titleLabel?.parentElement) {
+    titleLabel.parentElement.insertBefore(wrapper, titleLabel);
+  } else if (titleInput?.parentElement) {
+    titleInput.parentElement.insertBefore(wrapper, titleInput);
+  } else {
+    form.prepend(wrapper);
+  }
+}
+
 function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
+  const propertyCode = getInputValue("propertyCode").trim();
 
   if (!title) throw new Error("عنوان ملک را وارد کن.");
   if (!categoryId) throw new Error("دسته‌بندی ملک را انتخاب کن.");
@@ -630,6 +674,7 @@ function getPropertyPayload() {
 
   return {
     title,
+    property_code: propertyCode || null,
     description: getInputValue("description").trim(),
     category_id: categoryId,
     price: numericValue("price"),
@@ -647,7 +692,6 @@ function getPropertyPayload() {
     frontage_type: getInputValue("frontageType") || null
   };
 }
-
 /* -----------------------------
    تصاویر قبلی
 ----------------------------- */
@@ -778,7 +822,8 @@ async function deleteExistingPropertyImage(imageId) {
       true
     );
   }
-        }
+}
+
 /* -----------------------------
    کتابخانه TUS
 ----------------------------- */
@@ -854,7 +899,7 @@ function makeUniqueFileName(file) {
 }
 
 /* -----------------------------
-   بازیابی مسیر آپلود
+   مسیر آپلود
 ----------------------------- */
 
 function getResumablePathKey(propertyId, file) {
@@ -887,8 +932,7 @@ function getOrCreateResumableFilePath(propertyId, file) {
     console.error("Resume path storage:", error);
 
     throw new Error(
-      "ذخیره مسیر بازیابی آپلود در مرورگر ممکن نشد. " +
-      "فضای ذخیره‌سازی مرورگر را بررسی کن."
+      "ذخیره مسیر آپلود در مرورگر ممکن نشد. فضای ذخیره‌سازی مرورگر را بررسی کن."
     );
   }
 }
@@ -904,7 +948,8 @@ function clearResumableFilePath(propertyId, file) {
 }
 
 /* -----------------------------
-   آپلود مستقیم تصاویر
+   آپلود تصاویر
+   روش فعلی حفظ شده است
 ----------------------------- */
 
 async function uploadFileWithTus(file, filePath, session, onProgress) {
@@ -948,10 +993,6 @@ async function uploadFileWithTus(file, filePath, session, onProgress) {
 function getSelectedFiles() {
   return Array.from($("propertyImages")?.files || []);
 }
-
-/* -----------------------------
-   آپلود تصاویر ملک
------------------------------ */
 
 async function uploadNewPropertyImages(propertyId) {
   const files = getSelectedFiles();
@@ -1025,9 +1066,8 @@ async function uploadNewPropertyImages(propertyId) {
 
       if (insertError) {
         errors.push(
-          `${file.name}: فایل در فضای ذخیره‌سازی آپلود شد، ` +
-          `اما ثبت در دیتابیس انجام نشد. مسیر: ${filePath}. ` +
-          `خطا: ${getErrorMessage(insertError)}`
+          `${file.name}: تصویر آپلود شد، اما ثبت در دیتابیس انجام نشد. ` +
+          `مسیر: ${filePath}. خطا: ${getErrorMessage(insertError)}`
         );
 
         console.error("Image database insert failed:", insertError);
@@ -1035,7 +1075,6 @@ async function uploadNewPropertyImages(propertyId) {
       }
 
       uploaded++;
-
       clearResumableFilePath(propertyId, file);
     } catch (error) {
       errors.push(`${file.name}: ${getErrorMessage(error)}`);
@@ -1152,9 +1191,21 @@ async function saveProperty(event) {
   } catch (error) {
     console.error("saveProperty:", error);
 
+    let message = getErrorMessage(error);
+
+    if (
+      message.toLowerCase().includes("property_code") &&
+      (
+        message.toLowerCase().includes("duplicate") ||
+        message.toLowerCase().includes("unique")
+      )
+    ) {
+      message = "این کد ملک قبلاً استفاده شده است. کد دیگری وارد کن.";
+    }
+
     setMessage(
       "propertyMessage",
-      "خطا در ذخیره ملک: " + getErrorMessage(error),
+      "خطا در ذخیره ملک: " + message,
       true
     );
   } finally {
@@ -1209,10 +1260,133 @@ function ensureCancelEditButton() {
   form.appendChild(button);
 }
 
+/* -----------------------------
+   جست‌وجوی فایل‌ها
+----------------------------- */
+
+function ensurePropertySearch() {
+  const container = $("adminProperties");
+  if (!container || $("adminPropertySearch")) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "adminPropertySearchWrapper";
+  wrapper.style.margin = "12px 0";
+
+  wrapper.innerHTML = `
+    <label for="adminPropertySearch">
+      جست‌وجو در فایل‌های ملکی
+    </label>
+    <input
+      type="search"
+      id="adminPropertySearch"
+      placeholder="کد، عنوان، توضیحات، آدرس یا محله..."
+      autocomplete="off"
+      style="width:100%;box-sizing:border-box;margin-top:6px;"
+    >
+    <p id="adminPropertySearchCount" aria-live="polite"></p>
+  `;
+
+  container.parentElement?.insertBefore(wrapper, container);
+
+  $("adminPropertySearch")?.addEventListener("input", () => {
+    renderAdminProperties();
+  });
+}
+
+function getPropertySearchText(property) {
+  const neighborhoodNames = (property.neighborhoods || [])
+    .map((item) => item.name || "")
+    .join(" ");
+
+  return [
+    property.property_code,
+    property.title,
+    property.description,
+    property.address,
+    property.location_text,
+    property.categories?.title,
+    neighborhoodNames
+  ].join(" ").toLocaleLowerCase("fa");
+}
+
+function renderAdminProperties() {
+  const container = $("adminProperties");
+  if (!container) return;
+
+  const query = ($("adminPropertySearch")?.value || "")
+    .trim()
+    .toLocaleLowerCase("fa");
+
+  const filtered = allAdminProperties.filter((property) => {
+    if (!query) return true;
+
+    return getPropertySearchText(property).includes(query);
+  });
+
+  const count = $("adminPropertySearchCount");
+
+  if (count) {
+    count.textContent =
+      `نمایش ${filtered.length} از ${allAdminProperties.length} فایل`;
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = query
+      ? "<p>فایلی با این مشخصات پیدا نشد.</p>"
+      : "<p>هنوز ملکی ثبت نشده است.</p>";
+    return;
+  }
+
+  container.innerHTML = filtered.map((property) => {
+    const active = property.is_active !== false;
+
+    return `
+      <div class="admin-item">
+        <div>
+          <strong>${escapeHtml(property.title)}</strong>
+          <div>${escapeHtml(property.categories?.title || "")}</div>
+          <div>${active ? "فعال" : "غیرفعال"}</div>
+          ${property.property_code
+            ? `<div>کد: ${escapeHtml(property.property_code)}</div>`
+            : ""}
+          ${property.location_text
+            ? `<div>${escapeHtml(property.location_text)}</div>`
+            : ""}
+        </div>
+
+        <div>
+          <button
+            type="button"
+            data-action="edit-property"
+            data-id="${escapeHtml(property.id)}">
+            ویرایش
+          </button>
+
+          <button
+            type="button"
+            data-action="toggle-property"
+            data-id="${escapeHtml(property.id)}"
+            data-active="${String(!active)}">
+            ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
+          </button>
+
+          <button
+            type="button"
+            data-action="delete-property"
+            data-id="${escapeHtml(property.id)}">
+            حذف
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
 async function loadProperties() {
   const container = $("adminProperties");
   if (!container) return;
 
+  ensurePropertySearch();
   container.textContent = "در حال دریافت فایل‌ها...";
 
   try {
@@ -1223,55 +1397,49 @@ async function loadProperties() {
 
     if (error) throw error;
 
-    if (!data?.length) {
-      container.innerHTML = "<p>هنوز ملکی ثبت نشده است.</p>";
-      return;
+    const properties = data || [];
+
+    const ids = properties.map((property) => property.id);
+    const neighborhoodMap = new Map();
+
+    if (ids.length) {
+      const { data: links, error: linksError } = await db
+        .from("property_neighborhoods")
+        .select("property_id, neighborhoods(name)")
+        .in("property_id", ids);
+
+      if (linksError) throw linksError;
+
+      (links || []).forEach((link) => {
+        if (!neighborhoodMap.has(link.property_id)) {
+          neighborhoodMap.set(link.property_id, []);
+        }
+
+        if (link.neighborhoods?.name) {
+          neighborhoodMap.get(link.property_id).push(
+            link.neighborhoods
+          );
+        }
+      });
     }
 
-    container.innerHTML = data.map((property) => {
-      const active = property.is_active !== false;
+    allAdminProperties = properties.map((property) => ({
+      ...property,
+      neighborhoods: neighborhoodMap.get(property.id) || []
+    }));
 
-      return `
-        <div class="admin-item">
-          <div>
-            <strong>${escapeHtml(property.title)}</strong>
-            <div>${escapeHtml(property.categories?.title || "")}</div>
-            <div>${active ? "فعال" : "غیرفعال"}</div>
-          </div>
-
-          <div>
-            <button
-              type="button"
-              data-action="edit-property"
-              data-id="${escapeHtml(property.id)}">
-              ویرایش
-            </button>
-
-            <button
-              type="button"
-              data-action="toggle-property"
-              data-id="${escapeHtml(property.id)}"
-              data-active="${String(!active)}">
-              ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
-            </button>
-
-            <button
-              type="button"
-              data-action="delete-property"
-              data-id="${escapeHtml(property.id)}">
-              حذف
-            </button>
-          </div>
-        </div>
-      `;
-    }).join("");
+    renderAdminProperties();
   } catch (error) {
     console.error("loadProperties:", error);
 
     container.textContent =
       "خطا در دریافت فایل‌ها: " + getErrorMessage(error);
   }
-        }
+}
+/* -----------------------------
+   ویرایش ملک
+----------------------------- */
+
 async function editProperty(id) {
   try {
     setMessage("propertyMessage", "در حال دریافت اطلاعات ملک...");
@@ -1286,6 +1454,9 @@ async function editProperty(id) {
 
     editingPropertyId = id;
 
+    ensurePropertyCodeField();
+
+    setInputValue("propertyCode", property.property_code);
     setInputValue("title", property.title);
     setInputValue("description", property.description);
     setInputValue("category", property.category_id);
@@ -1362,6 +1533,10 @@ async function editProperty(id) {
   }
 }
 
+/* -----------------------------
+   فعال و غیرفعال‌کردن ملک
+----------------------------- */
+
 async function toggleProperty(id, isActive) {
   try {
     const { error } = await db
@@ -1378,6 +1553,10 @@ async function toggleProperty(id, isActive) {
     alert("خطا در تغییر وضعیت ملک: " + getErrorMessage(error));
   }
 }
+
+/* -----------------------------
+   حذف ملک و تصاویر آن
+----------------------------- */
 
 async function deleteProperty(id) {
   if (!confirm("این ملک حذف شود؟ این کار قابل بازگشت نیست.")) {
@@ -1507,13 +1686,16 @@ async function saveSiteSettings(event) {
       true
     );
   }
-    }
+}
+
 /* -----------------------------
    اتصال رویدادها
 ----------------------------- */
 
 function setupAdminEvents() {
   ensureCancelEditButton();
+  ensurePropertyCodeField();
+  ensurePropertySearch();
 
   $("loginForm")?.addEventListener("submit", login);
   $("logoutButton")?.addEventListener("click", logout);
