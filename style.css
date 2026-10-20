@@ -1,3 +1,7 @@
+/* =========================================
+   Base
+   ========================================= */
+
 * {
   box-sizing: border-box;
 }
@@ -18,6 +22,14 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+button {
+  font-family: inherit;
+}
+
+/* =========================================
+   Header
+   ========================================= */
 
 .topbar {
   position: sticky;
@@ -61,12 +73,16 @@ nav {
 }
 
 nav a {
-  transition: 0.2s;
+  transition: color 0.2s ease;
 }
 
 nav a:hover {
   color: #c9a65b;
 }
+
+/* =========================================
+   Hero
+   ========================================= */
 
 .hero {
   min-height: 500px;
@@ -76,7 +92,7 @@ nav a:hover {
   padding: 70px 5%;
   text-align: center;
   background:
-    linear-gradient(rgba(17,17,15,.55), rgba(17,17,15,.95)),
+    linear-gradient(rgba(17, 17, 15, 0.55), rgba(17, 17, 15, 0.95)),
     url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80")
     center / cover;
 }
@@ -101,12 +117,16 @@ nav a:hover {
   opacity: 0.7;
 }
 
+/* =========================================
+   Neighborhood Selector
+   ========================================= */
+
 .neighborhood-box {
   max-width: 550px;
   margin: auto;
   padding: 18px;
-  background: rgba(20,20,18,.82);
-  border: 1px solid rgba(201,166,91,.25);
+  background: rgba(20, 20, 18, 0.82);
+  border: 1px solid rgba(201, 166, 91, 0.25);
   border-radius: 20px;
   text-align: right;
 }
@@ -122,7 +142,7 @@ nav a:hover {
   width: 100%;
   min-height: 48px;
   padding: 10px;
-  border: 1px solid rgba(255,255,255,.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: #181815;
   color: #fff;
@@ -132,9 +152,13 @@ nav a:hover {
 .neighborhood-box small {
   display: block;
   margin-top: 8px;
-  opacity: .5;
+  opacity: 0.5;
   font-size: 11px;
 }
+
+/* =========================================
+   Properties Section
+   ========================================= */
 
 .properties-section {
   width: min(1200px, 90%);
@@ -161,43 +185,96 @@ nav a:hover {
   margin: 22px 0;
 }
 
+/* =========================================
+   Category & Filter Buttons
+   Fast, immediate visual state changes
+   ========================================= */
+
 .category-btn,
 .filter-btn {
-  border: 1px solid rgba(201,166,91,.25);
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 1px solid rgba(201, 166, 91, 0.25);
   background: #191916;
   color: #eee;
+
   border-radius: 999px;
   padding: 10px 16px;
+
   cursor: pointer;
-  transition: .2s;
+
+  /* Prevent delayed color transitions */
+  transition: none !important;
+
+  /* Improve touch response on mobile */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* Prevent browser default focus outline */
+  outline: none;
+
+  /* Stable button rendering */
+  -webkit-text-size-adjust: 100%;
 }
 
 .category-btn:hover,
-.filter-btn:hover,
+.filter-btn:hover {
+  border-color: #c9a65b;
+}
+
 .category-btn.active,
 .filter-btn.active {
   background: #c9a65b;
   color: #15130f;
+  border-color: #c9a65b;
 }
+
+/* Keep selected state while the button is pressed */
+.category-btn.active:active,
+.filter-btn.active:active {
+  background: #c9a65b;
+  color: #15130f;
+  border-color: #c9a65b;
+}
+
+/* Brief physical press feedback without animating color */
+.category-btn:active,
+.filter-btn:active {
+  transform: scale(0.98);
+}
+
+/* Keyboard accessibility */
+.category-btn:focus-visible,
+.filter-btn:focus-visible {
+  outline: 2px solid #f0d18a;
+  outline-offset: 3px;
+}
+
+/* =========================================
+   Property Grid & Cards
+   ========================================= */
 
 .property-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin-top: 28px;
 }
 
 .property-card {
+  min-width: 0;
   overflow: hidden;
   background: #191916;
-  border: 1px solid rgba(255,255,255,.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 20px;
-  transition: transform .2s, border-color .2s;
+  transition: border-color 0.2s ease;
 }
 
 .property-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(201,166,91,.4);
+  border-color: rgba(201, 166, 91, 0.4);
 }
 
 .property-card img {
@@ -230,12 +307,25 @@ nav a:hover {
   font-weight: bold;
 }
 
+.empty-state {
+  padding: 24px 16px;
+  text-align: center;
+  color: #bbb;
+  background: #191916;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+}
+
+/* =========================================
+   About & Contact
+   ========================================= */
+
 .info-section {
   width: min(900px, 90%);
   margin: 80px auto;
   padding: 30px;
   background: #181815;
-  border: 1px solid rgba(255,255,255,.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 24px;
   line-height: 2;
 }
@@ -272,11 +362,15 @@ nav a:hover {
   gap: 10px;
 }
 
+/* =========================================
+   Footer
+   ========================================= */
+
 footer {
   padding: 35px 5%;
   text-align: center;
   background: #0b0b0a;
-  border-top: 1px solid rgba(201,166,91,.15);
+  border-top: 1px solid rgba(201, 166, 91, 0.15);
 }
 
 footer span {
@@ -294,64 +388,6 @@ footer p {
   margin-bottom: 0;
 }
 
-@media (max-width: 800px) {
-  .topbar {
-    align-items: flex-start;
-  }
-
-  nav {
-    gap: 9px;
-    font-size: 11px;
-  }
-
-  .hero {
-    min-height: 560px;
-    padding: 55px 5%;
-  }
-
-  .property-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .property-card img {
-    height: 210px;
-  }
-}
-
-@media (max-width: 520px) {
-  .topbar {
-    padding: 12px 4%;
-  }
-
-  .brand strong {
-    font-size: 17px;
-  }
-
-  nav {
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  .hero h1 {
-    font-size: 31px;
-  }
-
-  .properties-section {
-    width: 92%;
-  }
-
-  .info-section {
-    width: 92%;
-    padding: 22px;
-  }
-
-  .category-btn,
-  .filter-btn {
-    padding: 9px 13px;
-    font-size: 12px;
-  }
-    }
-
 /* =========================================
    Property Details & Gallery
    ========================================= */
@@ -360,7 +396,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-/* Property card image */
 .property-image-wrap {
   position: relative;
   overflow: hidden;
@@ -428,6 +463,7 @@ body.modal-open {
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 24px;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+  overscroll-behavior: contain;
 }
 
 .property-modal-close {
@@ -516,6 +552,7 @@ body.modal-open {
   padding: 10px;
   overflow-x: auto;
   background: #0d0d0d;
+  overscroll-behavior-x: contain;
 }
 
 .property-thumbnail {
@@ -691,11 +728,38 @@ body.modal-open {
 }
 
 /* =========================================
+   Tablet
+   ========================================= */
+
+@media (max-width: 800px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  nav {
+    gap: 9px;
+    font-size: 11px;
+  }
+
+  .hero {
+    min-height: 560px;
+    padding: 55px 5%;
+  }
+
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .property-card img {
+    height: 210px;
+  }
+}
+
+/* =========================================
    Mobile
    ========================================= */
 
 @media (max-width: 700px) {
-
   .property-modal {
     padding: 0;
     align-items: flex-end;
@@ -785,5 +849,58 @@ body.modal-open {
 
   .image-viewer-next {
     left: 8px;
+  }
+}
+
+/* =========================================
+   Small Phones
+   ========================================= */
+
+@media (max-width: 520px) {
+  .topbar {
+    padding: 12px 4%;
+  }
+
+  .brand strong {
+    font-size: 17px;
+  }
+
+  nav {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .hero h1 {
+    font-size: 31px;
+  }
+
+  .properties-section {
+    width: 92%;
+  }
+
+  .info-section {
+    width: 92%;
+    padding: 22px;
+  }
+
+  .category-btn,
+  .filter-btn {
+    padding: 9px 13px;
+    font-size: 12px;
+  }
+}
+
+/* =========================================
+   Reduced Motion Preference
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
