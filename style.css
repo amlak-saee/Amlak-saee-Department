@@ -1,6 +1,22 @@
+
 /* =========================================
-   Base
+   AMLAK SAEE - LIGHT LUXURY REDESIGN
+   PART 1 OF 4
+   Backup the original CSS before replacing.
    ========================================= */
+
+:root {
+  --navy: #172838;
+  --navy-dark: #101e2b;
+  --gold: #c4a56a;
+  --gold-light: #dfc795;
+  --page: #f7f8fa;
+  --white: #ffffff;
+  --text: #202b36;
+  --muted: #707984;
+  --line: #e6e8eb;
+  --shadow: 0 4px 18px rgba(22, 40, 56, 0.06);
+}
 
 * {
   box-sizing: border-box;
@@ -8,12 +24,13 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--page);
 }
 
 body {
   margin: 0;
-  background: #11110f;
-  color: #f4f0e8;
+  background: var(--page);
+  color: var(--text);
   font-family: Tahoma, Arial, sans-serif;
   overflow-x: hidden;
 }
@@ -23,13 +40,14 @@ a {
   text-decoration: none;
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
 }
 
-/* =========================================
-   Header
-   ========================================= */
+/* Header */
 
 .topbar {
   position: sticky;
@@ -40,8 +58,10 @@ button {
   justify-content: space-between;
   gap: 20px;
   padding: 14px 5%;
-  background: rgba(17, 17, 15, 0.94);
-  border-bottom: 1px solid rgba(201, 166, 91, 0.2);
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--navy);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.025);
   backdrop-filter: blur(12px);
 }
 
@@ -52,18 +72,20 @@ button {
 }
 
 .brand .department {
-  color: #c9a65b;
+  color: var(--gold);
   font-size: 11px;
 }
 
 .brand strong {
+  color: var(--navy);
   font-size: 20px;
 }
 
 .brand small {
   direction: ltr;
+  color: var(--gold);
   font-size: 8px;
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 nav {
@@ -73,28 +95,31 @@ nav {
 }
 
 nav a {
+  color: var(--navy);
   transition: color 0.2s ease;
 }
 
 nav a:hover {
-  color: #c9a65b;
+  color: var(--gold);
 }
 
-/* =========================================
-   Hero
-   ========================================= */
+/* Hero */
 
 .hero {
-  min-height: 500px;
+  min-height: 350px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 70px 5%;
+  padding: 48px 5%;
   text-align: center;
+  color: #fff;
   background:
-    linear-gradient(rgba(17, 17, 15, 0.55), rgba(17, 17, 15, 0.95)),
-    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80")
-    center / cover;
+    linear-gradient(
+      rgba(15, 27, 39, 0.30),
+      rgba(15, 27, 39, 0.50)
+    ),
+    url("https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1800&q=85")
+    center / cover no-repeat;
 }
 
 .hero-content {
@@ -103,78 +128,106 @@ nav a:hover {
 }
 
 .hero-label {
-  color: #c9a65b;
+  color: var(--gold-light);
   font-size: 13px;
 }
 
 .hero h1 {
   margin: 14px 0 10px;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(30px, 7vw, 60px);
+  font-weight: 600;
 }
 
 .hero p {
   margin-bottom: 30px;
-  opacity: 0.7;
+  color: #fff;
+  opacity: 0.95;
+  line-height: 2;
 }
 
-/* =========================================
-   Neighborhood Selector
-   ========================================= */
+/* Neighborhood selector */
 
 .neighborhood-box {
   max-width: 550px;
   margin: auto;
   padding: 18px;
-  background: rgba(20, 20, 18, 0.82);
-  border: 1px solid rgba(201, 166, 91, 0.25);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 16px;
   text-align: right;
+  box-shadow: var(--shadow);
 }
 
 .neighborhood-box label {
   display: block;
   margin-bottom: 10px;
-  color: #c9a65b;
+  color: var(--navy);
   font-size: 13px;
 }
 
 #neighborhoodSelect {
   width: 100%;
-  min-height: 48px;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid #dfe4e9;
   border-radius: 12px;
-  background: #181815;
-  color: #fff;
+  background-color: #fff;
+  color: var(--navy);
+  font-size: 14px;
   outline: none;
+  box-shadow: 0 2px 8px rgba(23, 40, 56, 0.04);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+#neighborhoodSelect:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(196, 165, 106, 0.16);
+  outline: none;
+}
+
+#neighborhoodSelect option {
+  background: #fff;
+  color: var(--navy);
+}
+
+#neighborhoodSelect option:checked {
+  background-color: var(--navy);
+  color: #fff;
 }
 
 .neighborhood-box small {
   display: block;
   margin-top: 8px;
-  opacity: 0.5;
+  color: var(--muted);
   font-size: 11px;
 }
-
 /* =========================================
-   Properties Section
+   AMLAK SAEE - PART 2 OF 4
    ========================================= */
 
+/* Properties section */
+
 .properties-section {
-  width: min(1200px, 90%);
-  margin: 70px auto;
+  width: min(1200px, 92%);
+  margin: 38px auto 50px;
 }
 
 .section-heading span,
 .info-section > span {
-  color: #c9a65b;
+  color: #a88a50;
   font-size: 12px;
 }
 
 .section-heading h2,
 .info-section h2 {
   margin-top: 8px;
-  font-size: 28px;
+  color: var(--navy);
+  font-size: 26px;
 }
 
 .category-list,
@@ -185,153 +238,140 @@ nav a:hover {
   margin: 22px 0;
 }
 
-/* =========================================
-   Category & Filter Buttons
-   Fast, immediate visual state changes
-   ========================================= */
+/* Category and filter buttons */
 
 .category-btn,
 .filter-btn {
   appearance: none;
   -webkit-appearance: none;
-
-  border: 1px solid rgba(201, 166, 91, 0.25);
-  background: #191916;
-  color: #eee;
-
-  border-radius: 999px;
-  padding: 10px 16px;
-
+  padding: 11px 16px;
+  border: 1px solid #e1e5e9;
+  border-radius: 11px;
+  background: #fff;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-
-  /* Prevent delayed color transitions */
-  transition: none !important;
-
-  /* Improve touch response on mobile */
+  outline: none;
+  box-shadow: none;
+  transition: background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-
-  /* Prevent browser default focus outline */
-  outline: none;
-
-  /* Stable button rendering */
-  -webkit-text-size-adjust: 100%;
 }
 
 .category-btn:hover,
 .filter-btn:hover {
-  border-color: #c9a65b;
+  border-color: var(--gold);
 }
 
 .category-btn.active,
-.filter-btn.active {
-  background: #c9a65b;
-  color: #15130f;
-  border-color: #c9a65b;
-}
-
-/* Keep selected state while the button is pressed */
+.filter-btn.active,
 .category-btn.active:active,
 .filter-btn.active:active {
-  background: #c9a65b;
-  color: #15130f;
-  border-color: #c9a65b;
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
 }
 
-/* Brief physical press feedback without animating color */
 .category-btn:active,
 .filter-btn:active {
   transform: scale(0.98);
 }
 
-/* Keyboard accessibility */
 .category-btn:focus-visible,
 .filter-btn:focus-visible {
-  outline: 2px solid #f0d18a;
+  outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
 
-/* =========================================
-   Property Grid & Cards
-   ========================================= */
+/* Property grid and cards */
 
 .property-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 28px;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .property-card {
   min-width: 0;
   overflow: hidden;
-  background: #191916;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 20px;
-  transition: border-color 0.2s ease;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid #e8eaed;
+  border-radius: 11px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease,
+              border-color 0.2s ease;
 }
 
 .property-card:hover {
-  border-color: rgba(201, 166, 91, 0.4);
+  border-color: #d7c49c;
+  box-shadow: 0 7px 22px rgba(22, 40, 56, 0.09);
 }
 
 .property-card img {
+  display: block;
   width: 100%;
   height: 220px;
-  display: block;
   object-fit: cover;
 }
 
 .property-content {
-  padding: 16px;
+  padding: 14px;
 }
 
 .property-content h3 {
   margin: 0 0 10px;
-  font-size: 17px;
+  color: var(--navy);
+  font-size: 15px;
+  line-height: 1.9;
 }
 
 .property-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  color: #bbb;
+  color: var(--muted);
   font-size: 12px;
+  line-height: 1.9;
 }
 
 .property-price {
   margin-top: 15px;
-  color: #c9a65b;
-  font-weight: bold;
+  color: var(--navy);
+  font-weight: 800;
 }
 
 .empty-state {
   padding: 24px 16px;
   text-align: center;
-  color: #bbb;
-  background: #191916;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
-/* =========================================
-   About & Contact
-   ========================================= */
+/* About and contact */
 
 .info-section {
-  width: min(900px, 90%);
-  margin: 80px auto;
+  width: min(900px, 92%);
+  margin: 65px auto;
   padding: 30px;
-  background: #181815;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 24px;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
   line-height: 2;
 }
 
 .info-section p {
-  color: #bbb;
+  color: var(--muted);
 }
 
 .contact-section {
@@ -350,9 +390,15 @@ nav a:hover {
 .social-links a {
   display: inline-block;
   padding: 10px 16px;
-  border-radius: 999px;
-  background: #211f19;
-  color: #c9a65b;
+  border-radius: 10px;
+  background: var(--navy);
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+#contactPhones a:hover,
+.social-links a:hover {
+  background: #243d53;
 }
 
 .social-links {
@@ -362,20 +408,19 @@ nav a:hover {
   gap: 10px;
 }
 
-/* =========================================
-   Footer
-   ========================================= */
+/* Footer */
 
 footer {
-  padding: 35px 5%;
+  padding: 30px 5%;
   text-align: center;
-  background: #0b0b0a;
-  border-top: 1px solid rgba(201, 166, 91, 0.15);
+  background: var(--navy-dark);
+  color: #fff;
+  border-top: 2px solid var(--gold);
 }
 
 footer span {
   display: block;
-  color: #c9a65b;
+  color: var(--gold-light);
   font-size: 11px;
 }
 
@@ -384,12 +429,12 @@ footer strong {
 }
 
 footer p {
-  color: #aaa;
   margin-bottom: 0;
+  color: #d0d6dc;
 }
-
 /* =========================================
-   Property Details & Gallery
+   AMLAK SAEE - PART 3 OF 4
+   Property details and image gallery
    ========================================= */
 
 body.modal-open {
@@ -399,13 +444,13 @@ body.modal-open {
 .property-image-wrap {
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
 .property-image-wrap img {
-  width: 100%;
   display: block;
+  width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
   transition: transform 0.3s ease;
@@ -421,15 +466,12 @@ body.modal-open {
   bottom: 12px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.68);
+  background: rgba(16, 30, 43, 0.82);
   color: #fff;
   font-size: 12px;
-  backdrop-filter: blur(8px);
 }
 
-/* =========================================
-   Property Modal
-   ========================================= */
+/* Property modal */
 
 .property-modal {
   position: fixed;
@@ -448,7 +490,7 @@ body.modal-open {
 .property-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.78);
+  background: rgba(11, 22, 32, 0.78);
   backdrop-filter: blur(8px);
 }
 
@@ -458,11 +500,11 @@ body.modal-open {
   width: min(1050px, 100%);
   max-height: 94vh;
   overflow-y: auto;
-  background: #151515;
-  color: #fff;
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  border-radius: 24px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+  background: #fff;
+  color: var(--text);
+  border: 1px solid rgba(196, 165, 106, 0.5);
+  border-radius: 18px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
   overscroll-behavior: contain;
 }
 
@@ -475,21 +517,18 @@ body.modal-open {
   height: 42px;
   border: 0;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(23, 40, 56, 0.9);
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
 }
 
-/* =========================================
-   Gallery
-   ========================================= */
+/* Gallery */
 
 .property-gallery {
   position: relative;
-  background: #080808;
   overflow: hidden;
+  background: var(--navy-dark);
 }
 
 .property-main-image {
@@ -498,9 +537,9 @@ body.modal-open {
 }
 
 .property-main-image img {
+  display: block;
   width: 100%;
   height: min(62vh, 560px);
-  display: block;
   object-fit: cover;
 }
 
@@ -512,17 +551,16 @@ body.modal-open {
   height: 44px;
   border: 0;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(16, 30, 43, 0.75);
   color: #fff;
   font-size: 25px;
   cursor: pointer;
   z-index: 4;
-  backdrop-filter: blur(8px);
 }
 
 .gallery-arrow:hover {
-  background: rgba(212, 175, 55, 0.9);
-  color: #111;
+  background: var(--gold);
+  color: var(--navy-dark);
 }
 
 .gallery-prev {
@@ -540,10 +578,9 @@ body.modal-open {
   transform: translateX(50%);
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(16, 30, 43, 0.8);
   color: #fff;
   font-size: 13px;
-  backdrop-filter: blur(8px);
 }
 
 .property-thumbnails {
@@ -551,7 +588,7 @@ body.modal-open {
   gap: 8px;
   padding: 10px;
   overflow-x: auto;
-  background: #0d0d0d;
+  background: #f2f4f6;
   overscroll-behavior-x: contain;
 }
 
@@ -560,7 +597,7 @@ body.modal-open {
   height: 58px;
   padding: 0;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: transparent;
   cursor: pointer;
@@ -573,12 +610,10 @@ body.modal-open {
 }
 
 .property-thumbnail.active {
-  border-color: #d4af37;
+  border-color: var(--gold);
 }
 
-/* =========================================
-   Property Details
-   ========================================= */
+/* Property details */
 
 .property-detail-content {
   padding: 24px;
@@ -588,14 +623,15 @@ body.modal-open {
   display: inline-block;
   margin-bottom: 8px;
   padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.12);
-  color: #d4af37;
+  border-radius: 8px;
+  background: #f7f1e5;
+  color: #94743a;
   font-size: 13px;
 }
 
 .property-detail-content h2 {
   margin: 0 0 18px;
+  color: var(--navy);
   font-size: clamp(22px, 4vw, 32px);
 }
 
@@ -609,9 +645,9 @@ body.modal-open {
 .detail-row > div {
   flex: 1 1 180px;
   padding: 13px 15px;
-  border-radius: 14px;
-  background: #202020;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: #f7f8fa;
+  border: 1px solid #e5e8ec;
 }
 
 .detail-features {
@@ -623,19 +659,19 @@ body.modal-open {
 
 .detail-features span {
   padding: 8px 12px;
-  border-radius: 999px;
-  background: #202020;
-  color: #eee;
+  border-radius: 9px;
+  background: #f0f3f6;
+  color: var(--navy);
   font-size: 13px;
 }
 
 .detail-price {
   margin: 18px 0;
   padding: 17px;
-  border-radius: 16px;
-  background: rgba(212, 175, 55, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  color: #d4af37;
+  border-radius: 12px;
+  background: #f9f5eb;
+  border: 1px solid #e9d9b7;
+  color: var(--navy);
   font-size: 18px;
   font-weight: 700;
 }
@@ -643,17 +679,15 @@ body.modal-open {
 .detail-description {
   margin-top: 20px;
   line-height: 2;
-  color: #d5d5d5;
+  color: #505c68;
 }
 
 .detail-description h3 {
   margin-bottom: 8px;
-  color: #fff;
+  color: var(--navy);
 }
 
-/* =========================================
-   Fullscreen Image Viewer
-   ========================================= */
+/* Fullscreen image viewer */
 
 .image-viewer {
   position: fixed;
@@ -662,7 +696,7 @@ body.modal-open {
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.96);
+  background: rgba(10, 19, 28, 0.97);
   padding: 20px;
 }
 
@@ -726,14 +760,16 @@ body.modal-open {
   color: #fff;
   font-size: 13px;
 }
-
 /* =========================================
-   Tablet
+   AMLAK SAEE - PART 4 OF 4
+   Responsive layout and accessibility
    ========================================= */
+
+/* Tablet */
 
 @media (max-width: 800px) {
   .topbar {
-    align-items: flex-start;
+    gap: 10px;
   }
 
   nav {
@@ -742,8 +778,8 @@ body.modal-open {
   }
 
   .hero {
-    min-height: 560px;
-    padding: 55px 5%;
+    min-height: 390px;
+    padding: 42px 5%;
   }
 
   .property-grid {
@@ -755,11 +791,65 @@ body.modal-open {
   }
 }
 
-/* =========================================
-   Mobile
-   ========================================= */
+/* Mobile */
 
 @media (max-width: 700px) {
+  .topbar {
+    padding: 12px 4%;
+  }
+
+  .hero {
+    min-height: 330px;
+    padding: 38px 5%;
+    background-position: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(30px, 8vw, 40px);
+  }
+
+  .hero p {
+    font-size: 13px;
+  }
+
+  .properties-section {
+    width: 92%;
+    margin-top: 28px;
+  }
+
+  .property-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .property-card {
+    border-radius: 11px;
+  }
+
+  .property-card img {
+    height: 220px;
+  }
+
+  .property-content {
+    padding: 12px;
+  }
+
+  .category-list,
+  .filter-list {
+    gap: 8px;
+  }
+
+  .category-btn,
+  .filter-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .info-section {
+    width: 92%;
+    padding: 22px 18px;
+  }
+
   .property-modal {
     padding: 0;
     align-items: flex-end;
@@ -768,7 +858,7 @@ body.modal-open {
   .property-modal-box {
     width: 100%;
     max-height: 96vh;
-    border-radius: 22px 22px 0 0;
+    border-radius: 18px 18px 0 0;
   }
 
   .property-main-image img {
@@ -852,9 +942,7 @@ body.modal-open {
   }
 }
 
-/* =========================================
-   Small Phones
-   ========================================= */
+/* Small phones */
 
 @media (max-width: 520px) {
   .topbar {
@@ -862,12 +950,22 @@ body.modal-open {
   }
 
   .brand strong {
-    font-size: 17px;
+    font-size: 16px;
+  }
+
+  .brand .department {
+    font-size: 10px;
   }
 
   nav {
     flex-direction: column;
     align-items: flex-end;
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .hero {
+    min-height: 310px;
   }
 
   .hero h1 {
@@ -876,6 +974,14 @@ body.modal-open {
 
   .properties-section {
     width: 92%;
+  }
+
+  .property-card img {
+    height: 205px;
+  }
+
+  .property-content h3 {
+    font-size: 14px;
   }
 
   .info-section {
@@ -890,9 +996,7 @@ body.modal-open {
   }
 }
 
-/* =========================================
-   Reduced Motion Preference
-   ========================================= */
+/* Reduced motion preference */
 
 @media (prefers-reduced-motion: reduce) {
   *,
