@@ -208,7 +208,7 @@ async function loadFilters(categoryId) {
 
   filters = data || [];
 
-  // فقط فیلترهایی نگه داشته شوند که متعلق به دسته‌ی فعلی‌اند
+  // فقط فیلترهای مربوط به دسته‌ی فعلی نگه داشته می‌شوند
   const availableIds = new Set(
     filters.map(filter => String(filter.id))
   );
@@ -272,14 +272,12 @@ function renderFilters() {
 function toggleFilter(filterId) {
   const id = String(filterId);
 
-  // اگر فیلتر فعال باشد، خاموش می‌شود؛ در غیر این صورت فعال می‌شود
   if (selectedFilters.has(id)) {
     selectedFilters.delete(id);
   } else {
     selectedFilters.add(id);
   }
 
-  // وضعیت ظاهری دکمه‌ها مطابق انتخاب واقعی به‌روزرسانی می‌شود
   document.querySelectorAll(".filter-btn[data-filter-id]").forEach(button => {
     const buttonId = String(button.dataset.filterId);
 
@@ -386,8 +384,7 @@ function renderProperties() {
     );
   }
 
-  // چند محله با منطق OR:
-  // ملک باید در حداقل یکی از محله‌های انتخاب‌شده باشد
+  // چند محله با منطق OR
   if (selectedNeighborhoods.size) {
     result = result.filter(property => {
       const ids = (
@@ -398,8 +395,7 @@ function renderProperties() {
     });
   }
 
-  // چند فیلتر با منطق OR:
-  // ملک باید با حداقل یکی از فیلترهای انتخاب‌شده مطابقت داشته باشد
+  // چند فیلتر با منطق OR
   if (selectedFilters.size) {
     result = result.filter(property => {
       const ids = (
@@ -643,6 +639,17 @@ function renderPropertyModal(property) {
         </span>
 
         <h2>${escapeHtml(property.title)}</h2>
+
+        ${
+          property.property_code
+            ? `
+              <div class="detail-row property-code-row">
+                <strong>کد ملک:</strong>
+                <span>${escapeHtml(property.property_code)}</span>
+              </div>
+            `
+            : ""
+        }
 
         ${
           property.location_text
