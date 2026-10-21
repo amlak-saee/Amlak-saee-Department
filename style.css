@@ -904,3 +904,366 @@ animation-iteration-count: 1 !important;
 transition-duration: 0.01ms !important;
 }
    }
+/* ===== طراحی جدید موبایل‌فرست املاک ساعی ===== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+select,
+input {
+  font-family: inherit;
+}
+
+.topbar {
+  z-index: 100;
+}
+
+.topbar nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar nav a {
+  transition: color 0.2s ease;
+}
+
+.topbar nav a:hover {
+  color: #d8b45a;
+}
+
+/* دسته‌بندی‌ها و فیلترها */
+
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 12px;
+}
+
+.category-btn {
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 6px;
+  border: 1px solid #a98736;
+  border-radius: 9px;
+  background: #191916;
+  color: #f4f0e8;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.7;
+  white-space: normal;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.category-btn.active {
+  background: #d8b45a;
+  color: #171510;
+  border-color: #f0d27b;
+}
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-children {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  min-height: 39px;
+  padding: 8px 13px;
+  border: 1px solid #8c7135;
+  border-radius: 8px;
+  background: #191916;
+  color: #eee6d5;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.filter-btn.active {
+  background: #d8b45a;
+  border-color: #f0d27b;
+  color: #171510;
+}
+
+/* کارت‌های ملک */
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.property-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #554625;
+  border-radius: 13px;
+  background: #191916;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.property-card:hover {
+  border-color: #d8b45a;
+  transform: translateY(-2px);
+}
+
+.property-image-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #24231e;
+}
+
+.property-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 235px;
+  object-fit: cover;
+}
+
+.property-image-count {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 5px 9px;
+  border: 1px solid rgba(216, 180, 90, 0.65);
+  border-radius: 7px;
+  background: rgba(17, 17, 15, 0.88);
+  color: #f5d77e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.property-content {
+  padding: 16px;
+}
+
+.property-content h3 {
+  margin: 0 0 10px;
+  color: #f4d37b;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.9;
+}
+
+.property-content > p {
+  margin: 0 0 12px;
+  color: #d0c8b8;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.property-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.property-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid #39362d;
+  border-radius: 7px;
+  background: #22211c;
+  color: #eee6d5;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.property-price,
+.detail-price strong {
+  color: #f0ce6b;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.property-price {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #393329;
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+/* کد ملک در صفحه جزئیات */
+
+.property-code-row {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #d8b45a;
+  border-radius: 9px;
+  background: rgba(216, 180, 90, 0.1);
+}
+
+.property-code-row strong {
+  color: #f0ce6b;
+  font-weight: 900;
+}
+
+.property-code-row span {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #d8b45a;
+  color: #171510;
+  font-size: 16px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+/* انتخاب محله فعلی؛ پنل پیشرفته در مرحله جاوااسکریپت اضافه می‌شود */
+
+.neighborhood-box {
+  max-width: 550px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.neighborhood-box label {
+  display: block;
+  margin-bottom: 8px;
+  color: #f0ce6b;
+  font-weight: 800;
+}
+
+.neighborhood-box select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #a98736;
+  border-radius: 9px;
+  padding: 10px;
+  background: #191916;
+  color: #f4f0e8;
+  font-size: 14px;
+}
+
+.neighborhood-box small {
+  display: block;
+  margin-top: 8px;
+  color: #c6bdac;
+  line-height: 1.8;
+}
+
+/* پیام نبودن فایل */
+
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 30px 18px;
+  border: 1px solid #554625;
+  border-radius: 12px;
+  background: #191916;
+  color: #eee6d5;
+  text-align: center;
+}
+
+/* سازگاری با گوشی */
+
+@media (max-width: 800px) {
+  .category-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .category-btn {
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .property-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .property-image-wrap img {
+    height: 230px;
+  }
+
+  .property-content {
+    padding: 15px;
+  }
+
+  .property-content h3 {
+    font-size: 18px;
+  }
+
+  .property-price {
+    font-size: 16px;
+  }
+
+  .filter-group {
+    align-items: stretch;
+  }
+
+  .filter-children {
+    width: 100%;
+  }
+
+  .topbar nav {
+    gap: 8px 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .property-image-wrap img {
+    height: 200px;
+  }
+
+  .property-meta {
+    gap: 6px;
+  }
+
+  .property-meta span {
+    font-size: 11px;
+    padding: 5px 7px;
+  }
+
+  .category-btn {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
