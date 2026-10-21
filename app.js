@@ -1,7 +1,7 @@
 
 "use strict";
 
-const { createClient } = supabase;
+const { createClient } = window.supabase;
 
 const db = createClient(
   window.SUPABASE_URL,
@@ -25,36 +25,33 @@ let filterRequestId = 0;
 const $ = selector => document.querySelector(selector);
 
 const iconPaths = {
-  home: '<path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M9 21v-7h6v7"/>',
+  home: '<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/>',
   key: '<circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 8-8 2 2-2 2 2 2-3 3-2-2-3 3"/>',
   building: '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h2m4 0h2M8 11h2m4 0h2M8 15h2m4 0h2M10 21v-3h4v3"/>',
-  store: '<path d="M3 10h18l-2-7H5z"/><path d="M5 10v11h14V10"/><path d="M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M9 21v-6h6v6"/>',
-  construction: '<path d="M3 21h18M6 21V5h12v16M4 5h16M9 9h6M9 13h6M9 17h6"/><path d="m3 3 18 18"/>',
+  store: '<path d="M3 10h18l-2-7H5zM5 10v11h14V10M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M9 21v-6h6v6"/>',
+  construction: '<path d="M3 21h18M6 21V5h12v16M4 5h16M9 9h6M9 13h6M9 17h6"/>',
   location: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
-  area: '<path d="M3 3h18v18H3z"/><path d="M3 9h6V3M15 21v-6h6"/>',
-  bed: '<path d="M3 5v15M3 15h18v5M3 10h18v5"/><path d="M7 10V7h5a3 3 0 0 1 3 3"/>',
-  parking: '<path d="M5 20V4h8a5 5 0 0 1 0 10H5"/><path d="M3 20h18"/>',
+  area: '<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h6V3M15 21v-6h6"/>',
+  bed: '<path d="M3 5v15M3 15h18v5M3 10h18v5M7 10V7h5a3 3 0 0 1 3 3"/>',
+  parking: '<path d="M5 20V4h8a5 5 0 0 1 0 10H5M3 20h18"/>',
   elevator: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="m8 8 2-2 2 2m-4 8 2 2 2-2M15 7h2v10h-2"/>',
-  storage: '<path d="M3 7h18v14H3z"/><path d="M3 7l2-4h14l2 4M8 11v6m8-6v6"/>',
-  terrace: '<path d="M3 21h18M5 21V9h14v12M3 9l9-6 9 6"/><path d="M9 13h6"/>',
+  storage: '<path d="M3 7h18v14H3zM3 7l2-4h14l2 4M8 11v6m8-6v6"/>',
+  terrace: '<path d="M3 21h18M5 21V9h14v12M3 9l9-6 9 6M9 13h6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'
 };
 
 function lineIcon(name, size = 22) {
-  const path = iconPaths[name] || iconPaths.home;
-
   return `
     <svg class="saee-icon"
       viewBox="0 0 24 24"
       width="${size}" height="${size}"
-      fill="none"
-      stroke="currentColor"
+      fill="none" stroke="currentColor"
       stroke-width="1.7"
       stroke-linecap="round"
       stroke-linejoin="round"
       aria-hidden="true">
-      ${path}
+      ${iconPaths[name] || iconPaths.home}
     </svg>
   `;
 }
@@ -87,10 +84,9 @@ function escapeAttribute(value) {
 
 function formatNumber(value) {
   const number = Number(value);
-
-  if (!Number.isFinite(number)) return "۰";
-
-  return number.toLocaleString("fa-IR");
+  return Number.isFinite(number)
+    ? number.toLocaleString("fa-IR")
+    : "۰";
 }
 
 function formatDecimal(value) {
@@ -155,8 +151,7 @@ async function loadSettings() {
   }
 
   if ($("#aboutTitle")) {
-    $("#aboutTitle").textContent =
-      settings.about_title || "درباره ما";
+    $("#aboutTitle").textContent = settings.about_title || "درباره ما";
   }
 
   if ($("#aboutText")) {
@@ -176,13 +171,9 @@ async function loadSettings() {
   ].filter(Boolean);
 
   if ($("#contactPhones")) {
-    $("#contactPhones").innerHTML = phones.length
-      ? phones.map(phone => `
-          <a href="tel:${escapeAttribute(phone)}">
-            ${escapeHtml(phone)}
-          </a>
-        `).join("")
-      : "";
+    $("#contactPhones").innerHTML = phones.map(phone => `
+      <a href="tel:${escapeAttribute(phone)}">${escapeHtml(phone)}</a>
+    `).join("");
   }
 
   ["instagramLink", "whatsappLink"].forEach(id => {
@@ -203,9 +194,10 @@ async function loadSettings() {
 
   if (settings.hero_image_url && $(".hero")) {
     $(".hero").style.backgroundImage =
-      `linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.7)),url("${settings.hero_image_url}")`;
+      `linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.72)),url("${settings.hero_image_url}")`;
   }
 }
+
 async function loadCategories() {
   const { data, error } = await db
     .from("categories")
@@ -241,7 +233,6 @@ function renderCategories() {
       class="category-btn ${String(category.id) === String(selectedCategory) ? "active" : ""}"
       data-category-id="${escapeAttribute(category.id)}"
       onclick="selectCategory('${escapeAttribute(category.id)}')">
-
       ${getCategoryIcon(category.title)}
       <span>${escapeHtml(category.title)}</span>
     </button>
@@ -264,16 +255,15 @@ async function selectCategory(categoryId) {
     );
   });
 
-  await loadFilters(id);
+  // ابتدا فیلترهای قبلی حذف می‌شوند و نتیجه سریع به‌روزرسانی می‌شود.
+  filters = [];
+  if ($("#filters")) $("#filters").innerHTML = "";
   renderProperties();
-}
 
+  await loadFilters(id);
+}
 async function loadFilters(categoryId) {
   const requestId = ++filterRequestId;
-
-  if ($("#filters")) {
-    $("#filters").innerHTML = "";
-  }
 
   const { data, error } = await db
     .from("filter_options")
@@ -282,6 +272,7 @@ async function loadFilters(categoryId) {
     .eq("is_active", true)
     .order("sort_order");
 
+  // پاسخ قدیمی نباید فیلترهای دسته‌بندی جدید را خراب کند.
   if (
     requestId !== filterRequestId ||
     String(selectedCategory) !== String(categoryId)
@@ -298,15 +289,14 @@ async function loadFilters(categoryId) {
 
   filters = data || [];
 
-  const availableIds = new Set(
-    filters.map(item => String(item.id))
-  );
+  const availableIds = new Set(filters.map(item => String(item.id)));
 
   selectedFilters = new Set(
     Array.from(selectedFilters).filter(id => availableIds.has(id))
   );
 
   renderFilters();
+  renderProperties();
 }
 
 function renderFilters() {
@@ -318,15 +308,13 @@ function renderFilters() {
 
   container.innerHTML = parents.map(parent => {
     const id = String(parent.id);
-
     const childItems = children.filter(
       item => String(item.parent_id) === id
     );
 
     return `
       <div class="filter-group">
-        <button
-          type="button"
+        <button type="button"
           class="filter-btn ${selectedFilters.has(id) ? "active" : ""}"
           data-filter-id="${escapeAttribute(id)}"
           onclick="toggleFilter('${escapeAttribute(id)}')">
@@ -339,8 +327,7 @@ function renderFilters() {
               const childId = String(child.id);
 
               return `
-                <button
-                  type="button"
+                <button type="button"
                   class="filter-btn ${selectedFilters.has(childId) ? "active" : ""}"
                   data-filter-id="${escapeAttribute(childId)}"
                   onclick="toggleFilter('${escapeAttribute(childId)}')">
@@ -415,14 +402,21 @@ function renderNeighborhoodPicker() {
   const count = selectedNeighborhoods.size;
 
   picker.innerHTML = `
-    <button type="button" class="neighborhood-toggle" id="neighborhoodToggle">
-      <span>${lineIcon("location")} انتخاب محله</span>
-      <span>${count ? `(${formatNumber(count)})` : ""}⌄</span>
+    <button type="button"
+      class="neighborhood-toggle"
+      id="neighborhoodToggle"
+      aria-expanded="false">
+      <span class="neighborhood-toggle-label">
+        ${lineIcon("location", 19)}
+        <span>انتخاب محله</span>
+      </span>
+      <span class="neighborhood-toggle-arrow">
+        ${count ? formatNumber(count) + " انتخاب" : "⌄"}
+      </span>
     </button>
 
     <div class="neighborhood-panel" id="neighborhoodPanel" hidden>
-      <input
-        type="search"
+      <input type="search"
         id="neighborhoodSearch"
         placeholder="جست‌وجوی محله..."
         value="${escapeAttribute(neighborhoodSearch)}">
@@ -441,6 +435,11 @@ function renderNeighborhoodPicker() {
   $("#neighborhoodToggle").addEventListener("click", () => {
     const panel = $("#neighborhoodPanel");
     panel.hidden = !panel.hidden;
+
+    $("#neighborhoodToggle").setAttribute(
+      "aria-expanded",
+      String(!panel.hidden)
+    );
   });
 
   $("#neighborhoodSearch").addEventListener("input", event => {
@@ -459,6 +458,7 @@ function renderNeighborhoodPicker() {
       selectedNeighborhoods.delete(id);
     }
 
+    // فقط فهرست گزینه‌ها به‌روز می‌شود؛ پنل بسته نمی‌شود.
     $("#neighborhoodOptions").innerHTML = renderNeighborhoodOptions();
   });
 
@@ -487,17 +487,19 @@ function renderNeighborhoodOptions() {
 
   return visible.map(item => {
     const id = String(item.id);
-    const checked = selectedNeighborhoods.has(id) ? "checked" : "";
+    const checked = selectedNeighborhoods.has(id);
 
     return `
-      <label class="neighborhood-option">
+      <label class="neighborhood-option ${checked ? "selected" : ""}">
         <input type="checkbox"
-          value="${escapeAttribute(id)}" ${checked}>
+          value="${escapeAttribute(id)}"
+          ${checked ? "checked" : ""}>
         <span>${escapeHtml(item.name)}</span>
       </label>
     `;
   }).join("");
 }
+
 async function loadProperties() {
   const { data, error } = await db
     .from("properties")
@@ -550,13 +552,8 @@ function getPropertyPrice(property) {
     const rent = Number(property.monthly_rent || 0);
     const parts = [];
 
-    if (deposit > 0) {
-      parts.push(`ودیعه: ${formatMoney(deposit)}`);
-    }
-
-    if (rent > 0) {
-      parts.push(`اجاره: ${formatMoney(rent)}`);
-    }
+    if (deposit > 0) parts.push(`ودیعه: ${formatMoney(deposit)}`);
+    if (rent > 0) parts.push(`اجاره: ${formatMoney(rent)}`);
 
     return parts.length ? parts.join(" · ") : "توافقی";
   }
@@ -568,17 +565,11 @@ function getPropertyFeatures(property) {
   const features = [];
 
   if (property.area) {
-    features.push([
-      "area",
-      `${formatNumber(property.area)} متر`
-    ]);
+    features.push(["area", `${formatNumber(property.area)} متر`]);
   }
 
   if (property.bedrooms !== null && property.bedrooms !== undefined) {
-    features.push([
-      "bed",
-      `${formatNumber(property.bedrooms)} خواب`
-    ]);
+    features.push(["bed", `${formatNumber(property.bedrooms)} خواب`]);
   }
 
   if (property.parking) features.push(["parking", "پارکینگ"]);
@@ -588,7 +579,6 @@ function getPropertyFeatures(property) {
 
   return features;
 }
-
 function renderProperties() {
   const container = $("#properties");
   if (!container) return;
@@ -623,8 +613,7 @@ function renderProperties() {
   });
 
   if ($("#propertyCount")) {
-    $("#propertyCount").textContent =
-      `${formatNumber(filtered.length)} فایل`;
+    $("#propertyCount").textContent = `${formatNumber(filtered.length)} فایل`;
   }
 
   if (!filtered.length) {
@@ -637,6 +626,18 @@ function renderProperties() {
   }
 
   container.innerHTML = filtered.map(renderPropertyCard).join("");
+}
+
+function getCategoryClass(title) {
+  const classes = {
+    "فروش": "sale",
+    "اجاره": "rent",
+    "مشارکت در ساخت": "construction",
+    "مغازه": "shop",
+    "اداری": "office"
+  };
+
+  return classes[String(title || "").trim()] || "default";
 }
 
 function renderPropertyCard(property) {
@@ -661,20 +662,27 @@ function renderPropertyCard(property) {
       <div class="property-image">
         ${imageMarkup}
 
-        <span class="property-category-badge">
+        <span class="property-category-badge category-${getCategoryClass(categoryTitle)}">
           ${getCategoryIcon(categoryTitle)}
           <span>${escapeHtml(categoryTitle)}</span>
         </span>
       </div>
 
       <div class="property-card-body">
+        <div class="property-code-label">
+          کد ملک: ${escapeHtml(getPropertyCode(property))}
+        </div>
+
         <h3 class="property-title">
           ${escapeHtml(property.title || "ملک بدون عنوان")}
         </h3>
 
         ${
           property.location_text
-            ? `<div class="property-location">${lineIcon("location", 17)} ${escapeHtml(property.location_text)}</div>`
+            ? `<div class="property-location">
+                ${lineIcon("location", 17)}
+                <span>${escapeHtml(property.location_text)}</span>
+              </div>`
             : ""
         }
 
@@ -684,42 +692,53 @@ function renderPropertyCard(property) {
 
         ${
           features.length
-            ? `
-              <div class="property-features">
+            ? `<div class="property-features">
                 ${features.map(([icon, label]) => `
                   <span class="property-feature">
                     ${lineIcon(icon, 17)}
                     <span>${escapeHtml(label)}</span>
                   </span>
                 `).join("")}
-              </div>
-            `
+              </div>`
             : ""
         }
 
         <button type="button"
           class="property-details-button"
           onclick="event.stopPropagation();openPropertyDetails('${escapeAttribute(property.id)}')">
-          مشاهده جزئیات
-          <span>←</span>
+          <span>مشاهده جزئیات</span>
+          <span aria-hidden="true">←</span>
         </button>
       </div>
     </article>
   `;
 }
+
+function ensureModal() {
+  let modal = $("#propertyModal");
+
+  // اگر کانتینر در index.html وجود نداشته باشد، ساخته می‌شود.
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "propertyModal";
+    modal.hidden = true;
+    document.body.appendChild(modal);
+  }
+
+  return modal;
+}
+
 function openPropertyDetails(propertyId) {
   const property = properties.find(
     item => String(item.id) === String(propertyId)
   );
 
-  if (!property) return;
-
-  const modal = $("#propertyModal");
-
-  if (!modal) {
-    console.error("عنصر #propertyModal در index.html پیدا نشد.");
+  if (!property) {
+    console.error("ملک پیدا نشد:", propertyId);
     return;
   }
+
+  const modal = ensureModal();
 
   currentGalleryImages = (property.property_images || [])
     .map(item => item.image_url)
@@ -735,12 +754,15 @@ function openPropertyDetails(propertyId) {
     ["تعداد خواب", property.bedrooms !== null && property.bedrooms !== undefined ? formatNumber(property.bedrooms) : ""],
     ["طبقه", property.floor !== null && property.floor !== undefined ? formatNumber(property.floor) : ""],
     ["موقعیت", property.location_text || ""],
-    ["آدرس", property.address || ""]
+    ["آدرس", property.address || ""],
+    ["پارکینگ", property.parking ? "دارد" : ""],
+    ["آسانسور", property.elevator ? "دارد" : ""],
+    ["انباری", property.storage ? "دارد" : ""],
+    ["تراس", property.terrace ? "دارد" : ""]
   ].filter(item => item[1] !== "" && item[1] !== null);
 
   const imagesMarkup = currentGalleryImages.length
-    ? `
-      <div class="detail-gallery">
+    ? `<div class="detail-gallery">
         ${currentGalleryImages.map((url, index) => `
           <button type="button"
             class="detail-gallery-image"
@@ -751,8 +773,7 @@ function openPropertyDetails(propertyId) {
               loading="${index === 0 ? "eager" : "lazy"}">
           </button>
         `).join("")}
-      </div>
-    `
+      </div>`
     : '<div class="property-no-image">تصویری ثبت نشده است.</div>';
 
   const features = getPropertyFeatures(property);
@@ -776,6 +797,10 @@ function openPropertyDetails(propertyId) {
       ${imagesMarkup}
 
       <div class="property-modal-body">
+        <div class="property-code-label">
+          کد ملک: ${escapeHtml(getPropertyCode(property))}
+        </div>
+
         <h2>${escapeHtml(property.title || "مشخصات ملک")}</h2>
 
         <div class="detail-price">
@@ -802,12 +827,10 @@ function openPropertyDetails(propertyId) {
 
         ${
           property.description
-            ? `
-              <div class="detail-description">
+            ? `<div class="detail-description">
                 <h3>توضیحات ملک</h3>
                 <p>${escapeHtml(property.description).replace(/\n/g, "<br>")}</p>
-              </div>
-            `
+              </div>`
             : ""
         }
       </div>
@@ -831,7 +854,6 @@ function closePropertyDetails() {
   }
 
   const modal = $("#propertyModal");
-
   if (modal) modal.hidden = true;
 
   document.body.classList.remove("modal-open");
@@ -840,7 +862,6 @@ function closePropertyDetails() {
     history.back();
   }
 }
-
 function openFullscreenImage(index) {
   if (!currentGalleryImages.length) return;
 
@@ -890,8 +911,7 @@ function renderFullscreenImage() {
       onclick="changeFullscreenImage(1)" aria-label="تصویر بعدی">›</button>
 
     <div class="fullscreen-counter">
-      ${formatNumber(currentGalleryIndex + 1)}
-      /
+      ${formatNumber(currentGalleryIndex + 1)} /
       ${formatNumber(currentGalleryImages.length)}
     </div>
   `;
@@ -944,15 +964,219 @@ function ensureExtraStyles() {
       vertical-align: middle;
     }
 
-    .property-code {
-      display: none !important;
+    /* دسته‌بندی‌ها: خلوت، مشکی و با آیکون خطی */
+    .category-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 10px 16px;
+      color: #e9e8e2;
+      background: #151513;
+      border: 1px solid #42413b;
+      border-radius: 10px;
+      font: inherit;
+      cursor: pointer;
     }
 
-    .property-card {
-      background: #111110;
-      border: 1px solid #393936;
+    .category-btn.active {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    /* فیلترها کنار هم و با امکان رفتن به خط بعد */
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 9px;
+      width: 100%;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .filter-children {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .filter-btn {
+      min-height: 40px;
+      padding: 8px 13px;
+      color: #e7e6df;
+      background: #171715;
+      border: 1px solid #45443d;
+      border-radius: 9px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    /* انتخاب محله بدون زمینه سفید */
+    .saee-neighborhood-picker {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      color: #efeee8;
+    }
+
+    .neighborhood-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      color: #e9e8e2;
+      background: #151513;
+      border: 1px solid #45443d;
       border-radius: 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .neighborhood-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .neighborhood-toggle-arrow {
+      color: #dfc16c;
+      font-size: .9rem;
+    }
+
+    .neighborhood-panel {
+      position: absolute;
+      z-index: 50;
+      top: calc(100% + 8px);
+      right: 0;
+      left: 0;
+      padding: 12px;
+      background: #141412;
+      border: 1px solid #45443d;
+      border-radius: 13px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+
+    .neighborhood-panel input[type="search"] {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
+      color: #f1f0e9;
+      background: #1b1b18;
+      border: 1px solid #45443d;
+      border-radius: 9px;
+      outline: none;
+      font: inherit;
+    }
+
+    .neighborhood-panel input[type="search"]:focus {
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 12px 0;
+    }
+
+    .neighborhood-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    /* مخفی کردن تیک پیش‌فرض مرورگر */
+    .neighborhood-option input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
+    .neighborhood-option span {
+      display: inline-block;
+      padding: 8px 13px;
+      color: #e9e8e2;
+      background: #1b1b18;
+      border: 1px solid #44433c;
+      border-radius: 999px;
+      font-size: .9rem;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .neighborhood-option.selected span {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-option input:focus-visible + span {
+      outline: 2px solid #dfc16c;
+      outline-offset: 3px;
+    }
+
+    .neighborhood-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid #33332e;
+      padding-top: 10px;
+    }
+
+    .neighborhood-actions button {
+      min-height: 38px;
+      padding: 7px 13px;
+      color: #e9e8e2;
+      background: #1b1b18;
+      border: 1px solid #45443d;
+      border-radius: 9px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    #applyNeighborhoods {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-empty {
+      width: 100%;
+      color: #bcbab1;
+      text-align: center;
+    }
+
+    /* کارت فایل‌ها */
+    .property-card {
+      position: relative;
       overflow: hidden;
+      color: #efeee8;
+      background: #111110;
+      border: 1px solid #383833;
+      border-radius: 12px;
       box-shadow: none;
     }
 
@@ -964,9 +1188,9 @@ function ensureExtraStyles() {
     }
 
     .property-image > img {
+      display: block;
       width: 100%;
       height: 100%;
-      display: block;
       object-fit: cover;
     }
 
@@ -974,27 +1198,67 @@ function ensureExtraStyles() {
       position: absolute;
       top: 10px;
       right: 10px;
-      bottom: auto;
-      left: auto;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 7px 10px;
+      gap: 5px;
+      padding: 6px 12px;
       color: #fff;
-      background: rgba(8,8,8,.88);
-      border: 1px solid #555550;
-      border-radius: 7px;
-      font-size: .85rem;
+      border: 0;
+      border-radius: 999px;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    .category-sale {
+      color: #fff;
+      background: #16854c;
+    }
+
+    .category-rent {
+      color: #fff;
+      background: #2678cb;
+    }
+
+    .category-construction {
+      color: #fff;
+      background: #75452e;
+    }
+
+    .category-shop {
+      color: #fff;
+      background: #9a6723;
+    }
+
+    .category-office {
+      color: #fff;
+      background: #68645f;
+    }
+
+    .category-default {
+      color: #fff;
+      background: #55534d;
     }
 
     .property-card-body {
       padding: 13px;
     }
 
+    .property-code-label {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 8px;
+      color: #dfc16c;
+      background: #1a1915;
+      border: 1px solid #454035;
+      border-radius: 6px;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
     .property-title {
-      color: #f1f1ed;
-      line-height: 1.8;
       margin: 0 0 8px;
+      color: #f1f0e9;
+      line-height: 1.8;
     }
 
     .property-location {
@@ -1007,7 +1271,7 @@ function ensureExtraStyles() {
 
     .property-price,
     .detail-price {
-      color: #e5c879;
+      color: #dfc16c;
       font-weight: 700;
       line-height: 1.9;
       overflow-wrap: anywhere;
@@ -1029,7 +1293,7 @@ function ensureExtraStyles() {
       color: #deded8;
       background: #191918;
       border: 1px solid #393936;
-      border-radius: 6px;
+      border-radius: 7px;
       font-size: .82rem;
     }
 
@@ -1038,22 +1302,35 @@ function ensureExtraStyles() {
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      min-height: 42px;
+      min-height: 44px;
       margin-top: 14px;
       padding: 9px 12px;
       color: #f2f2ed;
-      background: #111110;
+      background: #151513;
       border: 1px solid #77736a;
       border-radius: 8px;
       font: inherit;
       cursor: pointer;
     }
 
+    .property-details-button:active {
+      background: #292820;
+    }
+
+    .property-no-image {
+      display: grid;
+      place-items: center;
+      min-height: 150px;
+      color: #aaa9a1;
+      background: #191918;
+    }
+
+    /* پنجره جزئیات */
     .property-modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 1000;
-      background: rgba(0,0,0,.8);
+      background: rgba(0,0,0,.82);
     }
 
     .property-modal-content {
@@ -1061,8 +1338,8 @@ function ensureExtraStyles() {
       inset: 3vh 3vw;
       z-index: 1001;
       overflow-y: auto;
-      background: #111110;
       color: #f2f2ed;
+      background: #111110;
       border: 1px solid #393936;
       border-radius: 12px;
     }
@@ -1078,9 +1355,11 @@ function ensureExtraStyles() {
       top: 8px;
       float: left;
       z-index: 5;
-      margin: 8px;
+      display: grid;
+      place-items: center;
       width: 40px;
       height: 40px;
+      margin: 8px;
       color: #fff;
       background: #111110;
       border: 1px solid #555550;
@@ -1097,10 +1376,10 @@ function ensureExtraStyles() {
 
     .detail-gallery-image {
       padding: 0;
-      border: 0;
-      background: #191918;
       aspect-ratio: 4 / 3;
       overflow: hidden;
+      background: #191918;
+      border: 0;
     }
 
     .detail-gallery-image:first-child {
@@ -1132,8 +1411,8 @@ function ensureExtraStyles() {
     }
 
     .detail-label {
-      color: #bcbcb6;
       flex-shrink: 0;
+      color: #bcbcb6;
     }
 
     .detail-value {
@@ -1142,8 +1421,8 @@ function ensureExtraStyles() {
     }
 
     .detail-description {
-      line-height: 1.9;
       margin-top: 18px;
+      line-height: 1.9;
     }
 
     .fullscreen-image-viewer {
@@ -1180,8 +1459,8 @@ function ensureExtraStyles() {
     }
 
     .fullscreen-close { top: 15px; right: 15px; }
-    .fullscreen-prev { left: 12px; top: 50%; }
-    .fullscreen-next { right: 12px; top: 50%; }
+    .fullscreen-prev { top: 50%; left: 12px; }
+    .fullscreen-next { top: 50%; right: 12px; }
 
     .fullscreen-counter {
       position: absolute;
@@ -1214,6 +1493,16 @@ function ensureExtraStyles() {
 
       .property-card-body {
         padding: 11px;
+      }
+
+      #filters {
+        gap: 7px;
+      }
+
+      .filter-btn {
+        min-height: 38px;
+        padding: 7px 10px;
+        font-size: .9rem;
       }
     }
   `;
