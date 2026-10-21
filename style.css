@@ -1,984 +1,353 @@
-/* =========================================
-Base
-========================================= */
-
-• {
-box-sizing: border-box;
-}
-
-html {
-scroll-behavior: smooth;
-}
-
-body {
-margin: 0;
-background: #11110f;
-color: #f4f0e8;
-font-family: Tahoma, Arial, sans-serif;
-overflow-x: hidden;
-}
-
-a {
-color: inherit;
-text-decoration: none;
-}
-
-button {
-font-family: inherit;
-}
 
 /* =========================================
-Header
+   دپارتمان املاک ساعی
+   Mobile First — Dark & Gold
 ========================================= */
 
-.topbar {
-position: sticky;
-top: 0;
-z-index: 100;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 20px;
-padding: 14px 5%;
-background: rgba(17, 17, 15, 0.94);
-border-bottom: 1px solid rgba(201, 166, 91, 0.2);
-backdrop-filter: blur(12px);
+:root {
+  --bg: #11110f;
+  --surface: #191916;
+  --surface-light: #22211c;
+  --gold: #d8b45a;
+  --gold-light: #f0d27b;
+  --text: #f4f0e8;
+  --muted: #c6bdac;
+  --border: rgba(216, 180, 90, 0.24);
+  --radius: 14px;
 }
 
-.brand {
-display: flex;
-flex-direction: column;
-gap: 2px;
-}
-
-.brand .department {
-color: #c9a65b;
-font-size: 11px;
-}
-
-.brand strong {
-font-size: 20px;
-}
-
-.brand small {
-direction: ltr;
-font-size: 8px;
-opacity: 0.55;
-}
-
-nav {
-display: flex;
-gap: 18px;
-font-size: 13px;
-}
-
-nav a {
-transition: color 0.2s ease;
-}
-
-nav a:hover {
-color: #c9a65b;
-}
-
-/* =========================================
-Hero
-========================================= */
-
-.hero {
-min-height: 500px;
-display: flex;
-align-items: center;
-justify-content: center;
-padding: 70px 5%;
-text-align: center;
-background:
-linear-gradient(rgba(17, 17, 15, 0.55), rgba(17, 17, 15, 0.95)),
-url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80")
-center / cover;
-}
-
-.hero-content {
-width: 100%;
-max-width: 850px;
-}
-
-.hero-label {
-color: #c9a65b;
-font-size: 13px;
-}
-
-.hero h1 {
-margin: 14px 0 10px;
-font-size: clamp(30px, 7vw, 60px);
-}
-
-.hero p {
-margin-bottom: 30px;
-opacity: 0.7;
-}
-
-/* =========================================
-Neighborhood Selector
-========================================= */
-
-.neighborhood-box {
-max-width: 550px;
-margin: auto;
-padding: 18px;
-background: rgba(20, 20, 18, 0.82);
-border: 1px solid rgba(201, 166, 91, 0.25);
-border-radius: 20px;
-text-align: right;
-}
-
-.neighborhood-box label {
-display: block;
-margin-bottom: 10px;
-color: #c9a65b;
-font-size: 13px;
-}
-
-#neighborhoodSelect {
-width: 100%;
-min-height: 48px;
-padding: 10px;
-border: 1px solid rgba(255, 255, 255, 0.12);
-border-radius: 12px;
-background: #181815;
-color: #fff;
-outline: none;
-}
-
-.neighborhood-box small {
-display: block;
-margin-top: 8px;
-opacity: 0.5;
-font-size: 11px;
-}
-
-/* =========================================
-Properties Section
-========================================= */
-
-.properties-section {
-width: min(1200px, 90%);
-margin: 70px auto;
-}
-
-.section-heading span,
-.info-section > span {
-color: #c9a65b;
-font-size: 12px;
-}
-
-.section-heading h2,
-.info-section h2 {
-margin-top: 8px;
-font-size: 28px;
-}
-
-.category-list,
-.filter-list {
-display: flex;
-flex-wrap: wrap;
-gap: 9px;
-margin: 22px 0;
-}
-
-/* =========================================
-Category & Filter Buttons
-Fast, immediate visual state changes
-========================================= */
-
-.category-btn,
-.filter-btn {
-appearance: none;
--webkit-appearance: none;
-
-border: 1px solid rgba(201, 166, 91, 0.25);
-background: #191916;
-color: #eee;
-
-border-radius: 999px;
-padding: 10px 16px;
-
-cursor: pointer;
-
-/* Prevent delayed color transitions */
-transition: none !important;
-
-/* Improve touch response on mobile */
--webkit-tap-highlight-color: transparent;
-touch-action: manipulation;
-user-select: none;
--webkit-user-select: none;
-
-/* Prevent browser default focus outline */
-outline: none;
-
-/* Stable button rendering */
--webkit-text-size-adjust: 100%;
-}
-
-.category-btn:hover,
-.filter-btn:hover {
-border-color: #c9a65b;
-}
-
-.category-btn.active,
-.filter-btn.active {
-background: #c9a65b;
-color: #15130f;
-border-color: #c9a65b;
-}
-
-/* Keep selected state while the button is pressed */
-.category-btn.active:active,
-.filter-btn.active:active {
-background: #c9a65b;
-color: #15130f;
-border-color: #c9a65b;
-}
-
-/* Brief physical press feedback without animating color */
-.category-btn:active,
-.filter-btn:active {
-transform: scale(0.98);
-}
-
-/* Keyboard accessibility */
-.category-btn:focus-visible,
-.filter-btn:focus-visible {
-outline: 2px solid #f0d18a;
-outline-offset: 3px;
-}
-
-/* =========================================
-Property Grid & Cards
-========================================= */
-
-.property-grid {
-display: grid;
-grid-template-columns: repeat(3, minmax(0, 1fr));
-gap: 18px;
-margin-top: 28px;
-}
-
-.property-card {
-min-width: 0;
-overflow: hidden;
-background: #191916;
-border: 1px solid rgba(255, 255, 255, 0.07);
-border-radius: 20px;
-transition: border-color 0.2s ease;
-}
-
-.property-card:hover {
-border-color: rgba(201, 166, 91, 0.4);
-}
-
-.property-card img {
-width: 100%;
-height: 220px;
-display: block;
-object-fit: cover;
-}
-
-.property-content {
-padding: 16px;
-}
-
-.property-content h3 {
-margin: 0 0 10px;
-font-size: 17px;
-}
-
-.property-meta {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-color: #bbb;
-font-size: 12px;
-}
-
-.property-price {
-margin-top: 15px;
-color: #c9a65b;
-font-weight: bold;
-}
-
-.empty-state {
-padding: 24px 16px;
-text-align: center;
-color: #bbb;
-background: #191916;
-border: 1px solid rgba(255, 255, 255, 0.07);
-border-radius: 16px;
-}
-
-/* =========================================
-About & Contact
-========================================= */
-
-.info-section {
-width: min(900px, 90%);
-margin: 80px auto;
-padding: 30px;
-background: #181815;
-border: 1px solid rgba(255, 255, 255, 0.06);
-border-radius: 24px;
-line-height: 2;
-}
-
-.info-section p {
-color: #bbb;
-}
-
-.contact-section {
-text-align: center;
-}
-
-#contactPhones {
-display: flex;
-flex-wrap: wrap;
-justify-content: center;
-gap: 10px;
-margin: 20px 0;
-}
-
-#contactPhones a,
-.social-links a {
-display: inline-block;
-padding: 10px 16px;
-border-radius: 999px;
-background: #211f19;
-color: #c9a65b;
-}
-
-.social-links {
-display: flex;
-justify-content: center;
-flex-wrap: wrap;
-gap: 10px;
-}
-
-/* =========================================
-Footer
-========================================= */
-
-footer {
-padding: 35px 5%;
-text-align: center;
-background: #0b0b0a;
-border-top: 1px solid rgba(201, 166, 91, 0.15);
-}
-
-footer span {
-display: block;
-color: #c9a65b;
-font-size: 11px;
-}
-
-footer strong {
-font-size: 20px;
-}
-
-footer p {
-color: #aaa;
-margin-bottom: 0;
-}
-
-/* =========================================
-Property Details & Gallery
-========================================= */
-
-body.modal-open {
-overflow: hidden;
-}
-
-.property-image-wrap {
-position: relative;
-overflow: hidden;
-border-radius: 18px;
-cursor: pointer;
-}
-
-.property-image-wrap img {
-width: 100%;
-display: block;
-aspect-ratio: 16 / 10;
-object-fit: cover;
-transition: transform 0.3s ease;
-}
-
-.property-image-wrap:hover img {
-transform: scale(1.03);
-}
-
-.property-image-count {
-position: absolute;
-left: 12px;
-bottom: 12px;
-padding: 6px 10px;
-border-radius: 999px;
-background: rgba(0, 0, 0, 0.68);
-color: #fff;
-font-size: 12px;
-backdrop-filter: blur(8px);
-}
-
-/* =========================================
-Property Modal
-========================================= */
-
-.property-modal {
-position: fixed;
-inset: 0;
-z-index: 9999;
-display: none;
-align-items: center;
-justify-content: center;
-padding: 16px;
-}
-
-.property-modal.open {
-display: flex;
-}
-
-.property-modal-backdrop {
-position: absolute;
-inset: 0;
-background: rgba(0, 0, 0, 0.78);
-backdrop-filter: blur(8px);
-}
-
-.property-modal-box {
-position: relative;
-z-index: 2;
-width: min(1050px, 100%);
-max-height: 94vh;
-overflow-y: auto;
-background: #151515;
-color: #fff;
-border: 1px solid rgba(212, 175, 55, 0.25);
-border-radius: 24px;
-box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
-overscroll-behavior: contain;
-}
-
-.property-modal-close {
-position: absolute;
-z-index: 10;
-top: 14px;
-left: 14px;
-width: 42px;
-height: 42px;
-border: 0;
-border-radius: 50%;
-background: rgba(0, 0, 0, 0.65);
-color: #fff;
-font-size: 24px;
-cursor: pointer;
-backdrop-filter: blur(8px);
-}
-
-/* =========================================
-Gallery
-========================================= */
-
-.property-gallery {
-position: relative;
-background: #080808;
-overflow: hidden;
-}
-
-.property-main-image {
-position: relative;
-cursor: zoom-in;
-}
-
-.property-main-image img {
-width: 100%;
-height: min(62vh, 560px);
-display: block;
-object-fit: cover;
-}
-
-.gallery-arrow {
-position: absolute;
-top: 50%;
-transform: translateY(-50%);
-width: 44px;
-height: 44px;
-border: 0;
-border-radius: 50%;
-background: rgba(0, 0, 0, 0.6);
-color: #fff;
-font-size: 25px;
-cursor: pointer;
-z-index: 4;
-backdrop-filter: blur(8px);
-}
-
-.gallery-arrow:hover {
-background: rgba(212, 175, 55, 0.9);
-color: #111;
-}
-
-.gallery-prev {
-right: 16px;
-}
-
-.gallery-next {
-left: 16px;
-}
-
-.gallery-counter {
-position: absolute;
-right: 50%;
-bottom: 16px;
-transform: translateX(50%);
-padding: 6px 12px;
-border-radius: 999px;
-background: rgba(0, 0, 0, 0.65);
-color: #fff;
-font-size: 13px;
-backdrop-filter: blur(8px);
-}
-
-.property-thumbnails {
-display: flex;
-gap: 8px;
-padding: 10px;
-overflow-x: auto;
-background: #0d0d0d;
-overscroll-behavior-x: contain;
-}
-
-.property-thumbnail {
-flex: 0 0 78px;
-height: 58px;
-padding: 0;
-border: 2px solid transparent;
-border-radius: 10px;
-overflow: hidden;
-background: transparent;
-cursor: pointer;
-}
-
-.property-thumbnail img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-}
-
-.property-thumbnail.active {
-border-color: #d4af37;
-}
-
-/* =========================================
-Property Details
-========================================= */
-
-.property-detail-content {
-padding: 24px;
-}
-
-.property-detail-category {
-display: inline-block;
-margin-bottom: 8px;
-padding: 6px 12px;
-border-radius: 999px;
-background: rgba(212, 175, 55, 0.12);
-color: #d4af37;
-font-size: 13px;
-}
-
-.property-detail-content h2 {
-margin: 0 0 18px;
-font-size: clamp(22px, 4vw, 32px);
-}
-
-.detail-row {
-display: flex;
-flex-wrap: wrap;
-gap: 10px;
-margin-bottom: 18px;
-}
-
-.detail-row > div {
-flex: 1 1 180px;
-padding: 13px 15px;
-border-radius: 14px;
-background: #202020;
-border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.detail-features {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin: 15px 0;
-}
-
-.detail-features span {
-padding: 8px 12px;
-border-radius: 999px;
-background: #202020;
-color: #eee;
-font-size: 13px;
-}
-
-.detail-price {
-margin: 18px 0;
-padding: 17px;
-border-radius: 16px;
-background: rgba(212, 175, 55, 0.08);
-border: 1px solid rgba(212, 175, 55, 0.2);
-color: #d4af37;
-font-size: 18px;
-font-weight: 700;
-}
-
-.detail-description {
-margin-top: 20px;
-line-height: 2;
-color: #d5d5d5;
-}
-
-.detail-description h3 {
-margin-bottom: 8px;
-color: #fff;
-}
-
-/* =========================================
-Fullscreen Image Viewer
-========================================= */
-
-.image-viewer {
-position: fixed;
-inset: 0;
-z-index: 10000;
-display: none;
-align-items: center;
-justify-content: center;
-background: rgba(0, 0, 0, 0.96);
-padding: 20px;
-}
-
-.image-viewer.open {
-display: flex;
-}
-
-.image-viewer img {
-max-width: 96vw;
-max-height: 92vh;
-object-fit: contain;
-border-radius: 8px;
-}
-
-.image-viewer-close {
-position: absolute;
-top: 18px;
-left: 18px;
-width: 44px;
-height: 44px;
-border: 0;
-border-radius: 50%;
-background: rgba(255, 255, 255, 0.12);
-color: #fff;
-font-size: 26px;
-cursor: pointer;
-z-index: 5;
-}
-
-.image-viewer-arrow {
-position: absolute;
-top: 50%;
-transform: translateY(-50%);
-width: 48px;
-height: 48px;
-border: 0;
-border-radius: 50%;
-background: rgba(255, 255, 255, 0.12);
-color: #fff;
-font-size: 28px;
-cursor: pointer;
-z-index: 5;
-}
-
-.image-viewer-prev {
-right: 18px;
-}
-
-.image-viewer-next {
-left: 18px;
-}
-
-.image-viewer-counter {
-position: absolute;
-bottom: 20px;
-left: 50%;
-transform: translateX(-50%);
-padding: 7px 13px;
-border-radius: 999px;
-background: rgba(255, 255, 255, 0.12);
-color: #fff;
-font-size: 13px;
-}
-
-/* =========================================
-Tablet
-========================================= */
-
-@media (max-width: 800px) {
-.topbar {
-align-items: flex-start;
-}
-
-nav {
-gap: 9px;
-font-size: 11px;
-}
-
-.hero {
-min-height: 560px;
-padding: 55px 5%;
-}
-
-.property-grid {
-grid-template-columns: 1fr;
-}
-
-.property-card img {
-height: 210px;
-}
-}
-
-/* =========================================
-Mobile
-========================================= */
-
-@media (max-width: 700px) {
-.property-modal {
-padding: 0;
-align-items: flex-end;
-}
-
-.property-modal-box {
-width: 100%;
-max-height: 96vh;
-border-radius: 22px 22px 0 0;
-}
-
-.property-main-image img {
-height: 42vh;
-min-height: 250px;
-max-height: 430px;
-}
-
-.property-modal-close {
-top: 10px;
-left: 10px;
-width: 38px;
-height: 38px;
-font-size: 21px;
-}
-
-.gallery-arrow {
-width: 38px;
-height: 38px;
-font-size: 21px;
-}
-
-.gallery-prev {
-right: 10px;
-}
-
-.gallery-next {
-left: 10px;
-}
-
-.property-thumbnails {
-padding: 8px;
-}
-
-.property-thumbnail {
-flex-basis: 68px;
-height: 52px;
-}
-
-.property-detail-content {
-padding: 18px 15px 28px;
-}
-
-.property-detail-content h2 {
-font-size: 23px;
-}
-
-.detail-row {
-gap: 8px;
-}
-
-.detail-row > div {
-flex-basis: 100%;
-}
-
-.detail-features span {
-font-size: 12px;
-}
-
-.image-viewer {
-padding: 8px;
-}
-
-.image-viewer img {
-max-width: 100%;
-max-height: 86vh;
-}
-
-.image-viewer-arrow {
-width: 40px;
-height: 40px;
-font-size: 22px;
-}
-
-.image-viewer-prev {
-right: 8px;
-}
-
-.image-viewer-next {
-left: 8px;
-}
-}
-
-/* =========================================
-Small Phones
-========================================= */
-
-@media (max-width: 520px) {
-.topbar {
-padding: 12px 4%;
-}
-
-.brand strong {
-font-size: 17px;
-}
-
-nav {
-flex-direction: column;
-align-items: flex-end;
-}
-
-.hero h1 {
-font-size: 31px;
-}
-
-.properties-section {
-width: 92%;
-}
-
-.info-section {
-width: 92%;
-padding: 22px;
-}
-
-.category-btn,
-.filter-btn {
-padding: 9px 13px;
-font-size: 12px;
-}
-}
-
-/* =========================================
-Reduced Motion Preference
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
 *,
 *::before,
 *::after {
-scroll-behavior: auto !important;
-animation-duration: 0.01ms !important;
-animation-iteration-count: 1 !important;
-transition-duration: 0.01ms !important;
-}
-   }
-/* ===== طراحی جدید موبایل‌فرست املاک ساعی ===== */
-
-* {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Tahoma, Arial, sans-serif;
+  line-height: 1.8;
   overflow-x: hidden;
 }
 
-button,
-select,
-input {
-  font-family: inherit;
+body.modal-open {
+  overflow: hidden;
 }
 
+img {
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--gold);
+  color: #171510;
+}
+
+/* =========================================
+   Header
+========================================= */
+
 .topbar {
+  position: sticky;
+  top: 0;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 5%;
+  background: rgba(17, 17, 15, 0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 1px;
+  line-height: 1.6;
+}
+
+.brand .department {
+  color: var(--gold);
+  font-size: 11px;
+}
+
+.brand strong {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.brand small {
+  direction: ltr;
+  font-size: 8px;
+  opacity: 0.65;
+  letter-spacing: 0.2px;
 }
 
 .topbar nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 10px 18px;
+  font-size: 13px;
 }
 
 .topbar nav a {
+  display: inline-block;
+  padding: 5px 0;
+  color: var(--text);
   transition: color 0.2s ease;
 }
 
 .topbar nav a:hover {
-  color: #d8b45a;
+  color: var(--gold);
 }
 
-/* دسته‌بندی‌ها و فیلترها */
+/* =========================================
+   Hero — تصویر فعلی حفظ شده
+========================================= */
+
+.hero {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 65px 5%;
+  text-align: center;
+  background:
+    linear-gradient(
+      rgba(17, 17, 15, 0.48),
+      rgba(17, 17, 15, 0.94)
+    ),
+    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80")
+    center / cover no-repeat;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 850px;
+  margin-inline: auto;
+}
+
+.hero-label {
+  display: inline-block;
+  color: var(--gold-light);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 14px 0 10px;
+  color: #fff;
+  font-size: clamp(30px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.hero p {
+  max-width: 650px;
+  margin: 0 auto 28px;
+  color: #e4dfd5;
+  font-size: 15px;
+  line-height: 2;
+}
+
+/* =========================================
+   Neighborhood Selector
+========================================= */
+
+.neighborhood-box {
+  width: 100%;
+  max-width: 550px;
+  margin: 0 auto;
+  padding: 18px;
+  background: rgba(20, 20, 18, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-align: right;
+}
+
+.neighborhood-box label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--gold-light);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#neighborhoodSelect,
+.neighborhood-box select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid #66552f;
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.neighborhood-box small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+/* انتخاب‌گر پیشرفته محله در app.js */
+
+.neighborhood-picker,
+.neighborhood-dropdown,
+.neighborhood-panel {
+  max-width: 100%;
+}
+
+.neighborhood-picker button,
+.neighborhood-dropdown button,
+.neighborhood-panel button {
+  font-family: inherit;
+}
+
+.neighborhood-picker input,
+.neighborhood-dropdown input,
+.neighborhood-panel input {
+  max-width: 100%;
+}
+
+.neighborhood-option,
+.neighborhood-item {
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   Main Properties Section
+========================================= */
+
+.properties-section {
+  width: min(1200px, 90%);
+  margin: 58px auto 72px;
+}
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+.section-heading > span,
+.info-section > span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.section-heading h2,
+.info-section h2 {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-size: clamp(23px, 3vw, 30px);
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+/* =========================================
+   Categories
+========================================= */
 
 .category-list {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin: 14px 0 12px;
+  gap: 9px;
+  margin: 18px 0 14px;
 }
 
 .category-btn {
+  appearance: none;
+  -webkit-appearance: none;
   min-width: 0;
   min-height: 48px;
-  padding: 10px 6px;
-  border: 1px solid #a98736;
-  border-radius: 9px;
-  background: #191916;
-  color: #f4f0e8;
-  font-size: 14px;
+  padding: 9px 7px;
+  border: 1px solid #8c7135;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
   font-weight: 800;
-  line-height: 1.7;
+  line-height: 1.8;
+  text-align: center;
   white-space: normal;
-  transition: background 0.2s ease, color 0.2s ease;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.category-btn:hover {
+  border-color: var(--gold);
 }
 
 .category-btn.active {
-  background: #d8b45a;
+  background: var(--gold);
+  border-color: var(--gold-light);
   color: #171510;
-  border-color: #f0d27b;
 }
+
+.category-btn:active {
+  transform: scale(0.985);
+}
+
+/* =========================================
+   Filters
+========================================= */
 
 .filter-list {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
-  margin: 12px 0 20px;
+  margin: 14px 0 20px;
 }
 
 .filter-group {
@@ -995,44 +364,75 @@ input {
 }
 
 .filter-btn {
-  min-height: 39px;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 40px;
+  max-width: 100%;
   padding: 8px 13px;
   border: 1px solid #8c7135;
-  border-radius: 8px;
-  background: #191916;
+  border-radius: 9px;
+  background: var(--surface);
   color: #eee6d5;
   font-size: 13px;
   font-weight: 700;
-  transition: background 0.2s ease, color 0.2s ease;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.filter-btn:hover {
+  border-color: var(--gold);
 }
 
 .filter-btn.active {
-  background: #d8b45a;
-  border-color: #f0d27b;
+  background: var(--gold);
+  border-color: var(--gold-light);
   color: #171510;
 }
 
-/* کارت‌های ملک */
+.filter-btn:active {
+  transform: scale(0.985);
+}
+
+/* =========================================
+   Property Count
+========================================= */
+
+.property-count {
+  margin: 18px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* =========================================
+   Property Grid & Cards
+========================================= */
 
 .property-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
   align-items: stretch;
+  gap: 18px;
+  margin-top: 22px;
 }
 
 .property-card {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid #554625;
-  border-radius: 13px;
-  background: #191916;
+  background: var(--surface);
+  border: 1px solid rgba(216, 180, 90, 0.2);
+  border-radius: 15px;
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18);
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .property-card:hover {
-  border-color: #d8b45a;
+  border-color: rgba(216, 180, 90, 0.65);
   transform: translateY(-2px);
 }
 
@@ -1040,13 +440,23 @@ input {
   position: relative;
   overflow: hidden;
   background: #24231e;
+  cursor: pointer;
+}
+
+.property-image-wrap img,
+.property-card img.property-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
 }
 
 .property-image-wrap img {
-  display: block;
-  width: 100%;
-  height: 235px;
-  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.property-image-wrap:hover img {
+  transform: scale(1.025);
 }
 
 .property-image-count {
@@ -1054,82 +464,389 @@ input {
   left: 10px;
   bottom: 10px;
   padding: 5px 9px;
-  border: 1px solid rgba(216, 180, 90, 0.65);
+  border: 1px solid rgba(216, 180, 90, 0.6);
   border-radius: 7px;
-  background: rgba(17, 17, 15, 0.88);
-  color: #f5d77e;
+  background: rgba(17, 17, 15, 0.9);
+  color: var(--gold-light);
   font-size: 12px;
   font-weight: 800;
 }
 
+.property-card-body,
 .property-content {
-  padding: 16px;
+  min-width: 0;
+  padding: 15px;
 }
 
+.property-card h3,
 .property-content h3 {
-  margin: 0 0 10px;
-  color: #f4d37b;
-  font-size: 18px;
+  margin: 0 0 9px;
+  color: var(--gold-light);
+  font-size: 17px;
   font-weight: 900;
   line-height: 1.9;
+  overflow-wrap: anywhere;
 }
 
+.property-card p,
 .property-content > p {
-  margin: 0 0 12px;
   color: #d0c8b8;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.9;
+  overflow-wrap: anywhere;
 }
 
 .property-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0;
+  gap: 7px;
+  margin: 11px 0;
+  color: #eee6d5;
+  font-size: 12px;
 }
 
 .property-meta span {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 5px 9px;
+  min-height: 30px;
+  max-width: 100%;
+  padding: 5px 8px;
   border: 1px solid #39362d;
   border-radius: 7px;
-  background: #22211c;
+  background: var(--surface-light);
   color: #eee6d5;
   font-size: 12px;
-  font-weight: 700;
   line-height: 1.7;
-}
-
-.property-price,
-.detail-price strong {
-  color: #f0ce6b;
-  font-weight: 900;
   overflow-wrap: anywhere;
 }
 
 .property-price {
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 13px;
+  padding-top: 11px;
   border-top: 1px solid #393329;
-  font-size: 17px;
+  color: var(--gold-light);
+  font-size: 16px;
+  font-weight: 900;
   line-height: 1.9;
+  overflow-wrap: anywhere;
 }
 
-/* کد ملک در صفحه جزئیات */
+.property-card button {
+  max-width: 100%;
+}
+
+/* =========================================
+   Empty State & Messages
+========================================= */
+
+.empty-state,
+.error-state {
+  grid-column: 1 / -1;
+  padding: 28px 18px;
+  border: 1px solid rgba(216, 180, 90, 0.2);
+  border-radius: 13px;
+  background: var(--surface);
+  color: #eee6d5;
+  text-align: center;
+  line-height: 2;
+}
+
+.empty-state p,
+.error-state p {
+  margin: 0;
+}
+
+/* =========================================
+   About & Contact
+========================================= */
+
+.info-section {
+  width: min(900px, 90%);
+  margin: 65px auto;
+  padding: 28px;
+  background: #181815;
+  border: 1px solid rgba(216, 180, 90, 0.14);
+  border-radius: 20px;
+  line-height: 2;
+  scroll-margin-top: 100px;
+}
+
+.info-section p {
+  color: #c9c3b7;
+  overflow-wrap: anywhere;
+}
+
+.contact-section {
+  text-align: center;
+}
+
+#contactPhones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+#contactPhones a,
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 10px 15px;
+  border: 1px solid rgba(216, 180, 90, 0.18);
+  border-radius: 999px;
+  background: #211f19;
+  color: var(--gold-light);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+#contactPhones a:hover,
+.social-links a:hover {
+  border-color: var(--gold);
+}
+
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* =========================================
+   Footer
+========================================= */
+
+footer {
+  padding: 30px 5%;
+  background: #0b0b0a;
+  border-top: 1px solid rgba(216, 180, 90, 0.16);
+  text-align: center;
+}
+
+footer span {
+  display: block;
+  color: var(--gold);
+  font-size: 11px;
+}
+
+footer strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+footer p {
+  margin-bottom: 0;
+  color: #aaa397;
+  font-size: 13px;
+}
+
+/* =========================================
+   Property Details Modal
+========================================= */
+
+.property-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.property-modal.open {
+  display: flex;
+}
+
+.property-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.property-modal-box,
+.property-modal-content {
+  position: relative;
+  z-index: 2;
+  width: min(1050px, 100%);
+  max-height: 94vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #151513;
+  color: #fff;
+  border: 1px solid rgba(216, 180, 90, 0.28);
+  border-radius: 20px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.property-modal-close {
+  position: absolute;
+  z-index: 10;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.property-modal-close:hover {
+  background: #30291a;
+  color: var(--gold-light);
+}
+
+/* =========================================
+   Property Gallery
+========================================= */
+
+.property-gallery {
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+}
+
+.property-main-image {
+  position: relative;
+  cursor: zoom-in;
+}
+
+.property-main-image img {
+  display: block;
+  width: 100%;
+  height: min(62vh, 560px);
+  object-fit: contain;
+  background: #080808;
+}
+
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.68);
+  color: #fff;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.gallery-arrow:hover {
+  background: var(--gold);
+  color: #111;
+}
+
+.gallery-prev {
+  right: 14px;
+}
+
+.gallery-next {
+  left: 14px;
+}
+
+.gallery-counter {
+  position: absolute;
+  right: 50%;
+  bottom: 14px;
+  transform: translateX(50%);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 12px;
+}
+
+.property-thumbnails {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  overflow-x: auto;
+  background: #0d0d0c;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.property-thumbnail {
+  flex: 0 0 78px;
+  width: 78px;
+  height: 58px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.property-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-thumbnail.active {
+  border-color: var(--gold);
+}
+
+/* =========================================
+   Property Details Content
+========================================= */
+
+.property-detail-content {
+  padding: 24px;
+}
+
+.property-detail-category {
+  display: inline-block;
+  margin-bottom: 9px;
+  padding: 5px 12px;
+  border: 1px solid rgba(216, 180, 90, 0.2);
+  border-radius: 999px;
+  background: rgba(216, 180, 90, 0.12);
+  color: var(--gold-light);
+  font-size: 12px;
+}
+
+.property-detail-content h2 {
+  margin: 0 0 16px;
+  color: #fff;
+  font-size: clamp(22px, 4vw, 32px);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
 
 .property-code-row {
   margin: 12px 0;
   padding: 12px;
-  border: 1px solid #d8b45a;
+  border: 1px solid var(--gold);
   border-radius: 9px;
   background: rgba(216, 180, 90, 0.1);
 }
 
 .property-code-row strong {
-  color: #f0ce6b;
-  font-weight: 900;
+  color: var(--gold-light);
 }
 
 .property-code-row span {
@@ -1137,108 +854,300 @@ input {
   margin-inline-start: 8px;
   padding: 4px 10px;
   border-radius: 6px;
-  background: #d8b45a;
+  background: var(--gold);
   color: #171510;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   overflow-wrap: anywhere;
 }
 
-/* انتخاب محله فعلی؛ پنل پیشرفته در مرحله جاوااسکریپت اضافه می‌شود */
-
-.neighborhood-box {
-  max-width: 550px;
-  width: 100%;
-  margin-inline: auto;
+.detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 17px;
 }
 
-.neighborhood-box label {
-  display: block;
-  margin-bottom: 8px;
-  color: #f0ce6b;
-  font-weight: 800;
-}
-
-.neighborhood-box select {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid #a98736;
-  border-radius: 9px;
-  padding: 10px;
-  background: #191916;
-  color: #f4f0e8;
-  font-size: 14px;
-}
-
-.neighborhood-box small {
-  display: block;
-  margin-top: 8px;
-  color: #c6bdac;
-  line-height: 1.8;
-}
-
-/* پیام نبودن فایل */
-
-.empty-state {
-  grid-column: 1 / -1;
-  padding: 30px 18px;
-  border: 1px solid #554625;
+.detail-row > div {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
-  background: #191916;
-  color: #eee6d5;
-  text-align: center;
+  background: #20201d;
+  overflow-wrap: anywhere;
 }
 
-/* سازگاری با گوشی */
+.detail-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+}
 
-@media (max-width: 800px) {
+.detail-features span {
+  padding: 7px 11px;
+  border: 1px solid #39362d;
+  border-radius: 999px;
+  background: #20201d;
+  color: #eee6d5;
+  font-size: 12px;
+}
+
+.detail-price {
+  margin: 18px 0;
+  padding: 15px;
+  border: 1px solid rgba(216, 180, 90, 0.23);
+  border-radius: 13px;
+  background: rgba(216, 180, 90, 0.08);
+  color: var(--gold-light);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.detail-price strong {
+  color: var(--gold-light);
+}
+
+.detail-description {
+  margin-top: 18px;
+  color: #d5d5d0;
+  line-height: 2.1;
+  overflow-wrap: anywhere;
+}
+
+.detail-description h3 {
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+/* =========================================
+   Fullscreen Image Viewer
+========================================= */
+
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.97);
+}
+
+.image-viewer.open {
+  display: flex;
+}
+
+.image-viewer img {
+  display: block;
+  max-width: 96vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.image-viewer-close,
+.image-viewer-arrow {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+
+.image-viewer-close {
+  top: 16px;
+  left: 16px;
+  font-size: 25px;
+}
+
+.image-viewer-arrow {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 26px;
+}
+
+.image-viewer-prev {
+  right: 16px;
+}
+
+.image-viewer-next {
+  left: 16px;
+}
+
+.image-viewer-counter {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+}
+
+/* =========================================
+   Tablet
+========================================= */
+
+@media (max-width: 900px) {
+  .properties-section {
+    width: 92%;
+  }
+
+  .property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .category-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hero {
+    min-height: 470px;
+  }
+}
+
+/* =========================================
+   Mobile
+========================================= */
+
+@media (max-width: 600px) {
+  html {
+    scroll-padding-top: 115px;
+  }
+
+  .topbar {
+    gap: 10px;
+    padding: 10px 4%;
+  }
+
+  .brand strong {
+    font-size: 17px;
+  }
+
+  .brand small {
+    font-size: 7px;
+  }
+
+  .topbar nav {
+    gap: 3px 10px;
+    font-size: 11px;
+  }
+
+  .hero {
+    min-height: 450px;
+    padding: 44px 4%;
+    background-position: center;
+  }
+
+  .hero h1 {
+    margin-top: 12px;
+    font-size: clamp(27px, 7vw, 35px);
+    line-height: 1.7;
+  }
+
+  .hero p {
+    margin-bottom: 22px;
+    font-size: 13px;
+  }
+
+  .neighborhood-box {
+    padding: 14px;
+    border-radius: 13px;
+  }
+
+  .properties-section {
+    width: 92%;
+    margin: 38px auto 50px;
+  }
+
+  .section-heading {
+    margin-bottom: 14px;
+  }
+
+  .section-heading h2,
+  .info-section h2 {
+    font-size: 23px;
+  }
+
   .category-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+    margin: 14px 0 12px;
   }
 
   .category-btn {
     min-height: 46px;
-    font-size: 14px;
+    padding: 8px 5px;
+    border-radius: 9px;
+    font-size: 13px;
+  }
+
+  .category-btn:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .filter-list {
+    gap: 9px;
+    margin: 12px 0 16px;
+  }
+
+  .filter-group {
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  .filter-children {
+    width: 100%;
+    gap: 7px;
+  }
+
+  .filter-btn {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
   }
 
   .property-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 15px;
+    margin-top: 16px;
   }
 
-  .property-image-wrap img {
-    height: 230px;
+  .property-card {
+    border-radius: 13px;
   }
 
+  .property-image-wrap img,
+  .property-card img.property-image {
+    aspect-ratio: 16 / 10;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .property-card-body,
   .property-content {
-    padding: 15px;
+    padding: 13px;
   }
 
+  .property-card h3,
   .property-content h3 {
-    font-size: 18px;
-  }
-
-  .property-price {
-    font-size: 16px;
-  }
-
-  .filter-group {
-    align-items: stretch;
-  }
-
-  .filter-children {
-    width: 100%;
-  }
-
-  .topbar nav {
-    gap: 8px 12px;
-  }
-}
-
-@media (max-width: 380px) {
-  .property-image-wrap img {
-    height: 200px;
+    font-size: 17px;
   }
 
   .property-meta {
@@ -1247,13 +1156,179 @@ input {
 
   .property-meta span {
     font-size: 11px;
-    padding: 5px 7px;
+  }
+
+  .property-price {
+    font-size: 15px;
+  }
+
+  .info-section {
+    width: 92%;
+    margin: 42px auto;
+    padding: 20px 16px;
+    border-radius: 15px;
+  }
+
+  .info-section p {
+    font-size: 13px;
+  }
+
+  .property-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .property-modal-box,
+  .property-modal-content {
+    width: 100%;
+    max-height: 96vh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .property-modal-close {
+    top: 9px;
+    left: 9px;
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+  }
+
+  .property-main-image img {
+    height: 40vh;
+    min-height: 230px;
+    max-height: 390px;
+  }
+
+  .gallery-arrow {
+    width: 37px;
+    height: 37px;
+    font-size: 21px;
+  }
+
+  .gallery-prev {
+    right: 8px;
+  }
+
+  .gallery-next {
+    left: 8px;
+  }
+
+  .property-thumbnails {
+    padding: 8px;
+  }
+
+  .property-thumbnail {
+    flex-basis: 66px;
+    width: 66px;
+    height: 50px;
+  }
+
+  .property-detail-content {
+    padding: 17px 14px 25px;
+  }
+
+  .property-detail-content h2 {
+    font-size: 22px;
+  }
+
+  .detail-row {
+    gap: 8px;
+  }
+
+  .detail-row > div {
+    flex-basis: 100%;
+  }
+
+  .detail-features {
+    gap: 6px;
+  }
+
+  .detail-features span {
+    font-size: 11px;
+  }
+
+  .detail-price {
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .image-viewer {
+    padding: 8px;
+  }
+
+  .image-viewer img {
+    max-width: 100%;
+    max-height: 86vh;
+  }
+
+  .image-viewer-close {
+    top: 10px;
+    left: 10px;
+  }
+
+  .image-viewer-arrow {
+    width: 39px;
+    height: 39px;
+    font-size: 21px;
+  }
+
+  .image-viewer-prev {
+    right: 8px;
+  }
+
+  .image-viewer-next {
+    left: 8px;
+  }
+}
+
+/* =========================================
+   Extra Small Phones
+========================================= */
+
+@media (max-width: 380px) {
+  .topbar {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .brand strong {
+    font-size: 15px;
+  }
+
+  .brand small {
+    font-size: 6px;
+  }
+
+  .topbar nav {
+    gap: 2px 8px;
+    font-size: 10px;
+  }
+
+  .hero {
+    min-height: 420px;
+  }
+
+  .hero h1 {
+    font-size: 27px;
   }
 
   .category-btn {
-    font-size: 13px;
+    font-size: 12px;
+  }
+
+  .property-meta span {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  .property-detail-content {
+    padding-inline: 12px;
   }
 }
+
+/* =========================================
+   Reduced Motion
+========================================= */
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -1263,7 +1338,9 @@ input {
   *,
   *::before,
   *::after {
-    transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
