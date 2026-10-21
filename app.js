@@ -2,7 +2,11 @@
 "use strict";
 
 const { createClient } = window.supabase;
-const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+const db = createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
 
 let categories = [];
 let neighborhoods = [];
@@ -14,9 +18,9 @@ let selectedFilters = new Set();
 let selectedNeighborhoods = new Set();
 
 let neighborhoodSearch = "";
-let filterRequestId = 0;
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
+let filterRequestId = 0;
 
 const $ = selector => document.querySelector(selector);
 
@@ -33,11 +37,23 @@ const iconPaths = {
   elevator: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="m8 8 2-2 2 2m-4 8 2 2 2-2M15 7h2v10h-2"/>',
   storage: '<path d="M3 7h18v14H3zM3 7l2-4h14l2 4M8 11v6m8-6v6"/>',
   terrace: '<path d="M3 21h18M5 21V9h14v12M3 9l9-6 9 6M9 13h6"/>',
-  close: '<path d="m6 6 12 12M18 6 6 18"/>'
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'
 };
 
 function lineIcon(name, size = 22) {
-  return `<svg class="saee-icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name] || iconPaths.home}</svg>`;
+  return `
+    <svg class="saee-icon"
+      viewBox="0 0 24 24"
+      width="${size}" height="${size}"
+      fill="none" stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true">
+      ${iconPaths[name] || iconPaths.home}
+    </svg>
+  `;
 }
 
 function getCategoryIcon(title) {
@@ -48,6 +64,7 @@ function getCategoryIcon(title) {
     "مغازه": "store",
     "مشارکت در ساخت": "construction"
   };
+
   return lineIcon(icons[String(title || "").trim()] || "home");
 }
 
@@ -67,7 +84,9 @@ function escapeAttribute(value) {
 
 function formatNumber(value) {
   const number = Number(value);
-  return Number.isFinite(number) ? number.toLocaleString("fa-IR") : "۰";
+  return Number.isFinite(number)
+    ? number.toLocaleString("fa-IR")
+    : "۰";
 }
 
 function formatDecimal(value) {
@@ -79,13 +98,18 @@ function formatDecimal(value) {
 function formatMoney(value) {
   const number = Number(value);
 
-  if (!Number.isFinite(number) || number <= 0) return "توافقی";
+  if (!Number.isFinite(number) || number <= 0) {
+    return "توافقی";
+  }
+
   if (number >= 1_000_000_000) {
     return `${formatDecimal(number / 1_000_000_000)} میلیارد تومان`;
   }
+
   if (number >= 1_000_000) {
     return `${formatDecimal(number / 1_000_000)} میلیون تومان`;
   }
+
   return `${formatNumber(number)} تومان`;
 }
 
@@ -101,7 +125,7 @@ async function loadSite() {
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      console.error(`خطا در بارگذاری بخش ${index + 1}:`, result.reason);
+      console.error(`Site loading task ${index + 1}:`, result.reason);
     }
   });
 }
@@ -117,11 +141,14 @@ async function loadSettings() {
   }
 
   const settings = {};
+
   (data || []).forEach(item => {
     settings[item.setting_key] = item.setting_value || "";
   });
 
-  if (settings.site_name) document.title = settings.site_name;
+  if (settings.site_name) {
+    document.title = settings.site_name;
+  }
 
   if ($("#aboutTitle")) {
     $("#aboutTitle").textContent = settings.about_title || "درباره ما";
@@ -144,16 +171,18 @@ async function loadSettings() {
   ].filter(Boolean);
 
   if ($("#contactPhones")) {
-    $("#contactPhones").innerHTML = phones.map(phone =>
-      `<a href="tel:${escapeAttribute(phone)}">${escapeHtml(phone)}</a>`
-    ).join("");
+    $("#contactPhones").innerHTML = phones.map(phone => `
+      <a href="tel:${escapeAttribute(phone)}">${escapeHtml(phone)}</a>
+    `).join("");
   }
 
   ["instagramLink", "whatsappLink"].forEach(id => {
     const element = $("#" + id);
     if (!element) return;
 
-    const key = id === "instagramLink" ? "instagram_url" : "whatsapp_url";
+    const key = id === "instagramLink"
+      ? "instagram_url"
+      : "whatsapp_url";
 
     if (settings[key]) {
       element.href = settings[key];
@@ -163,7 +192,6 @@ async function loadSettings() {
     }
   });
 
-  // اگر تصویر در تنظیمات سایت ثبت شده باشد، همان تصویر حفظ می‌شود.
   if (settings.hero_image_url && $(".hero")) {
     $(".hero").style.backgroundImage =
       `linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.72)),url("${settings.hero_image_url}")`;
@@ -200,7 +228,8 @@ function renderCategories() {
   if (!container) return;
 
   container.innerHTML = categories.map(category => `
-    <button type="button"
+    <button
+      type="button"
       class="category-btn ${String(category.id) === String(selectedCategory) ? "active" : ""}"
       data-category-id="${escapeAttribute(category.id)}"
       onclick="selectCategory('${escapeAttribute(category.id)}')">
@@ -226,6 +255,7 @@ async function selectCategory(categoryId) {
     );
   });
 
+  // ابتدا فیلترهای قبلی حذف می‌شوند و نتیجه سریع به‌روزرسانی می‌شود.
   filters = [];
   if ($("#filters")) $("#filters").innerHTML = "";
   renderProperties();
@@ -238,11 +268,17 @@ async function loadFilters(categoryId) {
   const { data, error } = await db
     .from("filter_options")
     .select("*")
-    .eq("category_id", categoryId)
+    .eq("category_id", String(categoryId))
     .eq("is_active", true)
     .order("sort_order");
 
-  if (requestId !== filterRequestId) return;
+  // پاسخ قدیمی نباید فیلترهای دسته‌بندی جدید را خراب کند.
+  if (
+    requestId !== filterRequestId ||
+    String(selectedCategory) !== String(categoryId)
+  ) {
+    return;
+  }
 
   if (error) {
     console.error("Filters error:", error);
@@ -252,7 +288,15 @@ async function loadFilters(categoryId) {
   }
 
   filters = data || [];
+
+  const availableIds = new Set(filters.map(item => String(item.id)));
+
+  selectedFilters = new Set(
+    Array.from(selectedFilters).filter(id => availableIds.has(id))
+  );
+
   renderFilters();
+  renderProperties();
 }
 
 function renderFilters() {
@@ -268,37 +312,32 @@ function renderFilters() {
       item => String(item.parent_id) === id
     );
 
-    if (!childItems.length) {
-      return `
-        <div class="filter-group filter-group-single">
-          <button type="button"
-            class="filter-btn ${selectedFilters.has(id) ? "active" : ""}"
-            data-filter-id="${escapeAttribute(id)}"
-            onclick="toggleFilter('${escapeAttribute(id)}')">
-            ${escapeHtml(parent.title)}
-          </button>
-        </div>
-      `;
-    }
-
     return `
-      <section class="filter-group">
-        <div class="filter-group-title">${escapeHtml(parent.title)}</div>
-        <div class="filter-children">
-          ${childItems.map(child => {
-            const childId = String(child.id);
+      <div class="filter-group">
+        <button type="button"
+          class="filter-btn ${selectedFilters.has(id) ? "active" : ""}"
+          data-filter-id="${escapeAttribute(id)}"
+          onclick="toggleFilter('${escapeAttribute(id)}')">
+          ${escapeHtml(parent.title)}
+        </button>
 
-            return `
-              <button type="button"
-                class="filter-btn ${selectedFilters.has(childId) ? "active" : ""}"
-                data-filter-id="${escapeAttribute(childId)}"
-                onclick="toggleFilter('${escapeAttribute(childId)}')">
-                ${escapeHtml(child.title)}
-              </button>
-            `;
-          }).join("")}
-        </div>
-      </section>
+        ${childItems.length ? `
+          <div class="filter-children">
+            ${childItems.map(child => {
+              const childId = String(child.id);
+
+              return `
+                <button type="button"
+                  class="filter-btn ${selectedFilters.has(childId) ? "active" : ""}"
+                  data-filter-id="${escapeAttribute(childId)}"
+                  onclick="toggleFilter('${escapeAttribute(childId)}')">
+                  ${escapeHtml(child.title)}
+                </button>
+              `;
+            }).join("")}
+          </div>
+        ` : ""}
+      </div>
     `;
   }).join("");
 }
@@ -312,7 +351,13 @@ function toggleFilter(filterId) {
     selectedFilters.add(id);
   }
 
-  renderFilters();
+  document.querySelectorAll("[data-filter-id]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      selectedFilters.has(String(button.dataset.filterId))
+    );
+  });
+
   renderProperties();
 }
 
@@ -325,16 +370,10 @@ async function loadNeighborhoods() {
 
   if (error) {
     console.error("Neighborhoods error:", error);
-    return;
+    neighborhoods = [];
+  } else {
+    neighborhoods = data || [];
   }
-
-  neighborhoods = data || [];
-
-  const validIds = new Set(neighborhoods.map(item => String(item.id)));
-
-  selectedNeighborhoods = new Set(
-    [...selectedNeighborhoods].filter(id => validIds.has(String(id)))
-  );
 
   renderNeighborhoodPicker();
 }
@@ -343,49 +382,122 @@ function renderNeighborhoodPicker() {
   const select = $("#neighborhoodSelect");
   if (!select) return;
 
-  // انتخاب چند محله با نگه‌داشتن کلید Ctrl در رایانه
-  // و لمس چندگزینه‌ای در گوشی‌های پشتیبانی‌کننده از این قابلیت.
-  select.innerHTML = neighborhoods.map(neighborhood => `
-    <option value="${escapeAttribute(neighborhood.id)}"
-      ${selectedNeighborhoods.has(String(neighborhood.id)) ? "selected" : ""}>
-      ${escapeHtml(neighborhood.name || neighborhood.title || "محله")}
+  select.innerHTML = neighborhoods.map(item => `
+    <option value="${escapeAttribute(item.id)}">
+      ${escapeHtml(item.name)}
     </option>
   `).join("");
 
-  select.addEventListener("change", handleNeighborhoodSelectChange, {
-    once: true
+  select.hidden = true;
+
+  let picker = $("#neighborhoodPicker");
+
+  if (!picker) {
+    picker = document.createElement("div");
+    picker.id = "neighborhoodPicker";
+    picker.className = "saee-neighborhood-picker";
+    select.insertAdjacentElement("afterend", picker);
+  }
+
+  const count = selectedNeighborhoods.size;
+
+  picker.innerHTML = `
+    <button type="button"
+      class="neighborhood-toggle"
+      id="neighborhoodToggle"
+      aria-expanded="false">
+      <span class="neighborhood-toggle-label">
+        ${lineIcon("location", 19)}
+        <span>انتخاب محله</span>
+      </span>
+      <span class="neighborhood-toggle-arrow">
+        ${count ? formatNumber(count) + " انتخاب" : "⌄"}
+      </span>
+    </button>
+
+    <div class="neighborhood-panel" id="neighborhoodPanel" hidden>
+      <input type="search"
+        id="neighborhoodSearch"
+        placeholder="جست‌وجوی محله..."
+        value="${escapeAttribute(neighborhoodSearch)}">
+
+      <div class="neighborhood-options" id="neighborhoodOptions">
+        ${renderNeighborhoodOptions()}
+      </div>
+
+      <div class="neighborhood-actions">
+        <button type="button" id="clearNeighborhoods">پاک کردن</button>
+        <button type="button" id="applyNeighborhoods">تأیید</button>
+      </div>
+    </div>
+  `;
+
+  $("#neighborhoodToggle").addEventListener("click", () => {
+    const panel = $("#neighborhoodPanel");
+    panel.hidden = !panel.hidden;
+
+    $("#neighborhoodToggle").setAttribute(
+      "aria-expanded",
+      String(!panel.hidden)
+    );
   });
 
-  updateNeighborhoodToggle();
+  $("#neighborhoodSearch").addEventListener("input", event => {
+    neighborhoodSearch = event.target.value;
+    $("#neighborhoodOptions").innerHTML = renderNeighborhoodOptions();
+  });
+
+  $("#neighborhoodOptions").addEventListener("change", event => {
+    if (!event.target.matches('input[type="checkbox"]')) return;
+
+    const id = String(event.target.value);
+
+    if (event.target.checked) {
+      selectedNeighborhoods.add(id);
+    } else {
+      selectedNeighborhoods.delete(id);
+    }
+
+    // فقط فهرست گزینه‌ها به‌روز می‌شود؛ پنل بسته نمی‌شود.
+    $("#neighborhoodOptions").innerHTML = renderNeighborhoodOptions();
+  });
+
+  $("#clearNeighborhoods").addEventListener("click", () => {
+    selectedNeighborhoods.clear();
+    renderNeighborhoodPicker();
+    renderProperties();
+  });
+
+  $("#applyNeighborhoods").addEventListener("click", () => {
+    renderNeighborhoodPicker();
+    renderProperties();
+  });
 }
 
-function handleNeighborhoodSelectChange() {
-  const select = $("#neighborhoodSelect");
-  if (!select) return;
+function renderNeighborhoodOptions() {
+  const search = neighborhoodSearch.trim().toLowerCase();
 
-  selectedNeighborhoods = new Set(
-    Array.from(select.selectedOptions).map(option => String(option.value))
+  const visible = neighborhoods.filter(item =>
+    String(item.name || "").toLowerCase().includes(search)
   );
 
-  updateNeighborhoodToggle();
-  renderProperties();
-
-  select.addEventListener("change", handleNeighborhoodSelectChange, {
-    once: true
-  });
-}
-
-function updateNeighborhoodToggle() {
-  const toggle = $("#neighborhoodToggle");
-  if (!toggle) return;
-
-  const label = toggle.querySelector(".neighborhood-toggle-arrow");
-
-  if (label) {
-    label.textContent = selectedNeighborhoods.size
-      ? `${formatNumber(selectedNeighborhoods.size)} انتخاب`
-      : "⌄";
+  if (!visible.length) {
+    return '<p class="neighborhood-empty">محله‌ای پیدا نشد.</p>';
   }
+
+  return visible.map(item => {
+    const id = String(item.id);
+    const checked = selectedNeighborhoods.has(id);
+
+    return `
+      <label class="neighborhood-option ${checked ? "selected" : ""}">
+        <input type="checkbox"
+          value="${escapeAttribute(id)}"
+          ${checked ? "checked" : ""}>
+        <span>${escapeHtml(item.name)}</span>
+      </label>
+    `;
+  }).join("");
 }
 
 async function loadProperties() {
@@ -393,8 +505,8 @@ async function loadProperties() {
     .from("properties")
     .select(`
       *,
-      categories(title),
-      property_images(*),
+      categories(title, slug),
+      property_images(id, image_url, sort_order),
       property_neighborhoods(neighborhood_id),
       property_filters(filter_option_id)
     `)
@@ -403,70 +515,50 @@ async function loadProperties() {
 
   if (error) {
     console.error("Properties error:", error);
-    properties = [];
-    renderProperties();
+
+    if ($("#properties")) {
+      $("#properties").innerHTML =
+        '<p class="empty-state">دریافت فایل‌های ملکی با مشکل مواجه شد.</p>';
+    }
+
     return;
   }
 
-  properties = data || [];
+  properties = (data || []).map(property => ({
+    ...property,
+    property_images: (property.property_images || []).slice().sort(
+      (a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)
+    )
+  }));
+
   renderProperties();
 }
 
-function getPropertyCode(property) {
-  return property.property_code ||
-    property.code ||
-    String(property.id || "").slice(0, 8).toUpperCase();
-}
-
 function getPropertyImage(property) {
-  const images = property.property_images || [];
-
-  if (images.length) {
-    const sorted = [...images].sort(
-      (a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)
-    );
-
-    const primary = sorted.find(image =>
-      image.is_primary || image.is_cover || image.is_main
-    );
-
-    const image = primary || sorted[0];
-
-    return image.image_url || image.url || image.public_url || "";
-  }
-
-  return property.image_url || property.cover_image || "";
+  return property.property_images?.[0]?.image_url || "";
 }
 
-function getCategoryClass(title) {
-  const normalized = String(title || "").trim();
-
-  if (normalized === "فروش") return "sale";
-  if (normalized === "اجاره") return "rent";
-  if (normalized === "اداری") return "office";
-  if (normalized === "مغازه") return "shop";
-  if (normalized === "مشارکت در ساخت") return "partnership";
-
-  return "other";
+function getPropertyCode(property) {
+  return property.property_code || property.code || property.id || "";
 }
 
 function getPropertyPrice(property) {
-  const category = property.categories?.title || "";
+  const category = String(
+    property.categories?.title || property.category || ""
+  );
 
-  if (category === "اجاره") {
+  if (category.includes("اجاره")) {
     const deposit = Number(property.deposit || 0);
-    const rent = Number(property.monthly_rent || property.rent || 0);
+    const rent = Number(property.monthly_rent || 0);
+    const parts = [];
 
-    if (deposit && rent) {
-      return `ودیعه ${formatMoney(deposit)} · اجاره ${formatMoney(rent)}`;
-    }
-    if (deposit) return `ودیعه ${formatMoney(deposit)}`;
-    if (rent) return `اجاره ${formatMoney(rent)}`;
+    if (deposit > 0) parts.push(`ودیعه: ${formatMoney(deposit)}`);
+    if (rent > 0) parts.push(`اجاره: ${formatMoney(rent)}`);
+
+    return parts.length ? parts.join(" · ") : "توافقی";
   }
 
-  if (property.price) return formatMoney(property.price);
-
-  return "قیمت توافقی";
+  return property.price ? formatMoney(property.price) : "توافقی";
 }
 
 function getPropertyFeatures(property) {
@@ -487,7 +579,6 @@ function getPropertyFeatures(property) {
 
   return features;
 }
-
 function renderProperties() {
   const container = $("#properties");
   if (!container) return;
@@ -501,42 +592,34 @@ function renderProperties() {
     }
 
     if (selectedNeighborhoods.size) {
-      const propertyNeighborhoods = (property.property_neighborhoods || [])
+      const ids = (property.property_neighborhoods || [])
         .map(item => String(item.neighborhood_id));
 
-      const hasNeighborhood = [...selectedNeighborhoods].some(id =>
-        propertyNeighborhoods.includes(String(id))
-      );
-
-      if (!hasNeighborhood) return false;
+      if (!Array.from(selectedNeighborhoods).some(id => ids.includes(id))) {
+        return false;
+      }
     }
 
     if (selectedFilters.size) {
-      const propertyFilters = (property.property_filters || [])
+      const ids = (property.property_filters || [])
         .map(item => String(item.filter_option_id));
 
-      const matchesAll = [...selectedFilters].every(id =>
-        propertyFilters.includes(String(id))
-      );
-
-      if (!matchesAll) return false;
+      if (!Array.from(selectedFilters).every(id => ids.includes(id))) {
+        return false;
+      }
     }
 
     return true;
   });
 
-  const count = $("#propertyCount");
-
-  if (count) {
-    count.textContent = `${formatNumber(filtered.length)} فایل ملکی`;
+  if ($("#propertyCount")) {
+    $("#propertyCount").textContent = `${formatNumber(filtered.length)} فایل`;
   }
 
   if (!filtered.length) {
     container.innerHTML = `
-      <div class="empty-properties">
-        <span>${lineIcon("home", 34)}</span>
-        <h3>فعلاً فایلی پیدا نشد</h3>
-        <p>محله یا فیلتر دیگری را انتخاب کنید.</p>
+      <div class="empty-state">
+        <p>در حال حاضر فایلی با این مشخصات موجود نیست.</p>
       </div>
     `;
     return;
@@ -544,6 +627,19 @@ function renderProperties() {
 
   container.innerHTML = filtered.map(renderPropertyCard).join("");
 }
+
+function getCategoryClass(title) {
+  const classes = {
+    "فروش": "sale",
+    "اجاره": "rent",
+    "مشارکت در ساخت": "construction",
+    "مغازه": "shop",
+    "اداری": "office"
+  };
+
+  return classes[String(title || "").trim()] || "default";
+}
+
 function renderPropertyCard(property) {
   const image = getPropertyImage(property);
   const categoryTitle = property.categories?.title || "ملک";
@@ -565,6 +661,7 @@ function renderPropertyCard(property) {
 
       <div class="property-image">
         ${imageMarkup}
+
         <span class="property-category-badge category-${getCategoryClass(categoryTitle)}">
           ${getCategoryIcon(categoryTitle)}
           <span>${escapeHtml(categoryTitle)}</span>
@@ -572,6 +669,10 @@ function renderPropertyCard(property) {
       </div>
 
       <div class="property-card-body">
+        <div class="property-code-label">
+          کد ملک: ${escapeHtml(getPropertyCode(property))}
+        </div>
+
         <h3 class="property-title">
           ${escapeHtml(property.title || "ملک بدون عنوان")}
         </h3>
@@ -613,190 +714,293 @@ function renderPropertyCard(property) {
   `;
 }
 
-function openPropertyDetails(propertyId) {
-  const property = properties.find(item =>
-    String(item.id) === String(propertyId)
-  );
+function ensureModal() {
+  let modal = $("#propertyModal");
 
-  if (!property) return;
-
-  const existing = $("#propertyModal");
-  if (existing) existing.remove();
-
-  const images = (property.property_images || [])
-    .map(item => item.image_url || item.url || item.public_url)
-    .filter(Boolean);
-
-  if (!images.length && getPropertyImage(property)) {
-    images.push(getPropertyImage(property));
+  // اگر کانتینر در index.html وجود نداشته باشد، ساخته می‌شود.
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "propertyModal";
+    modal.hidden = true;
+    document.body.appendChild(modal);
   }
 
-  currentGalleryImages = images;
+  return modal;
+}
+
+function openPropertyDetails(propertyId) {
+  const property = properties.find(
+    item => String(item.id) === String(propertyId)
+  );
+
+  if (!property) {
+    console.error("ملک پیدا نشد:", propertyId);
+    return;
+  }
+
+  const modal = ensureModal();
+
+  currentGalleryImages = (property.property_images || [])
+    .map(item => item.image_url)
+    .filter(Boolean);
+
   currentGalleryIndex = 0;
 
+  const detailRows = [
+    ["کد ملک", getPropertyCode(property)],
+    ["دسته‌بندی", property.categories?.title || "ملک"],
+    ["قیمت", getPropertyPrice(property)],
+    ["متراژ", property.area ? `${formatNumber(property.area)} متر مربع` : ""],
+    ["تعداد خواب", property.bedrooms !== null && property.bedrooms !== undefined ? formatNumber(property.bedrooms) : ""],
+    ["طبقه", property.floor !== null && property.floor !== undefined ? formatNumber(property.floor) : ""],
+    ["موقعیت", property.location_text || ""],
+    ["آدرس", property.address || ""],
+    ["پارکینگ", property.parking ? "دارد" : ""],
+    ["آسانسور", property.elevator ? "دارد" : ""],
+    ["انباری", property.storage ? "دارد" : ""],
+    ["تراس", property.terrace ? "دارد" : ""]
+  ].filter(item => item[1] !== "" && item[1] !== null);
+
+  const imagesMarkup = currentGalleryImages.length
+    ? `<div class="detail-gallery">
+        ${currentGalleryImages.map((url, index) => `
+          <button type="button"
+            class="detail-gallery-image"
+            onclick="openFullscreenImage(${index})"
+            aria-label="نمایش تصویر ${index + 1}">
+            <img src="${escapeAttribute(url)}"
+              alt="تصویر ملک ${index + 1}"
+              loading="${index === 0 ? "eager" : "lazy"}">
+          </button>
+        `).join("")}
+      </div>`
+    : '<div class="property-no-image">تصویری ثبت نشده است.</div>';
+
   const features = getPropertyFeatures(property);
-  const categoryTitle = property.categories?.title || "ملک";
 
-  const modal = document.createElement("div");
-  modal.id = "propertyModal";
-  modal.className = "property-modal";
   modal.innerHTML = `
-    <div class="property-modal-backdrop" onclick="closePropertyDetails()"></div>
-    <section class="property-modal-content" role="dialog" aria-modal="true"
-      aria-label="جزئیات ملک">
+    <div class="property-modal-backdrop"
+      onclick="closePropertyDetails()"></div>
 
-      <button type="button" class="property-modal-close"
-        aria-label="بستن" onclick="closePropertyDetails()">
+    <section class="property-modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-label="${escapeAttribute(property.title || "جزئیات ملک")}">
+
+      <button type="button"
+        class="property-modal-close"
+        onclick="closePropertyDetails()"
+        aria-label="بستن">
         ${lineIcon("close", 22)}
       </button>
 
-      <div class="property-modal-gallery" id="propertyModalGallery">
-        ${images.length
-          ? `<img id="propertyModalImage"
-              src="${escapeAttribute(images[0])}"
-              alt="${escapeAttribute(property.title || "تصویر ملک")}">`
-          : `<div class="property-no-image">تصویری ثبت نشده</div>`
-        }
-
-        ${images.length > 1 ? `
-          <button type="button" class="gallery-prev"
-            onclick="changeGalleryImage(-1)" aria-label="تصویر قبلی">‹</button>
-          <button type="button" class="gallery-next"
-            onclick="changeGalleryImage(1)" aria-label="تصویر بعدی">›</button>
-          <span class="gallery-counter" id="galleryCounter">
-            ۱ از ${formatNumber(images.length)}
-          </span>
-        ` : ""}
-      </div>
+      ${imagesMarkup}
 
       <div class="property-modal-body">
-        <span class="property-category-badge category-${getCategoryClass(categoryTitle)}">
-          ${getCategoryIcon(categoryTitle)}
-          <span>${escapeHtml(categoryTitle)}</span>
-        </span>
-
-        <h2>${escapeHtml(property.title || "ملک بدون عنوان")}</h2>
-
-        <div class="property-modal-code">
+        <div class="property-code-label">
           کد ملک: ${escapeHtml(getPropertyCode(property))}
         </div>
 
-        ${property.location_text ? `
-          <p class="property-location">
-            ${lineIcon("location", 18)}
-            ${escapeHtml(property.location_text)}
-          </p>
-        ` : ""}
+        <h2>${escapeHtml(property.title || "مشخصات ملک")}</h2>
 
-        <div class="property-modal-price">
+        <div class="detail-price">
           ${escapeHtml(getPropertyPrice(property))}
         </div>
 
-        ${features.length ? `
-          <div class="property-modal-features">
-            ${features.map(([icon, label]) => `
-              <span class="property-feature">
-                ${lineIcon(icon, 19)}
-                <span>${escapeHtml(label)}</span>
-              </span>
-            `).join("")}
-          </div>
-        ` : ""}
-
-        ${property.description ? `
-          <div class="property-description">
-            <h3>توضیحات ملک</h3>
-            <p>${escapeHtml(property.description).replace(/\n/g, "<br>")}</p>
-          </div>
-        ` : ""}
-
-        ${property.address ? `
-          <div class="property-address">
-            <strong>آدرس:</strong>
-            ${escapeHtml(property.address)}
-          </div>
-        ` : ""}
-
-        <div class="property-modal-contact">
-          <p>برای اطلاعات بیشتر با دپارتمان املاک ساعی تماس بگیرید.</p>
-          ${$("#contactPhones")?.innerHTML || ""}
+        <div class="detail-features">
+          ${features.map(([icon, label]) => `
+            <span class="property-feature">
+              ${lineIcon(icon, 17)}
+              <span>${escapeHtml(label)}</span>
+            </span>
+          `).join("")}
         </div>
+
+        <div class="detail-table">
+          ${detailRows.map(([label, value]) => `
+            <div class="detail-row">
+              <span class="detail-label">${escapeHtml(label)}</span>
+              <span class="detail-value">${escapeHtml(String(value))}</span>
+            </div>
+          `).join("")}
+        </div>
+
+        ${
+          property.description
+            ? `<div class="detail-description">
+                <h3>توضیحات ملک</h3>
+                <p>${escapeHtml(property.description).replace(/\n/g, "<br>")}</p>
+              </div>`
+            : ""
+        }
       </div>
     </section>
   `;
 
-  document.body.appendChild(modal);
+  modal.hidden = false;
   document.body.classList.add("modal-open");
 
-  document.addEventListener("keydown", handleModalKeydown);
-}
-
-function closePropertyDetails() {
-  const modal = $("#propertyModal");
-  if (modal) modal.remove();
-
-  document.body.classList.remove("modal-open");
-  document.removeEventListener("keydown", handleModalKeydown);
-}
-
-function handleModalKeydown(event) {
-  if (event.key === "Escape") {
-    closePropertyDetails();
-  } else if (event.key === "ArrowRight") {
-    changeGalleryImage(1);
-  } else if (event.key === "ArrowLeft") {
-    changeGalleryImage(-1);
+  if (history.state?.saeeLayer !== "details") {
+    history.pushState({ saeeLayer: "details" }, "");
   }
 }
 
-function changeGalleryImage(direction) {
+function closePropertyDetails() {
+  const viewer = $("#fullscreenImageViewer");
+
+  if (viewer && !viewer.hidden) {
+    closeFullscreenImage();
+    return;
+  }
+
+  const modal = $("#propertyModal");
+  if (modal) modal.hidden = true;
+
+  document.body.classList.remove("modal-open");
+
+  if (history.state?.saeeLayer === "details") {
+    history.back();
+  }
+}
+function openFullscreenImage(index) {
+  if (!currentGalleryImages.length) return;
+
+  currentGalleryIndex = Math.max(
+    0,
+    Math.min(index, currentGalleryImages.length - 1)
+  );
+
+  let viewer = $("#fullscreenImageViewer");
+
+  if (!viewer) {
+    viewer = document.createElement("div");
+    viewer.id = "fullscreenImageViewer";
+    viewer.className = "fullscreen-image-viewer";
+    viewer.hidden = true;
+    document.body.appendChild(viewer);
+  }
+
+  renderFullscreenImage();
+  viewer.hidden = false;
+
+  if (history.state?.saeeLayer !== "image") {
+    history.pushState({ saeeLayer: "image" }, "");
+  }
+}
+
+function renderFullscreenImage() {
+  const viewer = $("#fullscreenImageViewer");
+  if (!viewer) return;
+
+  const url = currentGalleryImages[currentGalleryIndex];
+  if (!url) return;
+
+  viewer.innerHTML = `
+    <button type="button" class="fullscreen-close"
+      onclick="closeFullscreenImage()" aria-label="بستن">
+      ${lineIcon("close", 25)}
+    </button>
+
+    <button type="button" class="fullscreen-prev"
+      onclick="changeFullscreenImage(-1)" aria-label="تصویر قبلی">‹</button>
+
+    <img class="fullscreen-image"
+      src="${escapeAttribute(url)}" alt="تصویر بزرگ ملک">
+
+    <button type="button" class="fullscreen-next"
+      onclick="changeFullscreenImage(1)" aria-label="تصویر بعدی">›</button>
+
+    <div class="fullscreen-counter">
+      ${formatNumber(currentGalleryIndex + 1)} /
+      ${formatNumber(currentGalleryImages.length)}
+    </div>
+  `;
+}
+
+function changeFullscreenImage(direction) {
   if (!currentGalleryImages.length) return;
 
   currentGalleryIndex =
     (currentGalleryIndex + direction + currentGalleryImages.length) %
     currentGalleryImages.length;
 
-  const image = $("#propertyModalImage");
-  const counter = $("#galleryCounter");
+  renderFullscreenImage();
+}
 
-  if (image) image.src = currentGalleryImages[currentGalleryIndex];
+function closeFullscreenImage() {
+  const viewer = $("#fullscreenImageViewer");
+  if (viewer) viewer.hidden = true;
 
-  if (counter) {
-    counter.textContent =
-      `${formatNumber(currentGalleryIndex + 1)} از ${formatNumber(currentGalleryImages.length)}`;
+  if (history.state?.saeeLayer === "image") {
+    history.back();
   }
 }
+
+window.addEventListener("popstate", () => {
+  const viewer = $("#fullscreenImageViewer");
+  const modal = $("#propertyModal");
+
+  if (viewer && !viewer.hidden) {
+    viewer.hidden = true;
+    return;
+  }
+
+  if (modal && !modal.hidden) {
+    modal.hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+});
 
 function ensureExtraStyles() {
   if ($("#saeeExtraStyles")) return;
 
   const style = document.createElement("style");
   style.id = "saeeExtraStyles";
+
   style.textContent = `
+    .saee-icon {
+      display: inline-block;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    /* دسته‌بندی‌ها: خلوت، مشکی و با آیکون خطی */
+    .category-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 10px 16px;
+      color: #e9e8e2;
+      background: #151513;
+      border: 1px solid #42413b;
+      border-radius: 10px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .category-btn.active {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    /* فیلترها کنار هم و با امکان رفتن به خط بعد */
     #filters {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-items: start;
-      gap: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 9px;
       width: 100%;
     }
 
     .filter-group {
       display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
       min-width: 0;
-      padding: 12px;
-      background: #171715;
-      border: 1px solid #393936;
-      border-radius: 12px;
-    }
-
-    .filter-group-title {
-      color: #dfc16c;
-      font-weight: 700;
-      line-height: 1.8;
     }
 
     .filter-children {
@@ -807,181 +1011,473 @@ function ensureExtraStyles() {
     }
 
     .filter-btn {
-      border: 1px solid #49463b;
-      background: #22221e;
-      color: #eee9da;
+      min-height: 40px;
+      padding: 8px 13px;
+      color: #e7e6df;
+      background: #171715;
+      border: 1px solid #45443d;
       border-radius: 9px;
-      padding: 9px 12px;
       font: inherit;
       cursor: pointer;
-      transition: background .15s ease, border-color .15s ease;
     }
 
     .filter-btn.active {
+      color: #111110;
       background: #dfc16c;
-      color: #171715;
       border-color: #dfc16c;
     }
 
-    .category-btn {
-      display: inline-flex;
+    /* انتخاب محله بدون زمینه سفید */
+    .saee-neighborhood-picker {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      color: #efeee8;
+    }
+
+    .neighborhood-toggle {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      color: #e9e8e2;
+      background: #151513;
+      border: 1px solid #45443d;
+      border-radius: 12px;
+      font: inherit;
       cursor: pointer;
     }
 
+    .neighborhood-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .neighborhood-toggle-arrow {
+      color: #dfc16c;
+      font-size: .9rem;
+    }
+
+    .neighborhood-panel {
+      position: absolute;
+      z-index: 50;
+      top: calc(100% + 8px);
+      right: 0;
+      left: 0;
+      padding: 12px;
+      background: #141412;
+      border: 1px solid #45443d;
+      border-radius: 13px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+
+    .neighborhood-panel input[type="search"] {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
+      color: #f1f0e9;
+      background: #1b1b18;
+      border: 1px solid #45443d;
+      border-radius: 9px;
+      outline: none;
+      font: inherit;
+    }
+
+    .neighborhood-panel input[type="search"]:focus {
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 12px 0;
+    }
+
+    .neighborhood-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    /* مخفی کردن تیک پیش‌فرض مرورگر */
+    .neighborhood-option input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
+    .neighborhood-option span {
+      display: inline-block;
+      padding: 8px 13px;
+      color: #e9e8e2;
+      background: #1b1b18;
+      border: 1px solid #44433c;
+      border-radius: 999px;
+      font-size: .9rem;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .neighborhood-option.selected span {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-option input:focus-visible + span {
+      outline: 2px solid #dfc16c;
+      outline-offset: 3px;
+    }
+
+    .neighborhood-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid #33332e;
+      padding-top: 10px;
+    }
+
+    .neighborhood-actions button {
+      min-height: 38px;
+      padding: 7px 13px;
+      color: #e9e8e2;
+      background: #1b1b18;
+      border: 1px solid #45443d;
+      border-radius: 9px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    #applyNeighborhoods {
+      color: #111110;
+      background: #dfc16c;
+      border-color: #dfc16c;
+    }
+
+    .neighborhood-empty {
+      width: 100%;
+      color: #bcbab1;
+      text-align: center;
+    }
+
+    /* کارت فایل‌ها */
+    .property-card {
+      position: relative;
+      overflow: hidden;
+      color: #efeee8;
+      background: #111110;
+      border: 1px solid #383833;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .property-image {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #191918;
+    }
+
+    .property-image > img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .property-category-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    .category-sale {
+      color: #fff;
+      background: #16854c;
+    }
+
+    .category-rent {
+      color: #fff;
+      background: #2678cb;
+    }
+
+    .category-construction {
+      color: #fff;
+      background: #75452e;
+    }
+
+    .category-shop {
+      color: #fff;
+      background: #9a6723;
+    }
+
+    .category-office {
+      color: #fff;
+      background: #68645f;
+    }
+
+    .category-default {
+      color: #fff;
+      background: #55534d;
+    }
+
+    .property-card-body {
+      padding: 13px;
+    }
+
     .property-code-label {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 8px;
+      color: #dfc16c;
+      background: #1a1915;
+      border: 1px solid #454035;
+      border-radius: 6px;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .property-title {
+      margin: 0 0 8px;
+      color: #f1f0e9;
+      line-height: 1.8;
+    }
+
+    .property-location {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #bcbcb6;
+      font-size: .85rem;
+    }
+
+    .property-price,
+    .detail-price {
+      color: #dfc16c;
+      font-weight: 700;
+      line-height: 1.9;
+      overflow-wrap: anywhere;
+    }
+
+    .property-features,
+    .detail-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .property-feature {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 8px;
+      color: #deded8;
+      background: #191918;
+      border: 1px solid #393936;
+      border-radius: 7px;
+      font-size: .82rem;
+    }
+
+    .property-details-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 14px;
+      padding: 9px 12px;
+      color: #f2f2ed;
+      background: #151513;
+      border: 1px solid #77736a;
+      border-radius: 8px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .property-details-button:active {
+      background: #292820;
+    }
+
+    .property-no-image {
+      display: grid;
+      place-items: center;
+      min-height: 150px;
+      color: #aaa9a1;
+      background: #191918;
+    }
+
+    /* پنجره جزئیات */
+    .property-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,.82);
+    }
+
+    .property-modal-content {
+      position: fixed;
+      inset: 3vh 3vw;
+      z-index: 1001;
+      overflow-y: auto;
+      color: #f2f2ed;
+      background: #111110;
+      border: 1px solid #393936;
+      border-radius: 12px;
+    }
+
+    .property-modal-content[hidden],
+    .fullscreen-image-viewer[hidden],
+    .neighborhood-panel[hidden] {
       display: none !important;
     }
 
-    .property-modal-code {
-      color: #dfc16c;
-      margin: 10px 0;
-      font-size: .95rem;
-    }
-
-    .property-modal-gallery {
-      position: relative;
-      background: #111110;
-      min-height: 180px;
-      overflow: hidden;
-    }
-
-    .property-modal-gallery img {
-      display: block;
-      width: 100%;
-      max-height: 460px;
-      object-fit: contain;
-    }
-
-    .property-modal-close,
-    .gallery-prev,
-    .gallery-next {
-      position: absolute;
-      z-index: 2;
+    .property-modal-close {
+      position: sticky;
+      top: 8px;
+      float: left;
+      z-index: 5;
       display: grid;
       place-items: center;
-      border: 1px solid #49463b;
-      background: rgba(17,17,16,.9);
-      color: #dfc16c;
+      width: 40px;
+      height: 40px;
+      margin: 8px;
+      color: #fff;
+      background: #111110;
+      border: 1px solid #555550;
       border-radius: 50%;
       cursor: pointer;
     }
 
-    .property-modal-close {
-      top: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
-    }
-
-    .gallery-prev,
-    .gallery-next {
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      font-size: 28px;
-    }
-
-    .gallery-prev { right: 10px; }
-    .gallery-next { left: 10px; }
-
-    .gallery-counter {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(17,17,16,.85);
-      color: #fff;
-      border-radius: 8px;
-      padding: 5px 9px;
-      font-size: 12px;
-    }
-
-    .property-modal-features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin: 16px 0;
-    }
-
-    .property-description,
-    .property-address {
-      line-height: 2;
-      margin-top: 18px;
-      overflow-wrap: anywhere;
-    }
-
-    .property-modal-contact {
-      margin-top: 20px;
-      padding-top: 15px;
-      border-top: 1px solid #393936;
-    }
-
-    .property-modal-contact a,
-    #contactPhones a {
-      display: inline-block;
-      color: #dfc16c;
-      margin: 5px 10px 5px 0;
-      direction: ltr;
-    }
-
-    .property-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
+    .detail-gallery {
       display: grid;
-      place-items: center;
-      padding: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      clear: both;
     }
 
-    .property-modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,.78);
+    .detail-gallery-image {
+      padding: 0;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #191918;
+      border: 0;
     }
 
-    .property-modal-content {
-      position: relative;
-      z-index: 1;
-      width: min(720px, 100%);
-      max-height: 92vh;
-      overflow-y: auto;
-      background: #171715;
-      color: #f4f0e5;
-      border: 1px solid #49463b;
-      border-radius: 16px;
+    .detail-gallery-image:first-child {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+
+    .detail-gallery-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .property-modal-body {
-      padding: 18px;
+      padding: 16px;
     }
 
-    .property-modal-body h2 {
-      line-height: 1.8;
-      margin: 12px 0;
+    .detail-table {
+      margin-top: 16px;
+      border-top: 1px solid #393936;
     }
 
-    .property-modal-price {
-      color: #dfc16c;
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin: 14px 0;
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid #30302d;
     }
 
-    .empty-properties {
+    .detail-label {
+      flex-shrink: 0;
+      color: #bcbcb6;
+    }
+
+    .detail-value {
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-description {
+      margin-top: 18px;
+      line-height: 1.9;
+    }
+
+    .fullscreen-image-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #050505;
+    }
+
+    .fullscreen-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .fullscreen-close,
+    .fullscreen-prev,
+    .fullscreen-next {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: rgba(15,15,15,.9);
+      border: 1px solid #555550;
+      border-radius: 50%;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+
+    .fullscreen-close { top: 15px; right: 15px; }
+    .fullscreen-prev { top: 50%; left: 12px; }
+    .fullscreen-next { top: 50%; right: 12px; }
+
+    .fullscreen-counter {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 7px 12px;
+      color: #fff;
+      background: rgba(15,15,15,.9);
+      border-radius: 20px;
+    }
+
+    .empty-state {
+      padding: 24px 12px;
+      color: #ccc;
       text-align: center;
-      padding: 35px 15px;
-      color: #d8d0bb;
-      background: #171715;
-      border: 1px solid #393936;
-      border-radius: 14px;
-      grid-column: 1 / -1;
-    }
-
-    .empty-properties h3 {
-      color: #dfc16c;
+      line-height: 1.9;
     }
 
     body.modal-open {
@@ -989,53 +1485,29 @@ function ensureExtraStyles() {
     }
 
     @media (max-width: 600px) {
-      #filters {
-        grid-template-columns: 1fr;
-        gap: 9px;
+      .property-modal-content {
+        inset: 0;
+        border: 0;
+        border-radius: 0;
       }
 
-      .filter-group {
-        padding: 10px;
+      .property-card-body {
+        padding: 11px;
+      }
+
+      #filters {
+        gap: 7px;
       }
 
       .filter-btn {
-        padding: 8px 10px;
+        min-height: 38px;
+        padding: 7px 10px;
         font-size: .9rem;
-      }
-
-      .property-modal {
-        padding: 7px;
-      }
-
-      .property-modal-content {
-        max-height: 96vh;
-        border-radius: 12px;
-      }
-
-      .property-modal-body {
-        padding: 13px;
       }
     }
   `;
 
   document.head.appendChild(style);
 }
-function setupNeighborhoodEvents() {
-  const select = $("#neighborhoodSelect");
-  if (!select) return;
 
-  select.addEventListener("change", () => {
-    selectedNeighborhoods = new Set(
-      Array.from(select.selectedOptions).map(option => String(option.value))
-    );
-
-    updateNeighborhoodToggle();
-    renderProperties();
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSite().catch(error => {
-    console.error("Site startup error:", error);
-  });
-});
+loadSite();
