@@ -1,4 +1,3 @@
-
 "use strict";
 
 const { createClient } = window.supabase;
@@ -255,13 +254,13 @@ async function selectCategory(categoryId) {
     );
   });
 
-  // ابتدا فیلترهای قبلی حذف می‌شوند و نتیجه سریع به‌روزرسانی می‌شود.
   filters = [];
   if ($("#filters")) $("#filters").innerHTML = "";
   renderProperties();
 
   await loadFilters(id);
 }
+
 async function loadFilters(categoryId) {
   const requestId = ++filterRequestId;
 
@@ -272,7 +271,6 @@ async function loadFilters(categoryId) {
     .eq("is_active", true)
     .order("sort_order");
 
-  // پاسخ قدیمی نباید فیلترهای دسته‌بندی جدید را خراب کند.
   if (
     requestId !== filterRequestId ||
     String(selectedCategory) !== String(categoryId)
@@ -360,7 +358,6 @@ function toggleFilter(filterId) {
 
   renderProperties();
 }
-
 async function loadNeighborhoods() {
   const { data, error } = await db
     .from("neighborhoods")
@@ -427,7 +424,6 @@ function renderNeighborhoodPicker() {
 
       <div class="neighborhood-actions">
         <button type="button" id="clearNeighborhoods">پاک کردن</button>
-        <button type="button" id="applyNeighborhoods">تأیید</button>
       </div>
     </div>
   `;
@@ -444,7 +440,12 @@ function renderNeighborhoodPicker() {
 
   $("#neighborhoodSearch").addEventListener("input", event => {
     neighborhoodSearch = event.target.value;
-    $("#neighborhoodOptions").innerHTML = renderNeighborhoodOptions();
+
+    const options = $("#neighborhoodOptions");
+
+    if (options) {
+      options.innerHTML = renderNeighborhoodOptions();
+    }
   });
 
   $("#neighborhoodOptions").addEventListener("change", event => {
@@ -458,18 +459,40 @@ function renderNeighborhoodPicker() {
       selectedNeighborhoods.delete(id);
     }
 
-    // فقط فهرست گزینه‌ها به‌روز می‌شود؛ پنل بسته نمی‌شود.
-    $("#neighborhoodOptions").innerHTML = renderNeighborhoodOptions();
+    const arrow = $("#neighborhoodToggle .neighborhood-toggle-arrow");
+
+    if (arrow) {
+      arrow.textContent = selectedNeighborhoods.size
+        ? `${formatNumber(selectedNeighborhoods.size)} انتخاب`
+        : "⌄";
+    }
+
+    const options = $("#neighborhoodOptions");
+
+    if (options) {
+      options.innerHTML = renderNeighborhoodOptions();
+    }
+
+    // اعمال فوری فیلتر محله‌ها، بدون نیاز به دکمه تأیید
+    renderProperties();
   });
 
   $("#clearNeighborhoods").addEventListener("click", () => {
     selectedNeighborhoods.clear();
-    renderNeighborhoodPicker();
-    renderProperties();
-  });
 
-  $("#applyNeighborhoods").addEventListener("click", () => {
-    renderNeighborhoodPicker();
+    const arrow = $("#neighborhoodToggle .neighborhood-toggle-arrow");
+
+    if (arrow) {
+      arrow.textContent = "⌄";
+    }
+
+    const options = $("#neighborhoodOptions");
+
+    if (options) {
+      options.innerHTML = renderNeighborhoodOptions();
+    }
+
+    // پس از پاک کردن محله‌ها، تمام فایل‌های سایر فیلترهای فعال نمایش داده می‌شوند.
     renderProperties();
   });
 }
@@ -579,6 +602,7 @@ function getPropertyFeatures(property) {
 
   return features;
 }
+
 function renderProperties() {
   const container = $("#properties");
   if (!container) return;
@@ -627,7 +651,6 @@ function renderProperties() {
 
   container.innerHTML = filtered.map(renderPropertyCard).join("");
 }
-
 function getCategoryClass(title) {
   const classes = {
     "فروش": "sale",
@@ -717,7 +740,6 @@ function renderPropertyCard(property) {
 function ensureModal() {
   let modal = $("#propertyModal");
 
-  // اگر کانتینر در index.html وجود نداشته باشد، ساخته می‌شود.
   if (!modal) {
     modal = document.createElement("div");
     modal.id = "propertyModal";
@@ -862,6 +884,7 @@ function closePropertyDetails() {
     history.back();
   }
 }
+
 function openFullscreenImage(index) {
   if (!currentGalleryImages.length) return;
 
@@ -950,7 +973,6 @@ window.addEventListener("popstate", () => {
     document.body.classList.remove("modal-open");
   }
 });
-
 function ensureExtraStyles() {
   if ($("#saeeExtraStyles")) return;
 
@@ -1140,7 +1162,7 @@ function ensureExtraStyles() {
 
     .neighborhood-actions {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 10px;
       border-top: 1px solid #33332e;
       padding-top: 10px;
@@ -1155,12 +1177,6 @@ function ensureExtraStyles() {
       border-radius: 9px;
       font: inherit;
       cursor: pointer;
-    }
-
-    #applyNeighborhoods {
-      color: #111110;
-      background: #dfc16c;
-      border-color: #dfc16c;
     }
 
     .neighborhood-empty {
