@@ -609,7 +609,7 @@ function setSelectedValues(id, values) {
 }
 
 /* -----------------------------
-   فیلد کد اختصاصی ملک
+   کد اختصاصی ملک
 ----------------------------- */
 
 function ensurePropertyCodeField() {
@@ -650,6 +650,27 @@ function ensurePropertyCodeField() {
   }
 }
 
+/* -----------------------------
+   تبدیل رهن و اجاره
+----------------------------- */
+
+function updateRentConversionBox() {
+  const select = $("rentConvertible");
+  const fields = $("rentConversionFields");
+
+  if (!select || !fields) return;
+
+  const enabled = select.value === "true";
+
+  fields.style.display = enabled ? "block" : "none";
+
+  const endDeposit = $("endDeposit");
+  const endRent = $("endMonthlyRent");
+
+  if (endDeposit) endDeposit.required = enabled;
+  if (endRent) endRent.required = enabled;
+}
+
 function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
@@ -665,12 +686,34 @@ function getPropertyPayload() {
 
     const number = Number(value);
 
-    if (!Number.isFinite(number)) {
-      throw new Error("یکی از مقادیر عددی نامعتبر است.");
+    if (!Number.isFinite(number) || number < 0) {
+      throw new Error(
+        "مقادیر عددی باید معتبر و صفر یا بیشتر باشند."
+      );
     }
 
     return number;
   };
+
+  const rentConvertible =
+    getInputValue("rentConvertible") === "true";
+
+  const endDeposit = rentConvertible
+    ? numericValue("endDeposit")
+    : 0;
+
+  const endMonthlyRent = rentConvertible
+    ? numericValue("endMonthlyRent")
+    : 0;
+
+  if (
+    rentConvertible &&
+    (endDeposit === null || endMonthlyRent === null)
+  ) {
+    throw new Error(
+      "برای فعال‌کردن تبدیل، ودیعه و اجاره در حالت دوم را وارد کن."
+    );
+  }
 
   return {
     title,
@@ -680,6 +723,9 @@ function getPropertyPayload() {
     price: numericValue("price"),
     deposit: numericValue("deposit"),
     monthly_rent: numericValue("monthlyRent"),
+    rent_convertible: rentConvertible,
+    end_deposit: endDeposit,
+    end_monthly_rent: endMonthlyRent,
     area: numericValue("area"),
     bedrooms: numericValue("bedrooms"),
     floor: numericValue("floor"),
@@ -692,6 +738,7 @@ function getPropertyPayload() {
     frontage_type: getInputValue("frontageType") || null
   };
 }
+
 /* -----------------------------
    تصاویر قبلی
 ----------------------------- */
@@ -823,7 +870,6 @@ async function deleteExistingPropertyImage(imageId) {
     );
   }
 }
-
 /* -----------------------------
    کتابخانه TUS
 ----------------------------- */
@@ -949,7 +995,6 @@ function clearResumableFilePath(propertyId, file) {
 
 /* -----------------------------
    آپلود تصاویر
-   روش فعلی حفظ شده است
 ----------------------------- */
 
 async function uploadFileWithTus(file, filePath, session, onProgress) {
@@ -1241,6 +1286,8 @@ function resetPropertyForm() {
   }
 
   updateFrontageBox();
+  updateRentConversionBox();
+
   setMessage("propertyMessage", "");
 }
 
@@ -1259,7 +1306,6 @@ function ensureCancelEditButton() {
   button.addEventListener("click", resetPropertyForm);
   form.appendChild(button);
 }
-
 /* -----------------------------
    جست‌وجوی فایل‌ها
 ----------------------------- */
@@ -1352,6 +1398,9 @@ function renderAdminProperties() {
           ${property.location_text
             ? `<div>${escapeHtml(property.location_text)}</div>`
             : ""}
+          ${property.rent_convertible
+            ? "<div>تبدیل رهن و اجاره: فعال</div>"
+            : ""}
         </div>
 
         <div>
@@ -1436,6 +1485,7 @@ async function loadProperties() {
       "خطا در دریافت فایل‌ها: " + getErrorMessage(error);
   }
 }
+
 /* -----------------------------
    ویرایش ملک
 ----------------------------- */
@@ -1470,12 +1520,24 @@ async function editProperty(id) {
     setInputValue("address", property.address);
     setInputValue("frontageType", property.frontage_type);
 
+    setInputValue(
+      "rentConvertible",
+      property.rent_convertible ? "true" : "false"
+    );
+
+    setInputValue("convertDeposit", property.end_deposit);
+    setInputValue(
+      "convertMonthlyRent",
+      property.end_monthly_rent
+    );
+
     setChecked("parking", property.parking);
     setChecked("elevator", property.elevator);
     setChecked("storage", property.storage);
     setChecked("terrace", property.terrace);
 
     updateFrontageBox();
+    updateRentConversionBox();
 
     const {
       data: neighborhoodRows,
@@ -1706,6 +1768,10 @@ function setupAdminEvents() {
     renderFilterOptions(filterOptionsCache);
   });
 
+  $("rentConvertible")?.addEventListener("change", () => {
+    updateRentConversionBox();
+  });
+
   $("neighborhoodForm")?.addEventListener("submit", addNeighborhood);
   $("settingsForm")?.addEventListener("submit", saveSiteSettings);
 
@@ -1752,6 +1818,8 @@ function setupAdminEvents() {
       deleteExistingPropertyImage(button.dataset.id);
     }
   });
+
+  updateRentConversionBox();
 }
 
 /* -----------------------------
