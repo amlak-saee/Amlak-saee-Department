@@ -463,7 +463,6 @@ async function toggleNeighborhood(id, isActive) {
       true
     );
   }
-    }
 }
 
 async function deleteNeighborhood(id) {
@@ -488,8 +487,7 @@ async function deleteNeighborhood(id) {
       true
     );
   }
-}
-
+        }
 /* -----------------------------
    گزینه‌های تکمیلی
 ----------------------------- */
@@ -930,7 +928,7 @@ function makeUniqueFileName(file) {
     typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
       : Date.now().toString(36) +
-            Math.random().toString(36).slice(2);
+        Math.random().toString(36).slice(2);
 
   const originalName = file.name || "";
   const dotIndex = originalName.lastIndexOf(".");
@@ -945,7 +943,6 @@ function makeUniqueFileName(file) {
 
   return randomPart + "." + extension;
 }
-
 /* -----------------------------
    مسیر آپلود
 ----------------------------- */
@@ -1396,7 +1393,7 @@ function renderAdminProperties() {
         <div>
           <strong>${escapeHtml(property.title)}</strong>
           <div>${escapeHtml(property.categories?.title || "")}</div>
-                    <div>${active ? "فعال" : "غیرفعال"}</div>
+          <div>${active ? "فعال" : "غیرفعال"}</div>
           ${property.property_code
             ? `<div>کد: ${escapeHtml(property.property_code)}</div>`
             : ""}
@@ -1434,8 +1431,7 @@ function renderAdminProperties() {
       </div>
     `;
   }).join("");
-}
-
+        }
 async function loadProperties() {
   const container = $("adminProperties");
   if (!container) return;
@@ -1764,7 +1760,6 @@ function setupAdminEvents() {
   ensurePropertyCodeField();
   ensurePropertySearch();
 
-  $("loginForm")?.addEventListener("submit", login);
   $("logoutButton")?.addEventListener("click", logout);
   $("propertyForm")?.addEventListener("submit", saveProperty);
 
@@ -1847,7 +1842,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  setupAdminEvents();
+  // اتصال فرم ورود را قبل از راه‌اندازی سایر امکانات انجام می‌دهیم؛
+  // بنابراین خطای یکی از ابزارهای پنل باعث ارسال عادی فرم و بارگذاری مجدد نمی‌شود.
+  const loginForm = $("loginForm");
+  if (loginForm && loginForm.dataset.loginHandlerAttached !== "true") {
+    loginForm.addEventListener("submit", login);
+    loginForm.dataset.loginHandlerAttached = "true";
+  }
+
+  try {
+    setupAdminEvents();
+  } catch (error) {
+    console.error("خطا در آماده‌سازی امکانات پنل:", error);
+    setAuthMessage(
+      "فرم ورود آماده است، اما بخشی از امکانات پنل خطا دارد: " + getErrorMessage(error),
+      true
+    );
+  }
 
   try {
     await checkAdmin();
