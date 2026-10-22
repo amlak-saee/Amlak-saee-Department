@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -24,10 +25,9 @@
   <a href="index.html">مشاهده سایت</a>
 </header>
 
-
 <main class="properties-section">
 
-  <!-- LOGIN -->
+  <!-- ورود مدیر -->
 
   <section class="info-section" id="loginSection">
 
@@ -57,9 +57,7 @@
         required
       >
 
-      <button
-        type="submit"
-        class="category-btn">
+      <button type="submit" class="category-btn">
         ورود به پنل
       </button>
 
@@ -67,13 +65,13 @@
 
   </section>
 
-
-  <!-- ADMIN PANEL -->
+  <!-- پنل مدیریت -->
 
   <section
     id="adminPanel"
     class="info-section"
-    style="display:none;">
+    style="display:none;"
+  >
 
     <div class="admin-header">
 
@@ -85,14 +83,15 @@
 
       <button
         id="logoutButton"
-        class="category-btn">
+        type="button"
+        class="category-btn"
+      >
         خروج
       </button>
 
     </div>
 
-
-    <!-- ADD PROPERTY -->
+    <!-- فرم ثبت ملک -->
 
     <section class="admin-box">
 
@@ -116,7 +115,8 @@
         <textarea
           id="description"
           rows="5"
-          placeholder="توضیحات کامل ملک"></textarea>
+          placeholder="توضیحات کامل ملک"
+        ></textarea>
 
         <label>دسته‌بندی</label>
 
@@ -126,11 +126,7 @@
 
         <label>محله</label>
 
-        <select
-          id="neighborhood"
-          multiple
-          size="4">
-        </select>
+        <select id="neighborhood" multiple size="4"></select>
 
         <small>
           برای انتخاب چند محله، چند گزینه را انتخاب کنید.
@@ -138,77 +134,156 @@
 
         <div id="propertyFilters"></div>
 
+        <!-- قیمت و مشخصات مالی -->
         <div class="admin-grid">
 
           <div>
-            <label>قیمت</label>
+            <label for="price">قیمت</label>
             <input
               id="price"
               type="number"
+              min="0"
               inputmode="numeric"
-              placeholder="تومان">
+              placeholder="تومان"
+            >
           </div>
 
           <div>
-            <label>ودیعه</label>
+            <label for="deposit">ودیعه</label>
             <input
               id="deposit"
               type="number"
+              min="0"
               inputmode="numeric"
-              placeholder="تومان">
+              placeholder="تومان"
+            >
           </div>
 
           <div>
-            <label>اجاره ماهانه</label>
+            <label for="monthlyRent">اجاره ماهانه</label>
             <input
               id="monthlyRent"
               type="number"
+              min="0"
               inputmode="numeric"
-              placeholder="تومان">
+              placeholder="تومان"
+            >
           </div>
 
           <div>
-            <label>متراژ</label>
+            <label for="area">متراژ</label>
             <input
               id="area"
               type="number"
+              min="0"
               inputmode="numeric"
-              placeholder="متر">
+              placeholder="متر"
+            >
           </div>
 
           <div>
-            <label>تعداد خواب</label>
+            <label for="bedrooms">تعداد خواب</label>
             <input
               id="bedrooms"
               type="number"
+              min="0"
               inputmode="numeric"
-              placeholder="مثلاً ۲">
+              placeholder="مثلاً ۲"
+            >
           </div>
 
           <div>
-            <label>طبقه</label>
+            <label for="floor">طبقه</label>
             <input
               id="floor"
               type="number"
               inputmode="numeric"
-              placeholder="مثلاً ۳">
+              placeholder="مثلاً ۳"
+            >
           </div>
 
         </div>
 
-        <label>توضیح محل</label>
+        <!-- تنظیم تبدیل رهن و اجاره -->
+
+        <div
+          id="rentConversionBox"
+          class="admin-box"
+          style="margin:16px 0;"
+        >
+
+          <h3>تبدیل رهن و اجاره</h3>
+
+          <p>
+            مبلغ ودیعه و اجاره بالا، حالت اولیه ملک است.
+            در صورت فعال‌کردن تبدیل، حالت دوم را هم وارد کن.
+          </p>
+
+          <label for="rentConvertible">
+            وضعیت تبدیل
+          </label>
+
+          <select id="rentConvertible">
+            <option value="false">تبدیل ندارد</option>
+            <option value="true">تبدیل دارد</option>
+          </select>
+
+          <div
+            id="rentConversionFields"
+            style="display:none;"
+          >
+
+            <label for="convertDeposit">
+              ودیعه در انتهای تبدیل (تومان)
+            </label>
+
+            <input
+              id="convertDeposit"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="مثلاً 400000000"
+            >
+
+            <label for="convertMonthlyRent">
+              اجاره ماهانه در انتهای تبدیل (تومان)
+            </label>
+
+            <input
+              id="convertMonthlyRent"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              placeholder="مثلاً 10000000"
+            >
+
+            <small>
+              مبالغ را به تومان وارد کن. حالت اولیه از فیلدهای
+              «ودیعه» و «اجاره ماهانه» بالای فرم گرفته می‌شود.
+            </small>
+
+          </div>
+
+        </div>
+
+        <!-- محل ملک -->
+
+        <label for="location">توضیح محل</label>
 
         <input
           id="location"
           type="text"
-          placeholder="مثلاً نزدیک میدان اصلی">
+          placeholder="مثلاً نزدیک میدان اصلی"
+        >
 
-        <label>آدرس</label>
+        <label for="address">آدرس</label>
 
         <textarea
           id="address"
           rows="3"
-          placeholder="آدرس کامل ملک"></textarea>
+          placeholder="آدرس کامل ملک"
+        ></textarea>
+        <!-- امکانات ملک -->
 
         <div class="admin-features">
 
@@ -234,29 +309,27 @@
 
         </div>
 
+        <!-- نوع موقعیت مغازه -->
+
         <div id="frontageBox" style="display:none;">
 
-          <label>نوع موقعیت مغازه</label>
+          <label for="frontageType">نوع موقعیت مغازه</label>
 
           <select id="frontageType">
 
-            <option value="">
-              انتخاب کنید
-            </option>
+            <option value="">انتخاب کنید</option>
 
-            <option value="main">
-              بر اصلی
-            </option>
+            <option value="main">بر اصلی</option>
 
-            <option value="alley">
-              داخل کوچه
-            </option>
+            <option value="alley">داخل کوچه</option>
 
           </select>
 
         </div>
 
-        <label>عکس‌های ملک</label>
+        <!-- تصاویر ملک -->
+
+        <label for="propertyImages">عکس‌های ملک</label>
 
         <input
           id="propertyImages"
@@ -272,7 +345,8 @@
         <button
           id="submitPropertyButton"
           type="submit"
-          class="category-btn">
+          class="category-btn"
+        >
           ثبت فایل ملک
         </button>
 
@@ -282,8 +356,7 @@
 
     </section>
 
-
-    <!-- PROPERTY LIST -->
+    <!-- مدیریت فایل‌های ملکی -->
 
     <section class="admin-box">
 
@@ -297,8 +370,7 @@
 
     </section>
 
-
-    <!-- SITE SETTINGS -->
+    <!-- تنظیمات سایت -->
 
     <section class="admin-box">
 
@@ -308,89 +380,97 @@
 
       <form id="settingsForm">
 
-        <label>نام سایت</label>
+        <label for="settingSiteName">نام سایت</label>
 
         <input
           id="settingSiteName"
           type="text"
-          placeholder="املاک ساعی">
+          placeholder="املاک ساعی"
+        >
 
-        <label>عنوان انگلیسی</label>
+        <label for="settingSiteNameEn">عنوان انگلیسی</label>
 
         <input
           id="settingSiteNameEn"
           type="text"
-          placeholder="Saee Real Estate Department">
+          placeholder="Saee Real Estate Department"
+        >
 
-        <label>شعار سایت</label>
+        <label for="settingFooterSlogan">شعار سایت</label>
 
         <input
           id="settingFooterSlogan"
           type="text"
-          placeholder="انتخاب درست، آینده روشن">
+          placeholder="انتخاب درست، آینده روشن"
+        >
 
-        <label>درباره ما</label>
+        <label for="settingAboutText">درباره ما</label>
 
         <textarea
           id="settingAboutText"
           rows="6"
-          placeholder="متن درباره ما"></textarea>
+          placeholder="متن درباره ما"
+        ></textarea>
 
-        <label>شماره تماس اول</label>
+        <label for="settingPhone1">شماره تماس اول</label>
 
         <input
           id="settingPhone1"
           type="tel"
           inputmode="tel"
-          placeholder="شماره تماس">
+          placeholder="شماره تماس"
+        >
 
-        <label>شماره تماس دوم</label>
+        <label for="settingPhone2">شماره تماس دوم</label>
 
         <input
           id="settingPhone2"
           type="tel"
           inputmode="tel"
-          placeholder="شماره تماس">
+          placeholder="شماره تماس"
+        >
 
-        <label>شماره تماس سوم</label>
+        <label for="settingPhone3">شماره تماس سوم</label>
 
         <input
           id="settingPhone3"
           type="tel"
           inputmode="tel"
-          placeholder="شماره تماس">
+          placeholder="شماره تماس"
+        >
 
-        <label>لینک اینستاگرام</label>
+        <label for="settingInstagram">لینک اینستاگرام</label>
 
         <input
           id="settingInstagram"
           type="url"
-          placeholder="https://instagram.com/...">
+          placeholder="https://instagram.com/..."
+        >
 
-        <label>لینک واتساپ</label>
+        <label for="settingWhatsapp">لینک واتساپ</label>
 
         <input
           id="settingWhatsapp"
           type="url"
-          placeholder="https://wa.me/...">
-
-        <label>لینک عکس هدر</label>
+          placeholder="https://wa.me/..."
+        >
+        <label for="settingHero">لینک عکس هدر</label>
 
         <input
           id="settingHero"
           type="url"
-          placeholder="لینک مستقیم عکس">
+          placeholder="لینک مستقیم عکس"
+        >
 
-        <label>لینک لوگو</label>
+        <label for="settingLogo">لینک لوگو</label>
 
         <input
           id="settingLogo"
           type="url"
-          placeholder="لینک مستقیم لوگو">
+          placeholder="لینک مستقیم لوگو"
+        >
 
-        <button
-          type="submit"
-          class="category-btn">
+        <button type="submit" class="category-btn">
           ذخیره تنظیمات
         </button>
 
@@ -400,8 +480,7 @@
 
     </section>
 
-
-    <!-- NEIGHBORHOOD MANAGEMENT -->
+    <!-- مدیریت محله‌ها -->
 
     <section class="admin-box">
 
@@ -411,7 +490,7 @@
 
       <form id="neighborhoodForm">
 
-        <label>
+        <label for="neighborhoodName">
           نام محله جدید
         </label>
 
@@ -422,9 +501,7 @@
           required
         >
 
-        <button
-          type="submit"
-          class="category-btn">
+        <button type="submit" class="category-btn">
           افزودن محله
         </button>
 
@@ -441,7 +518,6 @@
   </section>
 
 </main>
-
 
 <script src="admin.js"></script>
 
