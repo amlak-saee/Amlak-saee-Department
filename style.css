@@ -1344,3 +1344,59 @@ footer p {
     scroll-behavior: auto !important;
   }
 }
+/* چیدمان یکدست فیلترهای قیمت و سایر فیلترها */
+#filters {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+}
+
+/* هر گروه فیلتر در یک خانه از شبکه */
+#filters .filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  min-width: 0;
+  width: 100%;
+}
+
+/* دکمه‌ها هم‌اندازه و هم‌عرض */
+#filters .filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 9px 5px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* زیرمجموعه‌های فیلتر هم مرتب باشند */
+#filters .filter-children {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+/* نمایش بهتر در گوشی‌های کوچک */
+@media (max-width: 380px) {
+  #filters {
+    gap: 7px;
+  }
+
+  #filters .filter-btn {
+    min-height: 44px;
+    padding: 7px 3px;
+    font-size: 12px;
+  }
+}
