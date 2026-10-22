@@ -1,4 +1,3 @@
-
 "use strict";
 
 const { createClient } = window.supabase;
@@ -464,6 +463,7 @@ async function toggleNeighborhood(id, isActive) {
       true
     );
   }
+    }
 }
 
 async function deleteNeighborhood(id) {
@@ -489,6 +489,7 @@ async function deleteNeighborhood(id) {
     );
   }
 }
+
 /* -----------------------------
    گزینه‌های تکمیلی
 ----------------------------- */
@@ -664,8 +665,8 @@ function updateRentConversionBox() {
 
   fields.style.display = enabled ? "block" : "none";
 
-  const endDeposit = $("endDeposit");
-  const endRent = $("endMonthlyRent");
+  const endDeposit = $("convertDeposit");
+  const endRent = $("convertMonthlyRent");
 
   if (endDeposit) endDeposit.required = enabled;
   if (endRent) endRent.required = enabled;
@@ -699,11 +700,11 @@ function getPropertyPayload() {
     getInputValue("rentConvertible") === "true";
 
   const endDeposit = rentConvertible
-    ? numericValue("endDeposit")
+    ? numericValue("convertDeposit")
     : 0;
 
   const endMonthlyRent = rentConvertible
-    ? numericValue("endMonthlyRent")
+    ? numericValue("convertMonthlyRent")
     : 0;
 
   if (
@@ -870,6 +871,7 @@ async function deleteExistingPropertyImage(imageId) {
     );
   }
 }
+
 /* -----------------------------
    کتابخانه TUS
 ----------------------------- */
@@ -928,7 +930,7 @@ function makeUniqueFileName(file) {
     typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
       : Date.now().toString(36) +
-        Math.random().toString(36).slice(2);
+            Math.random().toString(36).slice(2);
 
   const originalName = file.name || "";
   const dotIndex = originalName.lastIndexOf(".");
@@ -1178,6 +1180,8 @@ async function saveProperty(event) {
       if (error) throw error;
 
       propertyId = data.id;
+      // اگر مراحل بعدی خطا دادند، ذخیرهٔ بعدی همان ملک را ویرایش می‌کند.
+      editingPropertyId = propertyId;
     }
 
     const { error: deleteNeighborhoodsError } = await db
@@ -1306,6 +1310,7 @@ function ensureCancelEditButton() {
   button.addEventListener("click", resetPropertyForm);
   form.appendChild(button);
 }
+
 /* -----------------------------
    جست‌وجوی فایل‌ها
 ----------------------------- */
@@ -1391,7 +1396,7 @@ function renderAdminProperties() {
         <div>
           <strong>${escapeHtml(property.title)}</strong>
           <div>${escapeHtml(property.categories?.title || "")}</div>
-          <div>${active ? "فعال" : "غیرفعال"}</div>
+                    <div>${active ? "فعال" : "غیرفعال"}</div>
           ${property.property_code
             ? `<div>کد: ${escapeHtml(property.property_code)}</div>`
             : ""}
