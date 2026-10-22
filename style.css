@@ -1400,3 +1400,14 @@ footer p {
     font-size: 12px;
   }
 }
+/* خط جداکننده بین دسته‌بندی‌های اصلی و فیلترهای پایین */
+#categories {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #45443d;
+}
+
+/* فاصله مرتب بین دسته‌بندی‌ها و فیلترها */
+#filters {
+  margin-top: 0;
+}
