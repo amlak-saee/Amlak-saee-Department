@@ -1411,3 +1411,133 @@ footer p {
 #filters {
   margin-top: 0;
 }
+/* =====================================
+   تبدیل رهن و اجاره - دپارتمان املاک ساعی
+===================================== */
+
+.rent-conversion-card {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #c94b4b;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(150, 35, 35, 0.20),
+    rgba(17, 17, 15, 0.96)
+  );
+  color: #ff7777;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.9;
+}
+
+.rent-conversion-card.is-green {
+  border-color: #399b67;
+  background: linear-gradient(
+    135deg,
+    rgba(35, 130, 75, 0.20),
+    rgba(17, 17, 15, 0.96)
+  );
+  color: #65d995;
+}
+
+.rent-conversion-button {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 9px;
+  padding: 12px 10px;
+  border: 1px solid #d8b45a;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #d8b45a, #a98232);
+  color: #17140d;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.8;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.rent-conversion-button:hover {
+  filter: brightness(1.08);
+}
+
+.rent-conversion-button:active {
+  transform: scale(0.98);
+}
+
+/* پنجره تبدیل رهن و اجاره */
+
+.rent-conversion-modal {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid #51452a;
+  border-radius: 12px;
+  background: #191814;
+}
+
+.rent-conversion-modal h3 {
+  margin: 0 0 16px;
+  color: #d8b45a;
+  font-size: 17px;
+  text-align: center;
+}
+
+.rent-conversion-modal input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: 18px 0;
+  accent-color: #d8b45a;
+  cursor: pointer;
+}
+
+.rent-conversion-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.rent-conversion-value {
+  min-width: 0;
+  padding: 12px 7px;
+  border: 1px solid #51452a;
+  border-radius: 9px;
+  background: #11110f;
+  text-align: center;
+}
+
+.rent-conversion-value span {
+  display: block;
+  margin-bottom: 6px;
+  color: #bdb7a8;
+  font-size: 12px;
+}
+
+.rent-conversion-value strong {
+  color: #e6c875;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .rent-conversion-card {
+    padding: 9px 7px;
+    font-size: 13px;
+  }
+
+  .rent-conversion-button {
+    padding: 10px 7px;
+    font-size: 13px;
+  }
+
+  .rent-conversion-values {
+    gap: 7px;
+  }
+}
