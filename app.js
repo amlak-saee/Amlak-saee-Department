@@ -113,7 +113,6 @@ function formatMoney(value) {
   return `${formatNumber(number)} تومان`;
 }
 
-/* تبدیل مقادیر دریافتی از دیتابیس به عدد معتبر */
 function numericValue(value) {
   if (value === null || value === undefined || value === "") {
     return 0;
@@ -123,7 +122,6 @@ function numericValue(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-/* تشخیص فعال بودن قابلیت تبدیل رهن و اجاره */
 function isRentConvertible(property) {
   const value = property?.rent_convertible;
 
@@ -134,7 +132,6 @@ function isRentConvertible(property) {
     String(value).trim() === "تبدیل دارد";
 }
 
-/* اطلاعات شروع و پایان بازه تبدیل */
 function getRentConversionData(property) {
   const startDeposit = numericValue(property?.deposit);
   const startRent = numericValue(property?.monthly_rent);
@@ -394,7 +391,8 @@ function toggleFilter(filterId) {
   });
 
   renderProperties();
-                                   }
+}
+
 async function loadNeighborhoods() {
   const { data, error } = await db
     .from("neighborhoods")
@@ -544,8 +542,7 @@ function renderNeighborhoodOptions() {
       </label>
     `;
   }).join("");
-}
-
+    }
 async function loadProperties() {
   const { data, error } = await db
     .from("properties")
@@ -588,12 +585,7 @@ function getPropertyCode(property) {
   return property.property_code || property.code || property.id || "";
 }
 
-/*
- * تشخیص قیمت:
- * ۱. اگر اطلاعات ودیعه یا اجاره وجود داشته باشد، اطلاعات اجاره نمایش داده می‌شود.
- * ۲. اگر فقط ودیعه باشد، رهن کامل نمایش داده می‌شود.
- * ۳. اگر اطلاعات اجاره نباشد، قیمت فروش نمایش داده می‌شود.
- */
+/* قیمت ملک؛ اطلاعات رهن و اجاره بر اساس مقادیر ثبت‌شده تشخیص داده می‌شود. */
 function getPropertyPrice(property) {
   const deposit = numericValue(property.deposit);
   const rent = numericValue(property.monthly_rent);
@@ -614,91 +606,116 @@ function getPropertyPrice(property) {
   return price > 0 ? formatMoney(price) : "توافقی";
 }
 
+/* نشان وضعیت تبدیل که هم روی کارت و هم در جزئیات نمایش داده می‌شود. */
+function getRentConversionStatusMarkup(property) {
+  const hasRentData =
+    numericValue(property.deposit) > 0 ||
+    numericValue(property.monthly_rent) > 0;
+
+  if (!hasRentData) return "";
+
+  if (isRentConvertible(property)) {
+    return `
+      <span class="saee-conversion-status is-convertible">
+        ${lineIcon("key", 15)}
+        <span>تبدیل رهن و اجاره</span>
+      </span>
+    `;
+  }
+
+  return `
+    <span class="saee-conversion-status is-not-convertible">
+      <span class="saee-status-dot"></span>
+      <span>تبدیل ندارد</span>
+    </span>
+  `;
+}
+
 /*
- * تولید اسلایدر تبدیل رهن و اجاره.
- * اسلایدر در کارت ملک نمایش داده نمی‌شود و فقط در جزئیات است.
+ * تعداد گام‌ها طوری محاسبه می‌شود که اگر اجاره تغییر داشته باشد،
+ * هر گام تقریباً ۱۰۰ هزار تومان اختلاف اجاره داشته باشد.
+ * در صورت ثابت بودن اجاره، تعداد گام‌ها بر اساس اختلاف ودیعه است.
  */
-function getRentConversionMarkup(property) {
-  if (!isRentConvertible(property)) return "";
-
-  const data = getRentConversionData(property);
-
+function getRentConversionSteps(data) {
+  const rentDifference = Math.abs(data.endRent - data.startRent);
   const depositDifference = Math.abs(
     data.endDeposit - data.startDeposit
   );
 
-  const rentDifference = Math.abs(
-    data.endRent - data.startRent
-  );
+  if (rentDifference > 0) {
+    return Math.max(
+      1,
+      Math.min(10000, Math.ceil(rentDifference / 100000))
+    );
+  }
 
-  if (depositDifference === 0 && rentDifference === 0) {
+  return Math.max(
+    1,
+    Math.min(10000, Math.ceil(depositDifference / 10000000))
+  );
+}
+
+/*
+ * ساخت اسلایدر تبدیل.
+ * در کارت ملک، نسخه جمع‌وجور نمایش داده می‌شود.
+ * در جزئیات، همان اسلایدر با اندازه بزرگ‌تر نمایش داده می‌شود.
+ */
+function getRentConversionMarkup(property, mode = "detail") {
+  if (!isRentConvertible(property)) return "";
+
+  const data = getRentConversionData(property);
+
+  if (
+    data.startDeposit === 0 &&
+    data.startRent === 0
+  ) {
     return "";
   }
 
-  /*
-   * هر پله معمولاً حدود ۱۰۰ هزار تومان تغییر در اجاره ماهانه دارد.
-   * اگر اجاره تغییر نکند، پله‌ها بر اساس اختلاف ودیعه تعیین می‌شوند.
-   */
-  let steps;
-
-  if (rentDifference > 0) {
-    steps = Math.ceil(rentDifference / 100000);
-  } else {
-    steps = Math.ceil(depositDifference / 10000000);
+  if (
+    data.startDeposit === data.endDeposit &&
+    data.startRent === data.endRent
+  ) {
+    return "";
   }
 
-  steps = Math.max(1, Math.min(steps, 10000));
+  const steps = getRentConversionSteps(data);
+  const isCard = mode === "card";
+
+  const sliderId = isCard
+    ? `saeeRentSlider-${String(property.id).replace(/[^a-zA-Z0-9_-]/g, "")}`
+    : "saeeRentConversionSlider";
+
+  const depositId = isCard
+    ? `${sliderId}-deposit`
+    : "saeeRentCurrentDeposit";
+
+  const rentId = isCard
+    ? `${sliderId}-rent`
+    : "saeeRentCurrentMonthly";
 
   return `
-    <section class="saee-rent-conversion"
+    <section class="saee-rent-conversion ${isCard ? "saee-rent-card" : "saee-rent-detail"}"
       aria-label="تبدیل رهن و اجاره">
 
-      <div class="saee-rent-heading">
-        <span class="saee-rent-heading-icon">
-          ${lineIcon("key", 20)}
-        </span>
-        <div>
-          <h3>تبدیل رهن و اجاره</h3>
-          <p>مبلغ دلخواهت را با حرکت دادن اسلایدر انتخاب کن.</p>
-        </div>
-      </div>
-
-      <div class="saee-rent-endpoints">
-        <div class="saee-rent-endpoint">
-          <span>حالت شروع</span>
-          <strong>${escapeHtml(formatMoney(data.startDeposit))}</strong>
-          <small>ودیعه</small>
-          <strong>${escapeHtml(formatMoney(data.startRent))}</strong>
-          <small>اجاره ماهانه</small>
-        </div>
-
-        <div class="saee-rent-endpoint saee-rent-endpoint-end">
-          <span>حالت پایان</span>
-          <strong>${escapeHtml(formatMoney(data.endDeposit))}</strong>
-          <small>ودیعه</small>
-          <strong>${escapeHtml(formatMoney(data.endRent))}</strong>
-          <small>اجاره ماهانه</small>
-        </div>
-      </div>
-
-      <label class="saee-rent-slider-label"
-        for="saeeRentConversionSlider">
-        میزان تبدیل
-      </label>
+      <h3 class="saee-rent-title">تبدیل رهن و اجاره</h3>
 
       <input
-        id="saeeRentConversionSlider"
+        id="${escapeAttribute(sliderId)}"
         class="saee-rent-slider"
         type="range"
         min="0"
         max="${steps}"
         step="1"
         value="0"
+        aria-label="میزان تبدیل رهن و اجاره"
         data-start-deposit="${data.startDeposit}"
         data-start-rent="${data.startRent}"
         data-end-deposit="${data.endDeposit}"
         data-end-rent="${data.endRent}"
-        oninput="updateRentConversion(this.value)">
+        data-output-deposit="${escapeAttribute(depositId)}"
+        data-output-rent="${escapeAttribute(rentId)}"
+        oninput="updateRentConversion(this.value, this)">
 
       <div class="saee-rent-slider-labels">
         <span>رهن کمتر</span>
@@ -708,14 +725,14 @@ function getRentConversionMarkup(property) {
       <div class="saee-rent-current">
         <div>
           <span>ودیعه انتخابی</span>
-          <strong id="saeeRentCurrentDeposit">
+          <strong id="${escapeAttribute(depositId)}">
             ${escapeHtml(formatMoney(data.startDeposit))}
           </strong>
         </div>
 
         <div>
           <span>اجاره ماهانه انتخابی</span>
-          <strong id="saeeRentCurrentMonthly">
+          <strong id="${escapeAttribute(rentId)}">
             ${escapeHtml(formatMoney(data.startRent))}
           </strong>
         </div>
@@ -724,9 +741,12 @@ function getRentConversionMarkup(property) {
   `;
 }
 
-/* به‌روزرسانی هم‌زمان مبلغ ودیعه و اجاره هنگام حرکت اسلایدر */
-function updateRentConversion(value) {
-  const slider = $("#saeeRentConversionSlider");
+/* تغییر هم‌زمان مبلغ ودیعه و اجاره هنگام حرکت دادن اسلایدر */
+function updateRentConversion(value, sliderElement = null) {
+  const slider = sliderElement ||
+    document.activeElement?.closest?.(".saee-rent-slider") ||
+    $("#saeeRentConversionSlider");
+
   if (!slider) return;
 
   const startDeposit = numericValue(slider.dataset.startDeposit);
@@ -748,7 +768,7 @@ function updateRentConversion(value) {
   let rent = startRent +
     (endRent - startRent) * ratio;
 
-  /* در دو انتهای اسلایدر، مقادیر دقیق دیتابیس حفظ می‌شوند. */
+  /* اطمینان از دقیق بودن مبالغ در ابتدا و انتهای اسلایدر */
   if (position === 0) {
     deposit = startDeposit;
     rent = startRent;
@@ -757,15 +777,20 @@ function updateRentConversion(value) {
     rent = endRent;
   }
 
-  const depositElement = $("#saeeRentCurrentDeposit");
-  const rentElement = $("#saeeRentCurrentMonthly");
+  const depositOutput = document.getElementById(
+    slider.dataset.outputDeposit || "saeeRentCurrentDeposit"
+  );
 
-  if (depositElement) {
-    depositElement.textContent = formatMoney(Math.round(deposit));
+  const rentOutput = document.getElementById(
+    slider.dataset.outputRent || "saeeRentCurrentMonthly"
+  );
+
+  if (depositOutput) {
+    depositOutput.textContent = formatMoney(Math.round(deposit));
   }
 
-  if (rentElement) {
-    rentElement.textContent = formatMoney(Math.round(rent));
+  if (rentOutput) {
+    rentOutput.textContent = formatMoney(Math.round(rent));
   }
 
   slider.style.setProperty(
@@ -905,6 +930,10 @@ function renderPropertyCard(property) {
           ${escapeHtml(getPropertyPrice(property))}
         </div>
 
+        ${getRentConversionStatusMarkup(property)}
+
+        ${getRentConversionMarkup(property, "card")}
+
         ${
           features.length
             ? `<div class="property-features">
@@ -927,7 +956,8 @@ function renderPropertyCard(property) {
       </div>
     </article>
   `;
-    }
+}
+
 function ensureModal() {
   let modal = $("#propertyModal");
 
@@ -939,8 +969,7 @@ function ensureModal() {
   }
 
   return modal;
-}
-
+    }
 function openPropertyDetails(propertyId) {
   const property = properties.find(
     item => String(item.id) === String(propertyId)
@@ -1051,7 +1080,9 @@ function openPropertyDetails(propertyId) {
           ${escapeHtml(getPropertyPrice(property))}
         </div>
 
-        ${getRentConversionMarkup(property)}
+        ${getRentConversionStatusMarkup(property)}
+
+        ${getRentConversionMarkup(property, "detail")}
 
         ${
           features.length
@@ -1090,16 +1121,15 @@ function openPropertyDetails(propertyId) {
   modal.hidden = false;
   document.body.classList.add("modal-open");
 
-  /* پس از باز شدن جزئیات، اسلایدر از مقدار شروع آغاز می‌شود. */
+  /* اسلایدر جزئیات و اسلایدر کارت از یک تابع استفاده می‌کنند. */
   const slider = $("#saeeRentConversionSlider");
-  if (slider) updateRentConversion(slider.value);
+  if (slider) updateRentConversion(slider.value, slider);
 
   if (history.state?.saeeLayer !== "details") {
     history.pushState({ saeeLayer: "details" }, "");
   }
 }
 
-/* جابه‌جایی بین تصاویر در صفحه جزئیات */
 function changeDetailGallery(direction) {
   if (!currentGalleryImages.length) return;
 
@@ -1211,7 +1241,6 @@ function changeFullscreenImage(direction) {
 
   renderFullscreenImage();
 
-  /* شماره و تصویر اصلی جزئیات هم با عکس بزرگ هماهنگ می‌مانند. */
   const image = $("#detailMainImage");
   const counter = $("#detailGalleryCounter");
 
@@ -1249,6 +1278,7 @@ window.addEventListener("popstate", () => {
     document.body.classList.remove("modal-open");
   }
 });
+
 function ensureExtraStyles() {
   if ($("#saeeExtraStyles")) return;
 
@@ -1262,7 +1292,6 @@ function ensureExtraStyles() {
       vertical-align: middle;
     }
 
-    /* دسته‌بندی‌ها */
     .category-btn {
       display: inline-flex;
       align-items: center;
@@ -1284,7 +1313,6 @@ function ensureExtraStyles() {
       border-color: #dfc16c;
     }
 
-    /* فیلترها */
     #filters {
       display: flex;
       flex-wrap: wrap;
@@ -1325,7 +1353,6 @@ function ensureExtraStyles() {
       border-color: #dfc16c;
     }
 
-    /* انتخاب محله */
     .saee-neighborhood-picker {
       position: relative;
       width: 100%;
@@ -1460,8 +1487,9 @@ function ensureExtraStyles() {
       color: #bcbab1;
       text-align: center;
     }
-
-    /* کارت فایل */
+`;
+    style.textContent += `
+    /* کارت فایل ملکی */
     .property-card {
       position: relative;
       overflow: hidden;
@@ -1501,35 +1529,12 @@ function ensureExtraStyles() {
       line-height: 1.4;
     }
 
-    .category-sale {
-      color: #fff;
-      background: #16854c;
-    }
-
-    .category-rent {
-      color: #fff;
-      background: #2678cb;
-    }
-
-    .category-construction {
-      color: #fff;
-      background: #75452e;
-    }
-
-    .category-shop {
-      color: #fff;
-      background: #9a6723;
-    }
-
-    .category-office {
-      color: #fff;
-      background: #68645f;
-    }
-
-    .category-default {
-      color: #fff;
-      background: #55534d;
-    }
+    .category-sale { color: #fff; background: #16854c; }
+    .category-rent { color: #fff; background: #2678cb; }
+    .category-construction { color: #fff; background: #75452e; }
+    .category-shop { color: #fff; background: #9a6723; }
+    .category-office { color: #fff; background: #68645f; }
+    .category-default { color: #fff; background: #55534d; }
 
     .property-card-body {
       padding: 13px;
@@ -1567,6 +1572,40 @@ function ensureExtraStyles() {
       font-weight: 700;
       line-height: 1.9;
       overflow-wrap: anywhere;
+    }
+
+    /* وضعیت تبدیل در کارت و صفحه جزئیات */
+    .saee-conversion-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: 1px solid #454035;
+      border-radius: 8px;
+      font-size: .82rem;
+      line-height: 1.6;
+    }
+
+    .saee-conversion-status.is-convertible {
+      color: #dfc16c;
+      background: #211e15;
+      border-color: #51472e;
+    }
+
+    .saee-conversion-status.is-not-convertible {
+      color: #d2d0c8;
+      background: #1b1b18;
+      border-color: #45443d;
+    }
+
+    .saee-status-dot {
+      width: 7px;
+      height: 7px;
+      flex-shrink: 0;
+      background: #99968b;
+      border-radius: 50%;
     }
 
     .property-features,
@@ -1659,7 +1698,6 @@ function ensureExtraStyles() {
       cursor: pointer;
     }
 
-    /* نمایش یک عکس اصلی به‌جای چیدن همه عکس‌ها کنار هم */
     .detail-main-gallery {
       position: relative;
       clear: both;
@@ -1719,9 +1757,7 @@ function ensureExtraStyles() {
       pointer-events: none;
     }
 
-    .detail-no-image {
-      clear: both;
-    }
+    .detail-no-image { clear: both; }
 
     .property-modal-body {
       padding: 16px;
@@ -1755,92 +1791,21 @@ function ensureExtraStyles() {
       line-height: 1.9;
     }
 
-    /* اسلایدر تبدیل رهن و اجاره */
+    /* پنل تبدیل رهن و اجاره */
     .saee-rent-conversion {
-      margin: 18px 0;
-      padding: 15px;
+      margin: 14px 0;
+      padding: 13px;
       color: #efeee8;
       background: #171714;
       border: 1px solid #494333;
-      border-radius: 13px;
+      border-radius: 12px;
     }
 
-    .saee-rent-heading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .saee-rent-heading-icon {
-      display: grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      flex-shrink: 0;
+    .saee-rent-title {
+      margin: 0 0 12px;
       color: #dfc16c;
-      background: #252116;
-      border: 1px solid #4b4128;
-      border-radius: 10px;
-    }
-
-    .saee-rent-heading h3 {
-      margin: 0;
-      color: #dfc16c;
-      font-size: 1rem;
-    }
-
-    .saee-rent-heading p {
-      margin: 4px 0 0;
-      color: #bcbab1;
-      font-size: .82rem;
+      font-size: .96rem;
       line-height: 1.8;
-    }
-
-    .saee-rent-endpoints {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .saee-rent-endpoint {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      min-width: 0;
-      padding: 11px;
-      background: #111110;
-      border: 1px solid #37352e;
-      border-radius: 9px;
-    }
-
-    .saee-rent-endpoint > span {
-      margin-bottom: 3px;
-      color: #bcbab1;
-      font-size: .82rem;
-    }
-
-    .saee-rent-endpoint strong {
-      color: #dfc16c;
-      font-size: .92rem;
-      overflow-wrap: anywhere;
-    }
-
-    .saee-rent-endpoint small {
-      color: #a8a69d;
-      font-size: .76rem;
-    }
-
-    .saee-rent-endpoint-end {
-      border-color: #51472e;
-    }
-
-    .saee-rent-slider-label {
-      display: block;
-      margin-top: 18px;
-      margin-bottom: 8px;
-      color: #eee9d8;
-      font-size: .9rem;
     }
 
     .saee-rent-slider {
@@ -1912,23 +1877,24 @@ function ensureExtraStyles() {
       display: flex;
       justify-content: space-between;
       gap: 10px;
+      margin-top: 4px;
       color: #a8a69d;
-      font-size: .78rem;
+      font-size: .77rem;
     }
 
     .saee-rent-current {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 16px;
+      gap: 9px;
+      margin-top: 13px;
     }
 
     .saee-rent-current > div {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
       min-width: 0;
-      padding: 12px;
+      padding: 10px;
       background: #211e15;
       border: 1px solid #4b4128;
       border-radius: 9px;
@@ -1936,14 +1902,49 @@ function ensureExtraStyles() {
 
     .saee-rent-current span {
       color: #c6c0ad;
-      font-size: .8rem;
+      font-size: .78rem;
+      line-height: 1.8;
     }
 
     .saee-rent-current strong {
       color: #dfc16c;
-      font-size: .95rem;
+      font-size: .88rem;
       line-height: 1.8;
       overflow-wrap: anywhere;
+    }
+
+    /* نسخه جمع‌وجور اسلایدر داخل کارت ملک */
+    .saee-rent-card {
+      margin: 10px 0 4px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .saee-rent-card .saee-rent-title {
+      margin-bottom: 8px;
+      font-size: .84rem;
+    }
+
+    .saee-rent-card .saee-rent-current {
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .saee-rent-card .saee-rent-current > div {
+      gap: 4px;
+      padding: 7px;
+    }
+
+    .saee-rent-card .saee-rent-current span {
+      font-size: .7rem;
+    }
+
+    .saee-rent-card .saee-rent-current strong {
+      font-size: .75rem;
+    }
+
+    .saee-rent-card .saee-rent-slider-labels {
+      font-size: .7rem;
     }
 
     /* نمایش تمام‌صفحه تصویر */
@@ -2036,22 +2037,23 @@ function ensureExtraStyles() {
       }
 
       .saee-rent-conversion {
-        padding: 12px;
+        padding: 10px;
       }
 
-      .saee-rent-current,
-      .saee-rent-endpoints {
-        gap: 7px;
+      .saee-rent-current {
+        gap: 6px;
       }
 
-      .saee-rent-current > div,
-      .saee-rent-endpoint {
-        padding: 9px;
+      .saee-rent-current > div {
+        padding: 8px;
       }
 
-      .saee-rent-current strong,
-      .saee-rent-endpoint strong {
-        font-size: .84rem;
+      .saee-rent-current strong {
+        font-size: .79rem;
+      }
+
+      .saee-rent-card .saee-rent-current strong {
+        font-size: .71rem;
       }
     }
   `;
