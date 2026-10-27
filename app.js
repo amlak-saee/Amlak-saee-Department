@@ -507,7 +507,6 @@ function renderNeighborhoodPicker() {
 
   $("#clearNeighborhoods").addEventListener("click", () => {
     selectedNeighborhoods.clear();
-
     const arrow = $("#neighborhoodToggle .neighborhood-toggle-arrow");
     if (arrow) arrow.textContent = "⌄";
 
@@ -617,69 +616,52 @@ function getPropertyPrice(property) {
 function getRentConversionCardMarkup(property) {
   if (!isRentConvertible(property)) return "";
 
+  const data = getRentConversionData(property);
+  const hasConversion =
+    data.startDeposit !== data.endDeposit ||
+    data.startRent !== data.endRent;
+
+  if (!hasConversion) return "";
+
   return `
     <button
       type="button"
       class="saee-conversion-card-button"
       onclick="event.stopPropagation();openPropertyDetails('${escapeAttribute(property.id)}', true)"
       aria-label="برای تبدیل رهن و اجاره کلیک کنید">
-
       <span class="saee-conversion-card-icon">
         ${lineIcon("convert", 24)}
       </span>
-
       <span class="saee-conversion-card-text">
         <strong>تبدیل رهن و اجاره</strong>
         <span>برای تبدیل رهن و اجاره کلیک کنید</span>
       </span>
-
       <span class="saee-conversion-card-arrow" aria-hidden="true">‹</span>
     </button>
   `;
 }
 
-/*
- * اسلایدر تبدیل فقط در صفحه جزئیات قرار می‌گیرد،
- * نه داخل کارت پیش‌نمایش.
- */
 function getRentConversionMarkup(property) {
   if (!isRentConvertible(property)) return "";
 
   const data = getRentConversionData(property);
+  const depositDifference = Math.abs(data.endDeposit - data.startDeposit);
+  const rentDifference = Math.abs(data.endRent - data.startRent);
 
-  const depositDifference = Math.abs(
-    data.endDeposit - data.startDeposit
-  );
+  if (depositDifference === 0 && rentDifference === 0) return "";
 
-  const rentDifference = Math.abs(
-    data.endRent - data.startRent
-  );
-
-  if (depositDifference === 0 && rentDifference === 0) {
-    return "";
-  }
-
-  let steps;
-
-  if (rentDifference > 0) {
-    steps = Math.ceil(rentDifference / 100000);
-  } else {
-    steps = Math.ceil(depositDifference / 10000000);
-  }
-
+  // اجاره با گام‌های ۱۰۰ هزار تومانی تغییر می‌کند؛ آخرین نقطه دقیقاً انتهای بازه است.
+  let steps = rentDifference > 0
+    ? Math.ceil(rentDifference / 100000)
+    : Math.ceil(depositDifference / 10000000);
   steps = Math.max(1, Math.min(steps, 10000));
 
   return `
-    <section class="saee-rent-conversion"
-      aria-label="تبدیل رهن و اجاره">
-
+    <section class="saee-rent-conversion" aria-label="تبدیل رهن و اجاره">
       <h3 class="saee-rent-title">تبدیل رهن و اجاره</h3>
-
-      <label class="saee-rent-slider-accessible-label"
-        for="saeeRentConversionSlider">
+      <label class="saee-rent-slider-accessible-label" for="saeeRentConversionSlider">
         میزان تبدیل رهن و اجاره
       </label>
-
       <input
         id="saeeRentConversionSlider"
         class="saee-rent-slider"
@@ -693,32 +675,24 @@ function getRentConversionMarkup(property) {
         data-end-deposit="${data.endDeposit}"
         data-end-rent="${data.endRent}"
         oninput="updateRentConversion(this.value)">
-
       <div class="saee-rent-slider-labels">
         <span>رهن کمتر</span>
         <span>رهن بیشتر</span>
       </div>
-
       <div class="saee-rent-current">
         <div>
           <span>ودیعه انتخابی</span>
-          <strong id="saeeRentCurrentDeposit">
-            ${escapeHtml(formatMoney(data.startDeposit))}
-          </strong>
+          <strong id="saeeRentCurrentDeposit">${escapeHtml(formatMoney(data.startDeposit))}</strong>
         </div>
-
         <div>
           <span>اجاره ماهانه انتخابی</span>
-          <strong id="saeeRentCurrentMonthly">
-            ${escapeHtml(formatMoney(data.startRent))}
-          </strong>
+          <strong id="saeeRentCurrentMonthly">${escapeHtml(formatMoney(data.startRent))}</strong>
         </div>
       </div>
     </section>
   `;
 }
 
-/* تغییر هم‌زمان مبلغ ودیعه و اجاره با حرکت اسلایدر */
 function updateRentConversion(value) {
   const slider = $("#saeeRentConversionSlider");
   if (!slider) return;
@@ -727,45 +701,42 @@ function updateRentConversion(value) {
   const startRent = numericValue(slider.dataset.startRent);
   const endDeposit = numericValue(slider.dataset.endDeposit);
   const endRent = numericValue(slider.dataset.endRent);
-
   const max = Math.max(1, numericValue(slider.max));
-  const position = Math.max(
-    0,
-    Math.min(max, numericValue(value))
-  );
-
+  const position = Math.max(0, Math.min(max, numericValue(value)));
   const ratio = position / max;
 
-  let deposit = startDeposit +
-    (endDeposit - startDeposit) * ratio;
-
-  let rent = startRent +
-    (endRent - startRent) * ratio;
+  let deposit;
+  let rent;
 
   if (position === 0) {
     deposit = startDeposit;
     rent = startRent;
   } else if (position === max) {
+    // مقدار انتهایی عیناً از دیتابیس حفظ می‌شود.
     deposit = endDeposit;
     rent = endRent;
+  } else {
+    deposit = Math.round(startDeposit + (endDeposit - startDeposit) * ratio);
+    const difference = Math.abs(endRent - startRent);
+    const direction = Math.sign(endRent - startRent);
+
+    if (difference > 0) {
+      const changed = Math.min(difference, position * 100000);
+      rent = startRent + direction * changed;
+    } else {
+      rent = startRent;
+    }
   }
 
   const depositElement = $("#saeeRentCurrentDeposit");
   const rentElement = $("#saeeRentCurrentMonthly");
 
-  if (depositElement) {
-    depositElement.textContent = formatMoney(Math.round(deposit));
-  }
+  if (depositElement) depositElement.textContent = formatMoney(deposit);
+  if (rentElement) rentElement.textContent = formatMoney(rent);
 
-  if (rentElement) {
-    rentElement.textContent = formatMoney(Math.round(rent));
-  }
+  slider.style.setProperty("--saee-rent-progress", `${(position / max) * 100}%`);
+}
 
-  slider.style.setProperty(
-    "--saee-rent-progress",
-    `${(position / max) * 100}%`
-  );
-    }
 function getPropertyFeatures(property) {
   const features = [];
 
@@ -1047,7 +1018,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         </div>
 
         ${getRentConversionMarkup(property)}
-
+        
         ${
           features.length
             ? `<div class="detail-features">
@@ -1557,7 +1528,7 @@ function ensureExtraStyles() {
       min-height: 76px;
       margin-top: 12px;
       padding: 12px;
-      color: #f0d78c;
+            color: #f0d78c;
       text-align: right;
       background: linear-gradient(135deg, #292417, #1b1913);
       border: 1px solid #b89a4c;
