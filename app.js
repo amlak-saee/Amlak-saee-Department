@@ -2039,3 +2039,4 @@ function ensureExtraStyles() {
 }
 
 loadSite();
+console.log("APP JS NEW VERSION");
