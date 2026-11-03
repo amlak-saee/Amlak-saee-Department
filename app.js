@@ -508,7 +508,7 @@ function renderNeighborhoodPicker() {
   $("#clearNeighborhoods").addEventListener("click", () => {
     selectedNeighborhoods.clear();
     const arrow = $("#neighborhoodToggle .neighborhood-toggle-arrow");
-    if (arrow) arrow.textContent = "⌄";
+        if (arrow) arrow.textContent = "⌄";
 
     const options = $("#neighborhoodOptions");
     if (options) options.innerHTML = renderNeighborhoodOptions();
@@ -633,7 +633,7 @@ function getRentConversionCardMarkup(property) {
         ${lineIcon("convert", 24)}
       </span>
       <span class="saee-conversion-card-text">
-        <strong>تبدیل رهن و اجاره</strong>
+        <strong>تبدیل تا ${escapeHtml(formatMoney(data.endDeposit))} پیش</strong>
         <span>برای تبدیل رهن و اجاره کلیک کنید</span>
       </span>
       <span class="saee-conversion-card-arrow" aria-hidden="true">‹</span>
@@ -1018,8 +1018,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         </div>
 
         ${getRentConversionMarkup(property)}
-        
-        ${
+                ${
           features.length
             ? `<div class="detail-features">
                 ${features.map(([icon, label]) => `
@@ -1530,7 +1529,7 @@ function ensureExtraStyles() {
       padding: 12px;
             color: #f0d78c;
       text-align: right;
-      background: linear-gradient(135deg, #292417, #1b1913);
+            background: linear-gradient(135deg, #292417, #1b1913);
       border: 1px solid #b89a4c;
       border-radius: 12px;
       font: inherit;
@@ -1574,15 +1573,16 @@ function ensureExtraStyles() {
     }
 
     .saee-conversion-card-text strong {
-      color: #f0d78c;
-      font-size: .96rem;
-      line-height: 1.7;
+      color: #ff4545;
+      font-size: 1.2rem;
+      font-weight: 900;
+      line-height: 1.6;
     }
 
     .saee-conversion-card-text > span {
       color: #d4cbb5;
-      font-size: .79rem;
-      line-height: 1.8;
+      font-size: .72rem;
+      line-height: 1.7;
     }
 
     .saee-conversion-card-arrow {
