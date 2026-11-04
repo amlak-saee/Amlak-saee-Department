@@ -114,6 +114,24 @@ function formatMoney(value) {
   return `${formatNumber(number)} تومان`;
 }
 
+function formatMoneyWithoutToman(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number) || number <= 0) {
+    return "توافقی";
+  }
+
+  if (number >= 1_000_000_000) {
+    return `${formatDecimal(number / 1_000_000_000)} میلیارد`;
+  }
+
+  if (number >= 1_000_000) {
+    return `${formatDecimal(number / 1_000_000)} میلیون`;
+  }
+
+  return formatNumber(number);
+}
+
 function numericValue(value) {
   if (value === null || value === undefined || value === "") {
     return 0;
@@ -393,6 +411,7 @@ function toggleFilter(filterId) {
 
   renderProperties();
 }
+
 async function loadNeighborhoods() {
   const { data, error } = await db
     .from("neighborhoods")
@@ -508,7 +527,7 @@ function renderNeighborhoodPicker() {
   $("#clearNeighborhoods").addEventListener("click", () => {
     selectedNeighborhoods.clear();
     const arrow = $("#neighborhoodToggle .neighborhood-toggle-arrow");
-        if (arrow) arrow.textContent = "⌄";
+    if (arrow) arrow.textContent = "⌄";
 
     const options = $("#neighborhoodOptions");
     if (options) options.innerHTML = renderNeighborhoodOptions();
@@ -530,6 +549,7 @@ function renderNeighborhoodOptions() {
 
   return visible.map(item => {
     const id = String(item.id);
+``````javascript
     const checked = selectedNeighborhoods.has(id);
 
     return `
@@ -629,14 +649,11 @@ function getRentConversionCardMarkup(property) {
       class="saee-conversion-card-button"
       onclick="event.stopPropagation();openPropertyDetails('${escapeAttribute(property.id)}', true)"
       aria-label="برای تبدیل رهن و اجاره کلیک کنید">
-      <span class="saee-conversion-card-icon">
-        ${lineIcon("convert", 24)}
-      </span>
       <span class="saee-conversion-card-text">
-        <strong>تبدیل تا ${escapeHtml(formatMoney(data.endDeposit))} پیش</strong>
+        <span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span>
+        <strong>تبدیل تا: ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} پیش · اجاره: ${escapeHtml(formatMoneyWithoutToman(data.endRent))}</strong>
         <span>برای تبدیل رهن و اجاره کلیک کنید</span>
       </span>
-      <span class="saee-conversion-card-arrow" aria-hidden="true">‹</span>
     </button>
   `;
 }
@@ -784,6 +801,7 @@ function renderProperties() {
       if (!Array.from(selectedFilters).every(id => ids.includes(id))) {
         return false;
       }
+            }
     }
 
     return true;
@@ -864,11 +882,10 @@ function renderPropertyCard(property) {
             : ""
         }
 
-        <div class="property-price">
-          ${escapeHtml(getPropertyPrice(property))}
-        </div>
-
-        ${getRentConversionCardMarkup(property)}
+        ${
+          getRentConversionCardMarkup(property) ||
+          `<div class="property-price">${escapeHtml(getPropertyPrice(property))}</div>`
+        }
 
         ${
           features.length
@@ -1018,7 +1035,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         </div>
 
         ${getRentConversionMarkup(property)}
-                ${
+        ${
           features.length
             ? `<div class="detail-features">
                 ${features.map(([icon, label]) => `
@@ -1084,8 +1101,7 @@ function changeDetailGallery(direction) {
   currentGalleryIndex =
     (currentGalleryIndex + direction + currentGalleryImages.length) %
     currentGalleryImages.length;
-
-  const image = $("#detailMainImage");
+    const image = $("#detailMainImage");
   const counter = $("#detailGalleryCounter");
 
   if (image) {
@@ -1225,6 +1241,7 @@ window.addEventListener("popstate", () => {
     document.body.classList.remove("modal-open");
   }
 });
+
 function ensureExtraStyles() {
   if ($("#saeeExtraStyles")) return;
 
@@ -1433,8 +1450,7 @@ function ensureExtraStyles() {
       color: #bcbab1;
       text-align: center;
     }
-
-    /* کارت ملک */
+        /* کارت ملک */
     .property-card {
       position: relative;
       overflow: hidden;
@@ -1522,14 +1538,14 @@ function ensureExtraStyles() {
     .saee-conversion-card-button {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 0;
       width: 100%;
       min-height: 76px;
       margin-top: 12px;
       padding: 12px;
-            color: #f0d78c;
+      color: #f0d78c;
       text-align: right;
-            background: linear-gradient(135deg, #292417, #1b1913);
+      background: linear-gradient(135deg, #292417, #1b1913);
       border: 1px solid #b89a4c;
       border-radius: 12px;
       font: inherit;
@@ -1572,11 +1588,19 @@ function ensureExtraStyles() {
       min-width: 0;
     }
 
+    .saee-conversion-main-price {
+      color: #dfc16c;
+      font-weight: 700;
+      line-height: 1.9;
+      overflow-wrap: anywhere;
+    }
+
     .saee-conversion-card-text strong {
       color: #ff4545;
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 900;
-      line-height: 1.6;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
     }
 
     .saee-conversion-card-text > span {
@@ -1975,62 +1999,18 @@ function ensureExtraStyles() {
         border: 0;
         border-radius: 0;
       }
-
-      .property-card-body {
-        padding: 11px;
-      }
-
-      #filters {
-        gap: 7px;
-      }
-
-      .filter-btn {
-        min-height: 38px;
-        padding: 7px 10px;
-        font-size: .9rem;
-      }
-
-      .detail-main-gallery {
-        aspect-ratio: 4 / 3;
+            .property-modal-content {
+        inset: 0;
+        border: 0;
+        border-radius: 0;
       }
 
       .property-modal-body {
-        padding: 13px;
-      }
-
-      .saee-conversion-card-button {
-        min-height: 72px;
-        gap: 9px;
-        padding: 10px;
-      }
-
-      .saee-conversion-card-icon {
-        width: 40px;
-        height: 40px;
-      }
-
-      .saee-conversion-card-text strong {
-        font-size: .88rem;
-      }
-
-      .saee-conversion-card-text > span {
-        font-size: .73rem;
-      }
-
-      .saee-rent-conversion {
-        padding: 11px;
+        padding: 12px;
       }
 
       .saee-rent-current {
-        gap: 7px;
-      }
-
-      .saee-rent-current > div {
-        padding: 9px;
-      }
-
-      .saee-rent-current strong {
-        font-size: .8rem;
+        grid-template-columns: 1fr;
       }
     }
   `;
