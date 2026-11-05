@@ -500,6 +500,7 @@ function renderNeighborhoodPicker() {
   });
     $("#neighborhoodOptions").addEventListener("change", event => {
     if (!event.target.matches('input[type="checkbox"]')) return;
+
     const id = String(event.target.value);
 
     if (event.target.checked) {
@@ -517,7 +518,7 @@ function renderNeighborhoodPicker() {
     }
 
     const options = $("#neighborhoodOptions");
-    if (options) options.innerHTML = renderNeighborhoodOptions();
+          if (options) options.innerHTML = renderNeighborhoodOptions();
 
     renderProperties();
   });
@@ -1003,7 +1004,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
       onclick="closePropertyDetails()"></div>
 
     <section class="property-modal-content"
-              role="dialog"
+          role="dialog"
       aria-modal="true"
       aria-label="${escapeAttribute(property.title || "جزئیات ملک")}">
 
@@ -1037,7 +1038,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
                     <span>${escapeHtml(label)}</span>
                   </span>
                 `).join("")}
-              </div>`
+                              </div>`
             : ""
         }
 
@@ -1506,7 +1507,7 @@ function ensureExtraStyles() {
     .category-construction { background: #75452e; }
     .category-shop { background: #9a6723; }
     .category-office { background: #68645f; }
-        .category-default { background: #55534d; }
+    .category-default { background: #55534d; }
 
     .property-card-body {
       padding: 13px;
@@ -1556,7 +1557,6 @@ function ensureExtraStyles() {
       box-sizing: border-box;
       transition: background .18s ease, border-color .18s ease;
     }
-
     .saee-conversion-card-button:hover {
       background: #332b19;
       border-color: #dfc16c;
@@ -1676,8 +1676,10 @@ function ensureExtraStyles() {
     .property-modal-content {
       position: fixed;
       z-index: 1001;
-      inset: 4% 50% auto auto;
-      transform: translateX(50%);
+      top: 4%;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
       width: min(94%, 650px);
       max-height: 92vh;
       overflow-y: auto;
@@ -1984,14 +1986,80 @@ function ensureExtraStyles() {
     }
 
     body.modal-open {
-      overflow: hidden;
+      overflow: hidden !important;
+      width: 100%;
     }
 
-    @media (max-width: 600px) {
+    #propertyModal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+    }
+
+    #propertyModal[hidden] {
+      display: none !important;
+    }
+
+    .property-modal-content,
+    .property-modal-backdrop {
+      box-sizing: border-box;
+    }
+
+    .property-modal-content {
+      max-width: calc(100vw - 24px);
+      overflow-x: hidden;
+    }
+
+    @media (max-width: 800px) {
+      #propertyModal {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+      }
+
+      .property-modal-backdrop {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+      }
+
       .property-modal-content {
-        inset: 0;
-        border: 0;
-        border-radius: 0;
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .detail-main-gallery,
+      .detail-main-image-button,
+      .detail-main-image-button img,
+      .property-modal-body {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
       }
 
       .property-modal-body {
