@@ -500,7 +500,6 @@ function renderNeighborhoodPicker() {
   });
     $("#neighborhoodOptions").addEventListener("change", event => {
     if (!event.target.matches('input[type="checkbox"]')) return;
-
     const id = String(event.target.value);
 
     if (event.target.checked) {
@@ -904,6 +903,15 @@ function renderPropertyCard(property) {
     </article>
   `;
 }
+
+function ensureModal() {
+  let modal = $("#propertyModal");
+
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "propertyModal";
+    modal.hidden = true;
+    document.body.appendChild(modal);
   }
 
   return modal;
@@ -995,7 +1003,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
       onclick="closePropertyDetails()"></div>
 
     <section class="property-modal-content"
-          role="dialog"
+              role="dialog"
       aria-modal="true"
       aria-label="${escapeAttribute(property.title || "جزئیات ملک")}">
 
@@ -1498,7 +1506,7 @@ function ensureExtraStyles() {
     .category-construction { background: #75452e; }
     .category-shop { background: #9a6723; }
     .category-office { background: #68645f; }
-    .category-default { background: #55534d; }
+        .category-default { background: #55534d; }
 
     .property-card-body {
       padding: 13px;
