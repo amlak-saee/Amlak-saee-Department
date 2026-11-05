@@ -503,7 +503,7 @@ function renderNeighborhoodPicker() {
     if (!event.target.matches('input[type="checkbox"]')) return;
 
     const id = String(event.target.value);
-
+    
     if (event.target.checked) {
       selectedNeighborhoods.add(id);
     } else {
@@ -549,7 +549,6 @@ function renderNeighborhoodOptions() {
 
   return visible.map(item => {
     const id = String(item.id);
-``````javascript
     const checked = selectedNeighborhoods.has(id);
 
     return `
@@ -651,7 +650,7 @@ function getRentConversionCardMarkup(property) {
       aria-label="برای تبدیل رهن و اجاره کلیک کنید">
       <span class="saee-conversion-card-text">
         <span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span>
-        <strong>تبدیل تا: ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} پیش · اجاره: ${escapeHtml(formatMoneyWithoutToman(data.endRent))}</strong>
+        <strong>تبدیل تا ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} پیش · اجاره ${escapeHtml(formatMoneyWithoutToman(data.endRent))}</strong>
         <span>برای تبدیل رهن و اجاره کلیک کنید</span>
       </span>
     </button>
@@ -801,7 +800,6 @@ function renderProperties() {
       if (!Array.from(selectedFilters).every(id => ids.includes(id))) {
         return false;
       }
-            }
     }
 
     return true;
@@ -1010,7 +1008,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
       onclick="closePropertyDetails()"></div>
 
     <section class="property-modal-content"
-      role="dialog"
+          role="dialog"
       aria-modal="true"
       aria-label="${escapeAttribute(property.title || "جزئیات ملک")}">
 
@@ -1515,7 +1513,7 @@ function ensureExtraStyles() {
     .property-title {
       margin: 0 0 8px;
       color: #f1f0e9;
-      line-height: 1.8;
+            line-height: 1.8;
     }
 
     .property-location {
