@@ -506,7 +506,7 @@ function renderNeighborhoodPicker() {
     
     if (event.target.checked) {
       selectedNeighborhoods.add(id);
-    } else {
+          } else {
       selectedNeighborhoods.delete(id);
     }
 
@@ -863,10 +863,6 @@ function renderPropertyCard(property) {
       </div>
 
       <div class="property-card-body">
-        <div class="property-code-label">
-          کد ملک: ${escapeHtml(getPropertyCode(property))}
-        </div>
-
         <h3 class="property-title">
           ${escapeHtml(property.title || "ملک بدون عنوان")}
         </h3>
@@ -1018,7 +1014,6 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         aria-label="بستن">
         ${lineIcon("close", 22)}
       </button>
-
       ${imagesMarkup}
 
       <div class="property-modal-body">
@@ -1247,6 +1242,23 @@ function ensureExtraStyles() {
   style.id = "saeeExtraStyles";
 
   style.textContent = `
+    html {
+      font-size: 17px;
+    }
+
+    body,
+    button,
+    input,
+    select,
+    textarea {
+      font-family: Tahoma, Arial, sans-serif;
+      font-weight: 500;
+    }
+
+    body {
+      font-size: 17px;
+    }
+
     .saee-icon {
       display: inline-block;
       flex-shrink: 0;
@@ -1509,7 +1521,6 @@ function ensureExtraStyles() {
       font-size: .82rem;
       font-weight: 700;
     }
-
     .property-title {
       margin: 0 0 8px;
       color: #f1f0e9;
@@ -1588,8 +1599,9 @@ function ensureExtraStyles() {
 
     .saee-conversion-main-price {
       color: #dfc16c;
-      font-weight: 700;
-      line-height: 1.9;
+      font-size: 1.18rem;
+      font-weight: 800;
+      line-height: 1.8;
       overflow-wrap: anywhere;
     }
 
