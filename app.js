@@ -161,7 +161,7 @@ function getRentConversionData(property) {
     startDeposit,
     startRent,
     endDeposit: endDeposit > 0 ? endDeposit : startDeposit,
-    endRent: endRent > 0 ? endRent : startRent
+    endRent
   };
 }
 
@@ -498,15 +498,14 @@ function renderNeighborhoodPicker() {
     const options = $("#neighborhoodOptions");
     if (options) options.innerHTML = renderNeighborhoodOptions();
   });
-
-  $("#neighborhoodOptions").addEventListener("change", event => {
+    $("#neighborhoodOptions").addEventListener("change", event => {
     if (!event.target.matches('input[type="checkbox"]')) return;
 
     const id = String(event.target.value);
-    
+
     if (event.target.checked) {
       selectedNeighborhoods.add(id);
-          } else {
+    } else {
       selectedNeighborhoods.delete(id);
     }
 
@@ -650,7 +649,7 @@ function getRentConversionCardMarkup(property) {
       aria-label="برای تبدیل رهن و اجاره کلیک کنید">
       <span class="saee-conversion-card-text">
         <span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span>
-        <strong>تبدیل تا ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} پیش · اجاره ${escapeHtml(formatMoneyWithoutToman(data.endRent))}</strong>
+        <strong>${data.endRent <= 0 ? `تبدیل تا ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} رهن کامل` : `تبدیل تا ${escapeHtml(formatMoneyWithoutToman(data.endDeposit))} پیش · اجاره ${escapeHtml(formatMoneyWithoutToman(data.endRent))}`}</strong>
         <span>برای تبدیل رهن و اجاره کلیک کنید</span>
       </span>
     </button>
@@ -702,7 +701,7 @@ function getRentConversionMarkup(property) {
         </div>
         <div>
           <span>اجاره ماهانه انتخابی</span>
-          <strong id="saeeRentCurrentMonthly">${escapeHtml(formatMoney(data.startRent))}</strong>
+          <strong id="saeeRentCurrentMonthly">${escapeHtml(data.startRent <= 0 ? "رهن کامل" : formatMoney(data.startRent))}</strong>
         </div>
       </div>
     </section>
@@ -733,6 +732,7 @@ function updateRentConversion(value) {
     rent = endRent;
   } else {
     deposit = Math.round(startDeposit + (endDeposit - startDeposit) * ratio);
+
     const difference = Math.abs(endRent - startRent);
     const direction = Math.sign(endRent - startRent);
 
@@ -748,7 +748,7 @@ function updateRentConversion(value) {
   const rentElement = $("#saeeRentCurrentMonthly");
 
   if (depositElement) depositElement.textContent = formatMoney(deposit);
-  if (rentElement) rentElement.textContent = formatMoney(rent);
+  if (rentElement) rentElement.textContent = rent <= 0 ? "رهن کامل" : formatMoney(rent);
 
   slider.style.setProperty("--saee-rent-progress", `${(position / max) * 100}%`);
 }
@@ -904,15 +904,6 @@ function renderPropertyCard(property) {
     </article>
   `;
 }
-
-function ensureModal() {
-  let modal = $("#propertyModal");
-
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "propertyModal";
-    modal.hidden = true;
-    document.body.appendChild(modal);
   }
 
   return modal;
@@ -1014,6 +1005,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         aria-label="بستن">
         ${lineIcon("close", 22)}
       </button>
+
       ${imagesMarkup}
 
       <div class="property-modal-body">
@@ -1094,7 +1086,8 @@ function changeDetailGallery(direction) {
   currentGalleryIndex =
     (currentGalleryIndex + direction + currentGalleryImages.length) %
     currentGalleryImages.length;
-    const image = $("#detailMainImage");
+
+  const image = $("#detailMainImage");
   const counter = $("#detailGalleryCounter");
 
   if (image) {
@@ -1433,7 +1426,7 @@ function ensureExtraStyles() {
     }
 
     .neighborhood-option input:focus-visible + span {
-      outline: 2px solid #dfc16c;
+          outline: 2px solid #dfc16c;
       outline-offset: 3px;
     }
 
@@ -1460,7 +1453,8 @@ function ensureExtraStyles() {
       color: #bcbab1;
       text-align: center;
     }
-        /* کارت ملک */
+
+    /* کارت ملک */
     .property-card {
       position: relative;
       overflow: hidden;
@@ -1510,27 +1504,19 @@ function ensureExtraStyles() {
       padding: 13px;
     }
 
-    .property-code-label {
-      display: inline-block;
-      margin-bottom: 8px;
-      padding: 4px 8px;
-      color: #dfc16c;
-      background: #1a1915;
-      border: 1px solid #454035;
-      border-radius: 6px;
-      font-size: .82rem;
-      font-weight: 700;
-    }
     .property-title {
       margin: 0 0 8px;
-      color: #f1f0e9;
-            line-height: 1.8;
+      color: #f0eee7;
+      font-size: 1.05rem;
+      font-weight: 800;
+      line-height: 1.8;
     }
 
     .property-location {
       display: flex;
       align-items: center;
       gap: 6px;
+      margin: 7px 0;
       color: #bcbcb6;
       font-size: .85rem;
     }
@@ -1599,15 +1585,15 @@ function ensureExtraStyles() {
 
     .saee-conversion-main-price {
       color: #dfc16c;
-      font-size: 1.18rem;
-      font-weight: 800;
+      font-size: 1.25rem;
+      font-weight: 900;
       line-height: 1.8;
       overflow-wrap: anywhere;
     }
 
     .saee-conversion-card-text strong {
       color: #ff4545;
-      font-size: 1rem;
+      font-size: 1.25rem;
       font-weight: 900;
       line-height: 1.7;
       overflow-wrap: anywhere;
@@ -1642,7 +1628,7 @@ function ensureExtraStyles() {
       color: #deded8;
       background: #191918;
       border: 1px solid #393936;
-      border-radius: 7px;
+      border-radius: 8px;
       font-size: .82rem;
     }
 
@@ -1651,84 +1637,74 @@ function ensureExtraStyles() {
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      min-height: 44px;
-      margin-top: 14px;
-      padding: 9px 12px;
-      color: #f2f2ed;
-      background: #151513;
-      border: 1px solid #77736a;
-      border-radius: 8px;
+      min-height: 42px;
+      margin-top: 13px;
+      padding: 8px 12px;
+      color: #dfc16c;
+      background: #1b1a16;
+      border: 1px solid #51472e;
+      border-radius: 9px;
       font: inherit;
       cursor: pointer;
-    }
-
-    .property-details-button:active {
-      background: #292820;
     }
 
     .property-no-image {
       display: grid;
       place-items: center;
-      min-height: 150px;
-      color: #aaa9a1;
+      width: 100%;
+      min-height: 170px;
+      color: #aaa9a2;
       background: #191918;
     }
 
-    /* پنجره جزئیات */
+    /* پنجره جزئیات ملک */
     .property-modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 1000;
-      background: rgba(0,0,0,.82);
+      background: rgba(0,0,0,.78);
     }
 
     .property-modal-content {
       position: fixed;
-      inset: 3vh 3vw;
       z-index: 1001;
+      inset: 4% 50% auto auto;
+      transform: translateX(50%);
+      width: min(94%, 650px);
+      max-height: 92vh;
       overflow-y: auto;
-      color: #f2f2ed;
+      color: #efeee8;
       background: #111110;
-      border: 1px solid #393936;
-      border-radius: 12px;
-    }
-
-    .property-modal-content[hidden],
-    .fullscreen-image-viewer[hidden],
-    .neighborhood-panel[hidden] {
-      display: none !important;
+      border: 1px solid #4b4739;
+      border-radius: 15px;
+      box-shadow: 0 15px 50px rgba(0,0,0,.5);
     }
 
     .property-modal-close {
-      position: sticky;
-      top: 8px;
-      float: left;
+      position: absolute;
       z-index: 5;
+      top: 10px;
+      left: 10px;
       display: grid;
       place-items: center;
-      width: 40px;
-      height: 40px;
-      margin: 8px;
+      width: 42px;
+      height: 42px;
       color: #fff;
-      background: #111110;
-      border: 1px solid #555550;
+      background: rgba(10,10,10,.8);
+      border: 1px solid #666;
       border-radius: 50%;
       cursor: pointer;
     }
 
     .detail-main-gallery {
       position: relative;
-      clear: both;
       width: 100%;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: #191918;
+      background: #080808;
     }
 
     .detail-main-image-button {
       display: block;
       width: 100%;
-      height: 100%;
       padding: 0;
       background: transparent;
       border: 0;
@@ -1738,7 +1714,8 @@ function ensureExtraStyles() {
     .detail-main-image-button img {
       display: block;
       width: 100%;
-      height: 100%;
+      max-height: 390px;
+      aspect-ratio: 16 / 10;
       object-fit: contain;
     }
 
@@ -1749,174 +1726,112 @@ function ensureExtraStyles() {
       transform: translateY(-50%);
       display: grid;
       place-items: center;
-      width: 42px;
-      height: 42px;
-      color: #fff;
-      background: rgba(15,15,15,.88);
-      border: 1px solid #666158;
+      width: 40px;
+      height: 40px;
+      color: white;
+      background: rgba(0,0,0,.7);
+      border: 1px solid #777;
       border-radius: 50%;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       cursor: pointer;
     }
 
-    .detail-gallery-prev { left: 12px; }
-    .detail-gallery-next { right: 12px; }
+    .detail-gallery-prev { right: 10px; }
+    .detail-gallery-next { left: 10px; }
 
     .detail-gallery-counter {
       position: absolute;
-      bottom: 12px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 6px 12px;
-      color: #fff;
-      background: rgba(15,15,15,.88);
+      padding: 5px 11px;
+      color: white;
+      background: rgba(0,0,0,.7);
       border-radius: 20px;
-      font-size: .85rem;
-      pointer-events: none;
+      font-size: .8rem;
     }
 
-    .detail-no-image { clear: both; }
+    .detail-no-image {
+      min-height: 220px;
+    }
 
     .property-modal-body {
-      padding: 16px;
+      padding: 18px;
     }
 
-    .detail-table {
-      margin-top: 16px;
-      border-top: 1px solid #393936;
+    .property-modal-body h2 {
+      margin: 8px 0 10px;
+      color: #f1e5c1;
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.8;
     }
 
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 11px 0;
-      border-bottom: 1px solid #30302d;
+    .property-code-label {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 5px 9px;
+      color: #c9c5b8;
+      background: #20201c;
+      border-radius: 6px;
+      font-size: .8rem;
     }
 
-    .detail-label {
-      flex-shrink: 0;
-      color: #bcbcb6;
-    }
-
-    .detail-value {
-      text-align: left;
+    /* قیمت اصلی در جزئیات هم‌اندازه قیمت تبدیل */
+    .detail-price {
+      color: #dfc16c;
+      font-size: 1.25rem;
+      font-weight: 900;
+      line-height: 1.8;
       overflow-wrap: anywhere;
     }
 
-    .detail-description {
-      margin-top: 18px;
-      line-height: 1.9;
-    }
-
-    /* اسلایدر تبدیل داخل جزئیات */
+    /* بخش تبدیل رهن و اجاره */
     .saee-rent-conversion {
-      margin: 16px 0;
-      padding: 14px;
-      color: #efeee8;
-      background: #171714;
-      border: 1px solid #494333;
-      border-radius: 13px;
+      margin-top: 18px;
+      padding: 15px;
+      color: #f0eee7;
+      background: #1a1915;
+      border: 1px solid #5c5032;
+      border-radius: 12px;
     }
 
     .saee-rent-title {
       margin: 0 0 14px;
       color: #dfc16c;
-      font-size: 1rem;
-      line-height: 1.8;
+      font-size: 1.05rem;
+      font-weight: 800;
     }
 
     .saee-rent-slider-accessible-label {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-      white-space: nowrap;
-      border: 0;
+      display: block;
+      margin-bottom: 10px;
+      color: #d8d5ca;
+      font-size: .9rem;
     }
 
     .saee-rent-slider {
       display: block;
       width: 100%;
-      height: 24px;
-      margin: 0;
-      padding: 0;
-      appearance: none;
-      -webkit-appearance: none;
-      background: transparent;
+      height: 9px;
+      margin: 16px 0;
+      accent-color: #dfc16c;
       cursor: pointer;
-      direction: ltr;
-      --saee-rent-progress: 0%;
-    }
-
-    .saee-rent-slider::-webkit-slider-runnable-track {
-      height: 7px;
-      background: linear-gradient(
-        to right,
-        #dfc16c 0%,
-        #dfc16c var(--saee-rent-progress),
-        #424139 var(--saee-rent-progress),
-        #424139 100%
-      );
-      border-radius: 99px;
-    }
-
-    .saee-rent-slider::-moz-range-track {
-      height: 7px;
-      background: #424139;
-      border-radius: 99px;
-    }
-
-    .saee-rent-slider::-moz-range-progress {
-      height: 7px;
-      background: #dfc16c;
-      border-radius: 99px;
-    }
-
-    .saee-rent-slider::-webkit-slider-thumb {
-      width: 22px;
-      height: 22px;
-      margin-top: -7px;
-      appearance: none;
-      -webkit-appearance: none;
-      background: #dfc16c;
-      border: 3px solid #111110;
-      border-radius: 50%;
-      box-shadow: 0 0 0 1px #dfc16c;
-    }
-
-    .saee-rent-slider::-moz-range-thumb {
-      width: 17px;
-      height: 17px;
-      background: #dfc16c;
-      border: 3px solid #111110;
-      border-radius: 50%;
-      box-shadow: 0 0 0 1px #dfc16c;
-    }
-
-    .saee-rent-slider:focus-visible {
-      outline: 2px solid #dfc16c;
-      outline-offset: 5px;
-      border-radius: 5px;
     }
 
     .saee-rent-slider-labels {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      margin-top: 4px;
-      color: #a8a69d;
+      gap: 12px;
+      color: #bcb8aa;
       font-size: .78rem;
     }
 
     .saee-rent-current {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 14px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     .saee-rent-current > div {
@@ -1924,34 +1839,95 @@ function ensureExtraStyles() {
       flex-direction: column;
       gap: 7px;
       min-width: 0;
-      padding: 11px;
-      background: #211e15;
-      border: 1px solid #4b4128;
+      padding: 12px;
+      background: #111110;
+      border: 1px solid #39372f;
       border-radius: 9px;
     }
 
     .saee-rent-current span {
-      color: #c6c0ad;
-      font-size: .8rem;
-      line-height: 1.8;
+      color: #bcb8aa;
+      font-size: .78rem;
     }
 
     .saee-rent-current strong {
       color: #dfc16c;
-      font-size: .9rem;
+      font-size: 1rem;
+      font-weight: 800;
       line-height: 1.8;
       overflow-wrap: anywhere;
     }
 
-    /* نمایش تمام‌صفحه تصویر */
+    /* جدول مشخصات */
+    .detail-table {
+      margin-top: 18px;
+      border: 1px solid #363630;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 11px 13px;
+      border-bottom: 1px solid #33332e;
+    }
+
+    .detail-row:last-child {
+      border-bottom: 0;
+    }
+
+    .detail-label {
+      color: #bcbab1;
+      font-size: .88rem;
+    }
+
+    .detail-value {
+      color: #eee9dc;
+      font-size: .9rem;
+      font-weight: 700;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-description {
+      margin-top: 18px;
+      padding: 14px;
+      color: #e5e2d9;
+      background: #191918;
+      border: 1px solid #383833;
+      border-radius: 10px;
+      line-height: 2;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-description h3 {
+      margin: 0 0 8px;
+      color: #dfc16c;
+      font-size: 1rem;
+    }
+
+    .detail-description p {
+      margin: 0;
+      white-space: normal;
+    }
+
+    /* نمایش تمام‌صفحه تصاویر */
     .fullscreen-image-viewer {
       position: fixed;
       inset: 0;
       z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #050505;
+      display: grid;
+      place-items: center;
+      padding: 55px 15px;
+      background: rgba(0,0,0,.97);
+      box-sizing: border-box;
+    }
+
+    .fullscreen-image-viewer[hidden] {
+      display: none !important;
     }
 
     .fullscreen-image {
@@ -2005,11 +1981,6 @@ function ensureExtraStyles() {
 
     @media (max-width: 600px) {
       .property-modal-content {
-        inset: 0;
-        border: 0;
-        border-radius: 0;
-      }
-            .property-modal-content {
         inset: 0;
         border: 0;
         border-radius: 0;
