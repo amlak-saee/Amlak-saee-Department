@@ -504,7 +504,7 @@ function renderNeighborhoodPicker() {
     const id = String(event.target.value);
 
     if (event.target.checked) {
-            selectedNeighborhoods.add(id);
+      selectedNeighborhoods.add(id);
     } else {
       selectedNeighborhoods.delete(id);
     }
@@ -519,7 +519,6 @@ function renderNeighborhoodPicker() {
 
     const options = $("#neighborhoodOptions");
           if (options) options.innerHTML = renderNeighborhoodOptions();
-
     renderProperties();
   });
 
@@ -943,7 +942,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
     [
       "تعداد خواب",
       property.bedrooms !== null && property.bedrooms !== undefined
-              ? formatNumber(property.bedrooms)
+        ? formatNumber(property.bedrooms)
         : ""
     ],
     [
@@ -1043,7 +1042,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         }
 
         <div class="detail-table">
-          ${detailRows.map(([label, value]) => `
+                  ${detailRows.map(([label, value]) => `
             <div class="detail-row">
               <span class="detail-label">${escapeHtml(label)}</span>
               <span class="detail-value">${escapeHtml(String(value))}</span>
@@ -1490,7 +1489,7 @@ function ensureExtraStyles() {
 
     .property-category-badge {
       position: absolute;
-            top: 10px;
+      top: 10px;
       right: 10px;
       display: inline-flex;
       align-items: center;
@@ -1565,7 +1564,6 @@ function ensureExtraStyles() {
     .saee-conversion-card-button:active {
       background: #3a301b;
     }
-
     .saee-conversion-card-button:focus-visible {
       outline: 2px solid #dfc16c;
       outline-offset: 3px;
@@ -1706,16 +1704,22 @@ function ensureExtraStyles() {
       cursor: pointer;
     }
 
+    /* کادر ثابت عکس در صفحه جزئیات؛ مشابه کارت‌های ملک */
     .detail-main-gallery {
       position: relative;
       width: 100%;
+      aspect-ratio: 16 / 10;
+      max-height: 390px;
+      overflow: hidden;
       background: #080808;
     }
 
     .detail-main-image-button {
       display: block;
       width: 100%;
+      height: 100%;
       padding: 0;
+      overflow: hidden;
       background: transparent;
       border: 0;
       cursor: zoom-in;
@@ -1724,14 +1728,11 @@ function ensureExtraStyles() {
     .detail-main-image-button img {
       display: block;
       width: 100%;
-      height: auto;
-      max-width: 100%;
+      height: 100%;
       max-height: none;
       aspect-ratio: auto;
-      object-fit: contain;
+      object-fit: cover;
       object-position: center;
-      margin: 0 auto;
-      background: #080808;
     }
 
     .detail-gallery-prev,
@@ -1946,6 +1947,9 @@ function ensureExtraStyles() {
     }
 
     .fullscreen-image {
+      display: block;
+      width: auto;
+      height: auto;
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
@@ -2065,15 +2069,6 @@ function ensureExtraStyles() {
         max-width: 100% !important;
         min-width: 0 !important;
         box-sizing: border-box !important;
-      }
-
-      .detail-main-image-button img {
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-        aspect-ratio: auto !important;
-        object-fit: contain !important;
-        object-position: center !important;
       }
 
       .property-modal-body {
