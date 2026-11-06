@@ -519,6 +519,7 @@ function renderNeighborhoodPicker() {
 
     const options = $("#neighborhoodOptions");
           if (options) options.innerHTML = renderNeighborhoodOptions();
+
     renderProperties();
   });
 
@@ -538,7 +539,7 @@ function renderNeighborhoodOptions() {
   const search = neighborhoodSearch.trim().toLowerCase();
 
   const visible = neighborhoods.filter(item =>
-    String(item.name || "").toLowerCase().includes(search)
+        String(item.name || "").toLowerCase().includes(search)
   );
 
   if (!visible.length) {
@@ -981,12 +982,16 @@ function openPropertyDetails(propertyId, focusConversion = false) {
               <button type="button"
                 class="detail-gallery-prev"
                 onclick="changeDetailGallery(-1)"
-                aria-label="تصویر قبلی">‹</button>
+                aria-label="تصویر قبلی">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg>
+              </button>
 
               <button type="button"
                 class="detail-gallery-next"
                 onclick="changeDetailGallery(1)"
-                aria-label="تصویر بعدی">›</button>
+                aria-label="تصویر بعدی">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7"/></svg>
+              </button>
 
               <div class="detail-gallery-counter" id="detailGalleryCounter">
                 ۱ / ${formatNumber(currentGalleryImages.length)}
@@ -994,6 +999,17 @@ function openPropertyDetails(propertyId, focusConversion = false) {
             `
             : ""
         }
+      </div>
+      <div class="detail-gallery-tools">
+        <button type="button"
+          class="detail-gallery-expand"
+          onclick="openFullscreenImage(currentGalleryIndex)"
+          aria-label="بزرگ‌نمایی عکس">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" />
+          </svg>
+          <span>مشاهده عکس بزرگ</span>
+        </button>
       </div>
     `
     : '<div class="property-no-image detail-no-image">تصویری ثبت نشده است.</div>';
@@ -1042,7 +1058,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         }
 
         <div class="detail-table">
-                  ${detailRows.map(([label, value]) => `
+          ${detailRows.map(([label, value]) => `
             <div class="detail-row">
               <span class="detail-label">${escapeHtml(label)}</span>
               <span class="detail-value">${escapeHtml(String(value))}</span>
@@ -1064,7 +1080,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
 
   modal.hidden = false;
   document.body.classList.add("modal-open");
-
+  
   const slider = $("#saeeRentConversionSlider");
   if (slider) {
     updateRentConversion(slider.value);
@@ -1564,6 +1580,7 @@ function ensureExtraStyles() {
     .saee-conversion-card-button:active {
       background: #3a301b;
     }
+
     .saee-conversion-card-button:focus-visible {
       outline: 2px solid #dfc16c;
       outline-offset: 3px;
@@ -1604,7 +1621,7 @@ function ensureExtraStyles() {
       line-height: 1.7;
       overflow-wrap: anywhere;
     }
-
+    
     .saee-conversion-card-text > span {
       color: #d4cbb5;
       font-size: .72rem;
@@ -1742,18 +1759,77 @@ function ensureExtraStyles() {
       transform: translateY(-50%);
       display: grid;
       place-items: center;
-      width: 40px;
-      height: 40px;
-      color: white;
-      background: rgba(0,0,0,.7);
-      border: 1px solid #777;
-      border-radius: 50%;
-      font-size: 1.6rem;
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      color: #f5e8c4;
+      background: rgba(17,17,16,.82);
+      border: 1px solid rgba(201,166,91,.62);
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.28);
       cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .detail-gallery-prev { right: 10px; }
-    .detail-gallery-next { left: 10px; }
+    .detail-gallery-prev { right: 14px; }
+    .detail-gallery-next { left: 14px; }
+
+    .detail-gallery-prev svg,
+    .detail-gallery-next svg {
+      display: block;
+      width: 23px;
+      height: 23px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .detail-gallery-prev:active,
+    .detail-gallery-next:active {
+      transform: translateY(-50%) scale(.94);
+      background: rgba(201,166,91,.2);
+    }
+
+    .detail-gallery-tools {
+      display: flex;
+      justify-content: center;
+      padding: 9px 0 2px;
+    }
+
+    .detail-gallery-expand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 7px 15px;
+      color: #e9d8ad;
+      background: #1b1a16;
+      border: 1px solid #514832;
+      border-radius: 11px;
+      font: inherit;
+      font-size: .88rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .detail-gallery-expand svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .detail-gallery-expand:active {
+      background: #29251b;
+      transform: scale(.97);
+    }
 
     .detail-gallery-counter {
       position: absolute;
