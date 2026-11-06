@@ -504,7 +504,7 @@ function renderNeighborhoodPicker() {
     const id = String(event.target.value);
 
     if (event.target.checked) {
-      selectedNeighborhoods.add(id);
+            selectedNeighborhoods.add(id);
     } else {
       selectedNeighborhoods.delete(id);
     }
@@ -943,7 +943,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
     [
       "تعداد خواب",
       property.bedrooms !== null && property.bedrooms !== undefined
-        ? formatNumber(property.bedrooms)
+              ? formatNumber(property.bedrooms)
         : ""
     ],
     [
@@ -1490,7 +1490,7 @@ function ensureExtraStyles() {
 
     .property-category-badge {
       position: absolute;
-      top: 10px;
+            top: 10px;
       right: 10px;
       display: inline-flex;
       align-items: center;
@@ -1724,9 +1724,14 @@ function ensureExtraStyles() {
     .detail-main-image-button img {
       display: block;
       width: 100%;
-      max-height: 390px;
-      aspect-ratio: 16 / 10;
+      height: auto;
+      max-width: 100%;
+      max-height: none;
+      aspect-ratio: auto;
       object-fit: contain;
+      object-position: center;
+      margin: 0 auto;
+      background: #080808;
     }
 
     .detail-gallery-prev,
@@ -2060,6 +2065,15 @@ function ensureExtraStyles() {
         max-width: 100% !important;
         min-width: 0 !important;
         box-sizing: border-box !important;
+      }
+
+      .detail-main-image-button img {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        aspect-ratio: auto !important;
+        object-fit: contain !important;
+        object-position: center !important;
       }
 
       .property-modal-body {
