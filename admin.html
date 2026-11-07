@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -11,6 +10,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
+<style>
+    #neighborhoodSearch { width: 100%; box-sizing: border-box; margin: 6px 0 10px; }
+    #neighborhood { width: 100%; min-height: 130px; }
+    .admin-full-feature { border: 1px solid #c5a34d; border-radius: 8px; padding: 8px 12px; }
+</style>
 </head>
 
 <body>
@@ -124,12 +128,21 @@
           <option value="">انتخاب دسته‌بندی</option>
         </select>
 
-        <label>محله</label>
+        <label for="neighborhoodSearch">جست‌وجوی محله</label>
 
-        <select id="neighborhood" multiple size="4"></select>
+        <input
+          id="neighborhoodSearch"
+          type="search"
+          placeholder="نام محله را بنویس..."
+          autocomplete="off"
+        >
+
+        <label for="neighborhood">انتخاب محله‌ها</label>
+
+        <select id="neighborhood" multiple size="5"></select>
 
         <small>
-          برای انتخاب چند محله، چند گزینه را انتخاب کنید.
+          می‌توانی چند محله را انتخاب کنی. محله‌هایی که اخیراً استفاده کرده‌ای، اول فهرست می‌شوند.
         </small>
 
         <div id="propertyFilters"></div>
@@ -263,8 +276,7 @@
             </small>
 
           </div>
-
-        </div>
+                  </div>
 
         <!-- محل ملک -->
 
@@ -275,6 +287,17 @@
           type="text"
           placeholder="مثلاً نزدیک میدان اصلی"
         >
+
+        <label for="viewingContacts">شماره تماس مشاور این فایل</label>
+
+        <input
+          id="viewingContacts"
+          type="tel"
+          inputmode="tel"
+          autocomplete="tel"
+          placeholder="مثلاً 0912..."
+        >
+        <small>این شماره فقط در صفحه جزئیات همین ملک نمایش داده می‌شود.</small>
 
         <label for="address">آدرس</label>
 
@@ -305,6 +328,11 @@
           <label>
             <input id="terrace" type="checkbox">
             تراس
+          </label>
+
+          <label class="admin-full-feature">
+            <input id="fullFeatures" type="checkbox">
+            فول (همه امکانات)
           </label>
 
         </div>
@@ -376,7 +404,7 @@
 
       <span>تنظیمات</span>
 
-      <h2>اطلاعات تماس و سایت</h2>
+      <h2>تنظیمات سایت و تماس با ما</h2>
 
       <form id="settingsForm">
 
@@ -412,7 +440,7 @@
           placeholder="متن درباره ما"
         ></textarea>
 
-        <label for="settingPhone1">شماره تماس اول</label>
+        <label for="settingPhone1">تماس با ما - شماره اول دفتر</label>
 
         <input
           id="settingPhone1"
@@ -421,7 +449,7 @@
           placeholder="شماره تماس"
         >
 
-        <label for="settingPhone2">شماره تماس دوم</label>
+        <label for="settingPhone2">تماس با ما - شماره دوم دفتر</label>
 
         <input
           id="settingPhone2"
@@ -430,7 +458,7 @@
           placeholder="شماره تماس"
         >
 
-        <label for="settingPhone3">شماره تماس سوم</label>
+        <label for="settingPhone3">تماس با ما - شماره سوم دفتر</label>
 
         <input
           id="settingPhone3"
