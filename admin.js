@@ -946,7 +946,6 @@ function makeUniqueFileName(file) {
 /* -----------------------------
    مسیر آپلود
 ----------------------------- */
-
 function getResumablePathKey(propertyId, file) {
   const identity = [
     propertyId,
@@ -1706,7 +1705,7 @@ async function loadSiteSettings() {
     const settings = {};
 
     (data || []).forEach((item) => {
-      settings[item.key] = item.value;
+      settings[item.setting_key] = item.setting_value;
     });
 
     SITE_SETTING_FIELDS.forEach(([key, id]) => {
@@ -1732,11 +1731,35 @@ async function saveSiteSettings(event) {
     for (const [key, id] of SITE_SETTING_FIELDS) {
       const value = getInputValue(id).trim();
 
-      const { error } = await db
+      const { data: existing, error: findError } = await db
         .from("site_settings")
-        .upsert({ key, value }, { onConflict: "key" });
+        .select("id")
+        .eq("setting_key", key)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (findError) throw findError;
+
+      if (existing?.id) {
+        const { error } = await db
+          .from("site_settings")
+          .update({
+            setting_value: value,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existing.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await db
+          .from("site_settings")
+          .insert({
+            setting_key: key,
+            setting_value: value,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
     }
 
     setMessage("settingsMessage", "تنظیمات ذخیره شد.");
