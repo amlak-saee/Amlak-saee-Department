@@ -20,6 +20,47 @@ let filterOptionsCache = [];
 let currentPropertyImages = [];
 let allAdminProperties = [];
 
+const RECENT_NEIGHBORHOODS_KEY = "saee_recent_neighborhoods_v1";
+
+function getRecentNeighborhoodIds() {
+  try {
+    const value = JSON.parse(localStorage.getItem(RECENT_NEIGHBORHOODS_KEY) || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberNeighborhoods(ids) {
+  try {
+    const previous = getRecentNeighborhoodIds();
+    const next = [...new Set([...(ids || []).map(String), ...previous])].slice(0, 20);
+    localStorage.setItem(RECENT_NEIGHBORHOODS_KEY, JSON.stringify(next));
+  } catch (error) {
+    console.warn("ذخیره محله‌های اخیر انجام نشد:", error);
+  }
+}
+
+function applyNeighborhoodSearch() {
+  const search = ($("neighborhoodSearch")?.value || "").trim().toLocaleLowerCase("fa");
+  const select = $("neighborhood");
+  if (!select) return;
+  Array.from(select.options).forEach((option) => {
+    option.hidden = Boolean(search) && !option.textContent.toLocaleLowerCase("fa").includes(search);
+  });
+}
+
+function syncFullFeatureCheckbox() {
+  const full = $("fullFeatures");
+  if (!full) return;
+  full.checked = ["parking", "storage", "elevator", "terrace"].every((id) => getChecked(id));
+}
+
+function setFullFeatures(checked) {
+  ["parking", "storage", "elevator", "terrace"].forEach((id) => setChecked(id, checked));
+  syncFullFeatureCheckbox();
+}
+
 const $ = (id) => document.getElementById(id);
 
 function escapeHtml(value) {
@@ -388,14 +429,23 @@ function renderNeighborhoodSelect(neighborhoods) {
 
   select.innerHTML = "";
 
-  neighborhoods
-    .filter((item) => item.is_active !== false)
-    .forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item.id;
-      option.textContent = item.name;
-      select.appendChild(option);
-    });
+  const recentIds = getRecentNeighborhoodIds();
+  const activeNeighborhoods = neighborhoods.filter((item) => item.is_active !== false);
+  activeNeighborhoods.sort((a, b) => {
+    const ai = recentIds.indexOf(String(a.id));
+    const bi = recentIds.indexOf(String(b.id));
+    if (ai === -1 && bi === -1) return String(a.name).localeCompare(String(b.name), "fa");
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  activeNeighborhoods.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = recentIds.includes(String(item.id)) ? `★ ${item.name}` : item.name;
+    select.appendChild(option);
+  });
 
   selectedValues.forEach((id) => {
     const option = Array.from(select.options).find(
@@ -404,6 +454,8 @@ function renderNeighborhoodSelect(neighborhoods) {
 
     if (option) option.selected = true;
   });
+
+  applyNeighborhoodSearch();
 }
 
 async function addNeighborhood(event) {
@@ -437,7 +489,7 @@ async function addNeighborhood(event) {
 
     setMessage(
       "neighborhoodMessage",
-      "خطا در افزودن محله: " + getErrorMessage(error),
+            "خطا در افزودن محله: " + getErrorMessage(error),
       true
     );
   }
@@ -730,6 +782,7 @@ function getPropertyPayload() {
     floor: numericValue("floor"),
     location_text: getInputValue("location").trim() || null,
     address: getInputValue("address").trim() || null,
+    viewing_contacts: getInputValue("viewingContacts").trim() || null,
     parking: getChecked("parking"),
     elevator: getChecked("elevator"),
     storage: getChecked("storage"),
@@ -927,7 +980,7 @@ function makeUniqueFileName(file) {
   const randomPart =
     typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
-      : Date.now().toString(36) +
+          : Date.now().toString(36) +
         Math.random().toString(36).slice(2);
 
   const originalName = file.name || "";
@@ -1225,6 +1278,7 @@ async function saveProperty(event) {
     const uploadResult =
       await uploadNewPropertyImages(propertyId);
 
+    rememberNeighborhoods(neighborhoodIds);
     resetPropertyForm();
 
     setMessage(
@@ -1417,7 +1471,7 @@ function renderAdminProperties() {
             data-action="toggle-property"
             data-id="${escapeHtml(property.id)}"
             data-active="${String(!active)}">
-            ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
+                        ${active ? "غیرفعال‌کردن" : "فعال‌کردن"}
           </button>
 
           <button
@@ -1518,6 +1572,7 @@ async function editProperty(id) {
     setInputValue("floor", property.floor);
     setInputValue("location", property.location_text);
     setInputValue("address", property.address);
+    setInputValue("viewingContacts", property.viewing_contacts);
     setInputValue("frontageType", property.frontage_type);
 
     setInputValue(
@@ -1535,6 +1590,7 @@ async function editProperty(id) {
     setChecked("elevator", property.elevator);
     setChecked("storage", property.storage);
     setChecked("terrace", property.terrace);
+    syncFullFeatureCheckbox();
 
     updateFrontageBox();
     updateRentConversionBox();
@@ -1684,14 +1740,14 @@ const SITE_SETTING_FIELDS = [
   ["site_name", "settingSiteName"],
   ["site_name_en", "settingSiteNameEn"],
   ["footer_slogan", "settingFooterSlogan"],
-  ["about", "settingAboutText"],
-  ["phone1", "settingPhone1"],
-  ["phone2", "settingPhone2"],
-  ["phone3", "settingPhone3"],
-  ["instagram", "settingInstagram"],
-  ["whatsapp", "settingWhatsapp"],
-  ["hero", "settingHero"],
-  ["logo", "settingLogo"]
+  ["about_text", "settingAboutText"],
+  ["contact_phone_1", "settingPhone1"],
+  ["contact_phone_2", "settingPhone2"],
+  ["contact_phone_3", "settingPhone3"],
+  ["instagram_url", "settingInstagram"],
+  ["whatsapp_url", "settingWhatsapp"],
+  ["hero_image_url", "settingHero"],
+  ["logo_url", "settingLogo"]
 ];
 
 async function loadSiteSettings() {
@@ -1797,6 +1853,15 @@ function setupAdminEvents() {
 
   $("neighborhoodForm")?.addEventListener("submit", addNeighborhood);
   $("settingsForm")?.addEventListener("submit", saveSiteSettings);
+
+  $("neighborhoodSearch")?.addEventListener("input", applyNeighborhoodSearch);
+  $("fullFeatures")?.addEventListener("change", (event) => {
+    setFullFeatures(event.target.checked);
+  });
+  ["parking", "storage", "elevator", "terrace"].forEach((id) => {
+    $(id)?.addEventListener("change", syncFullFeatureCheckbox);
+  });
+  syncFullFeatureCheckbox();
 
   $("adminNeighborhoods")?.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
