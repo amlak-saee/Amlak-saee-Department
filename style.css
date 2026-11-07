@@ -34,6 +34,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: Tahoma, Arial, sans-serif;
+  font-weight: 700;
   line-height: 1.8;
   overflow-x: hidden;
 }
@@ -1540,4 +1541,77 @@ footer p {
   .rent-conversion-values {
     gap: 7px;
   }
+}
+
+
+/* وزن خواناتر و یکدست‌تر نوشته‌های سایت */
+body, body button, body input, body select, body textarea, body label, body p, body a, body small, body span {
+  font-weight: 700;
+}
+
+/* دستگیره برجسته و بزرگ‌تر برای اسلایدر تبدیل رهن و اجاره */
+.saee-rent-slider {
+  height: 10px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #5a513d 0%, #d8b45a 50%, #5a513d 100%) !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  touch-action: pan-y;
+}
+
+.saee-rent-slider::-webkit-slider-runnable-track {
+  height: 10px !important;
+  border: 1px solid rgba(216, 180, 90, .55) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #514832, #b99548, #514832) !important;
+}
+
+.saee-rent-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin-top: -12px !important;
+  border: 4px solid #17150f !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 35% 30%, #fff0b4 0%, #e5c66d 38%, #bd9136 100%) !important;
+  box-shadow: 0 0 0 3px rgba(223, 193, 108, .45), 0 3px 10px rgba(0, 0, 0, .65), 0 0 16px rgba(223, 193, 108, .45) !important;
+  cursor: grab !important;
+}
+
+.saee-rent-slider::-webkit-slider-thumb:active {
+  transform: scale(1.08) !important;
+  cursor: grabbing !important;
+}
+
+.saee-rent-slider::-moz-range-track {
+  height: 10px !important;
+  border: 1px solid rgba(216, 180, 90, .55) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #514832, #b99548, #514832) !important;
+}
+
+.saee-rent-slider::-moz-range-progress {
+  height: 10px !important;
+  border-radius: 999px !important;
+  background: #d8b45a !important;
+}
+
+.saee-rent-slider::-moz-range-thumb {
+  width: 24px !important;
+  height: 24px !important;
+  border: 4px solid #17150f !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 35% 30%, #fff0b4 0%, #e5c66d 38%, #bd9136 100%) !important;
+  box-shadow: 0 0 0 3px rgba(223, 193, 108, .45), 0 3px 10px rgba(0, 0, 0, .65), 0 0 16px rgba(223, 193, 108, .45) !important;
+  cursor: grab !important;
+}
+
+.saee-rent-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px rgba(223, 193, 108, .28), 0 0 0 3px #dfc16c, 0 3px 10px rgba(0, 0, 0, .65) !important;
+}
+
+.saee-rent-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 5px rgba(223, 193, 108, .28), 0 0 0 3px #dfc16c, 0 3px 10px rgba(0, 0, 0, .65) !important;
 }
