@@ -141,6 +141,13 @@ function numericValue(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function isRentProperty(property) {
+  const title = String(property?.categories?.title || "").trim();
+  const slug = String(property?.categories?.slug || "").trim().toLowerCase();
+  return title.includes("اجاره") || slug.includes("rent") ||
+    numericValue(property?.deposit) > 0 || numericValue(property?.monthly_rent) > 0;
+}
+
 function isRentConvertible(property) {
   const value = property?.rent_convertible;
 
@@ -539,7 +546,7 @@ function renderNeighborhoodOptions() {
   const search = neighborhoodSearch.trim().toLowerCase();
 
   const visible = neighborhoods.filter(item =>
-        String(item.name || "").toLowerCase().includes(search)
+    String(item.name || "").toLowerCase().includes(search)
   );
 
   if (!visible.length) {
@@ -569,7 +576,7 @@ async function loadProperties() {
       categories(title, slug),
       property_images(id, image_url, sort_order),
       property_neighborhoods(neighborhood_id),
-      property_filters(filter_option_id)
+            property_filters(filter_option_id)
     `)
     .eq("is_active", true)
     .order("created_at", { ascending: false });
@@ -878,7 +885,9 @@ function renderPropertyCard(property) {
 
         ${
           getRentConversionCardMarkup(property) ||
-          `<div class="property-price">${escapeHtml(getPropertyPrice(property))}</div>`
+          (isRentProperty(property)
+            ? getNonConvertiblePriceCardMarkup(property)
+            : `<div class="saee-conversion-card-button saee-price-card"><span class="saee-conversion-card-text"><span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span></span></div>`)
         }
 
         ${
@@ -916,6 +925,45 @@ function ensureModal() {
   }
 
   return modal;
+}
+
+function getViewingContactsMarkup(property) {
+  const raw = String(property?.viewing_contacts || "").trim();
+  if (!raw) return "";
+
+  const numbers = raw.split(/[\n،,;]+/)
+    .map(value => value.trim())
+    .filter(Boolean);
+
+  if (!numbers.length) return "";
+
+  return `
+    <section class="saee-viewing-contacts">
+      <h3>اطلاعات بیشتر و بازدید</h3>
+      <div class="saee-viewing-contact-list">
+        ${numbers.map(number => {
+          const tel = number.replace(/[^0-9+]/g, "");
+          const safeNumber = escapeHtml(number);
+          return `<a class="saee-viewing-contact" href="tel:${escapeAttribute(tel)}">
+            <span>${safeNumber}</span>
+            ${lineIcon("phone", 19)}
+          </a>`;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function getNonConvertiblePriceCardMarkup(property) {
+  const price = getPropertyPrice(property);
+  return `
+    <div class="saee-conversion-card-button saee-no-conversion-card" aria-label="قیمت ملک؛ تبدیل ندارد">
+      <span class="saee-conversion-card-text">
+        <span class="saee-conversion-main-price">${escapeHtml(price)}</span>
+        <strong>تبدیل ندارد</strong>
+      </span>
+    </div>
+  `;
 }
 
 function openPropertyDetails(propertyId, focusConversion = false) {
@@ -1033,16 +1081,20 @@ function openPropertyDetails(propertyId, focusConversion = false) {
       ${imagesMarkup}
 
       <div class="property-modal-body">
+        ${getViewingContactsMarkup(property)}
         <div class="property-code-label">
           کد ملک: ${escapeHtml(getPropertyCode(property))}
         </div>
 
         <h2>${escapeHtml(property.title || "مشخصات ملک")}</h2>
 
-        <div class="detail-price">
+        <div class="detail-price saee-price-card">
           ${escapeHtml(getPropertyPrice(property))}
         </div>
 
+        ${isRentProperty(property) && !isRentConvertible(property)
+          ? getNonConvertiblePriceCardMarkup(property)
+          : ""}
         ${getRentConversionMarkup(property)}
         ${
           features.length
@@ -1080,7 +1132,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
 
   modal.hidden = false;
   document.body.classList.add("modal-open");
-  
+
   const slider = $("#saeeRentConversionSlider");
   if (slider) {
     updateRentConversion(slider.value);
@@ -1100,8 +1152,8 @@ function openPropertyDetails(propertyId, focusConversion = false) {
 
   if (history.state?.saeeLayer !== "details") {
     history.pushState({ saeeLayer: "details" }, "");
+    }
   }
-}
 
 /* حرکت بین تصاویر صفحه جزئیات */
 function changeDetailGallery(direction) {
@@ -1269,11 +1321,16 @@ function ensureExtraStyles() {
     select,
     textarea {
       font-family: Tahoma, Arial, sans-serif;
-      font-weight: 500;
+      font-weight: 700;
     }
 
     body {
       font-size: 17px;
+      font-weight: 700;
+    }
+
+    body :is(p, span, label, a, button, input, select, textarea, h1, h2, h3, h4, li, small, strong, td, th) {
+      font-weight: 700;
     }
 
     .saee-icon {
@@ -1607,21 +1664,105 @@ function ensureExtraStyles() {
     }
 
     .saee-conversion-main-price {
-      color: #dfc16c;
-      font-size: 1.25rem;
+      color: #d0d0d0;
+      font-size: 1.32rem;
       font-weight: 900;
       line-height: 1.8;
       overflow-wrap: anywhere;
     }
 
     .saee-conversion-card-text strong {
-      color: #ff4545;
-      font-size: 1.25rem;
+      color: #c9c9c9;
+      font-size: 1.12rem;
       font-weight: 900;
       line-height: 1.7;
       overflow-wrap: anywhere;
     }
-    
+
+    .saee-no-conversion-card .saee-conversion-card-text strong {
+      color: #f04444;
+      font-size: 1.08rem;
+    }
+
+    .saee-price-card {
+      min-height: 68px;
+      justify-content: center;
+      margin-top: 12px;
+      padding: 12px 15px;
+      color: #d0d0d0;
+      background: linear-gradient(135deg, #24231f, #191917);
+      border: 1px solid #514832;
+      border-radius: 12px;
+      font-size: 1.32rem;
+      font-weight: 900;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+
+    .saee-price-card .saee-conversion-card-text {
+      width: 100%;
+    }
+
+    .saee-no-conversion-card {
+      cursor: default;
+    }
+
+    .detail-price.saee-price-card {
+      display: block;
+      margin-top: 14px;
+      padding: 14px 16px;
+      color: #d0d0d0;
+      font-size: 1.38rem;
+      font-weight: 900;
+    }
+
+    .saee-no-conversion-label {
+      margin-top: 5px;
+      color: #f04444;
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .saee-viewing-contacts {
+      margin: 0 0 16px;
+      padding: 14px;
+      color: #e8e3d7;
+      background: #1b1a16;
+      border: 1px solid #514832;
+      border-radius: 12px;
+          }
+
+    .saee-viewing-contacts h3 {
+      margin: 0 0 10px;
+      color: #dfc16c;
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .saee-viewing-contact-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .saee-viewing-contact {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 8px 12px;
+      color: #e2e2e2;
+      background: #111110;
+      border: 1px solid #454239;
+      border-radius: 9px;
+      direction: ltr;
+      font-weight: 800;
+    }
+
+    .saee-viewing-contact svg {
+      color: #dfc16c;
+    }
+
     .saee-conversion-card-text > span {
       color: #d4cbb5;
       font-size: .72rem;
@@ -2038,19 +2179,24 @@ function ensureExtraStyles() {
       z-index: 2;
       display: grid;
       place-items: center;
-      width: 44px;
-      height: 44px;
-      color: #fff;
-      background: rgba(15,15,15,.9);
-      border: 1px solid #555550;
-      border-radius: 50%;
-      font-size: 1.6rem;
+      width: 48px;
+      height: 48px;
+      color: #f5e8c4;
+      background: rgba(17,17,16,.86);
+      border: 1px solid rgba(201,166,91,.72);
+      border-radius: 15px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+      font-size: 1.7rem;
+      font-weight: 900;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .fullscreen-close { top: 15px; right: 15px; }
-    .fullscreen-prev { top: 50%; left: 12px; }
-    .fullscreen-next { top: 50%; right: 12px; }
+    .fullscreen-close { top: 15px; right: 15px; border-radius: 50%; }
+    .fullscreen-prev { top: 50%; left: 12px; transform: translateY(-50%); }
+    .fullscreen-next { top: 50%; right: 12px; transform: translateY(-50%); }
+    .fullscreen-prev:active,
+    .fullscreen-next:active { transform: translateY(-50%) scale(.94); }
 
     .fullscreen-counter {
       position: absolute;
