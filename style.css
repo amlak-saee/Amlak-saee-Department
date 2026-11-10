@@ -1636,3 +1636,30 @@ body, body button, body input, body select, body textarea, body label, body p, b
 .detail-gallery-tools { display:none !important; }
 .saee-rent-slider::-webkit-slider-thumb { width:22px !important; height:22px !important; box-shadow:0 0 5px rgba(216,180,90,.3) !important; }
 .saee-rent-slider::-moz-range-thumb { width:22px !important; height:22px !important; box-shadow:0 0 5px rgba(216,180,90,.3) !important; }
+
+
+/* اصلاحات نهایی هماهنگ‌شده دپارتمان املاک ساعی */
+.hero { background-image: linear-gradient(rgba(17,17,15,.34),rgba(17,17,15,.68)), url("tehran-sunset.png"); background-position:center 56%; background-size:cover; }
+.hero-label { color:#dfc16c !important; }
+.saee-card-price-wrap { display:flex; align-items:center; flex-wrap:wrap; gap:9px; }
+.saee-card-price-wrap > .saee-conversion-card-button { flex:1 1 100%; }
+.saee-presale-badge { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; margin-inline-start:9px; padding:4px 10px; border-radius:7px; background:#16834a; color:#fff; font-size:.78rem; font-weight:900; white-space:nowrap; }
+.detail-price { font-size:1.55rem !important; font-weight:900 !important; line-height:1.9; }
+.saee-detail-location { margin:10px 0 14px; padding:12px 14px; border:1px solid rgba(216,180,90,.2); border-radius:10px; background:#1d1c18; color:#eee6d5; line-height:2; }
+.saee-detail-location b { color:#dfc16c; }
+.saee-viewing-contacts { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:10px 0 16px; }
+.saee-viewing-contacts h3 { margin:0; }
+.detail-main-gallery { position:relative; }
+.detail-gallery-expand { position:absolute !important; right:12px; bottom:12px; z-index:6; display:grid !important; place-items:center; width:38px; height:38px; min-height:38px; padding:8px; border-radius:8px; background:rgba(17,17,16,.84); color:#f0d27b; border:1px solid rgba(223,193,108,.6); }
+.detail-gallery-expand svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.detail-gallery-expand span { display:none !important; }
+.detail-gallery-tools { display:none !important; }
+.neighborhood-actions { display:flex; gap:9px; }
+.neighborhood-actions button { flex:1; }
+#confirmNeighborhoods { background:#b8954d; color:#171510; border:1px solid #d7bb79; }
+#clearNeighborhoods { background:#292720; color:#eee4ca; border:1px solid #625638; }
+.saee-rent-slider::-webkit-slider-thumb { width:20px !important; height:20px !important; box-shadow:0 0 3px rgba(216,180,90,.22) !important; }
+.saee-rent-slider::-moz-range-thumb { width:20px !important; height:20px !important; box-shadow:0 0 3px rgba(216,180,90,.22) !important; }
+.admin-presale-field { margin:12px 0; padding:12px; border:1px solid #c6a65b; border-radius:9px; background:rgba(198,166,91,.08); }
+.admin-presale-field label { display:flex; align-items:center; gap:8px; font-weight:800; }
+.admin-presale-field small { display:block; margin-top:5px; color:#9c8d6b; }
