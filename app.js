@@ -36,6 +36,7 @@ const iconPaths = {
   elevator: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="m8 8 2-2 2 2m-4 8 2 2 2-2M15 7h2v10h-2"/>',
   storage: '<path d="M3 7h18v14H3zM3 7l2-4h14l2 4M8 11v6m8-6v6"/>',
   terrace: '<path d="M3 21h18M5 21V9h14v12M3 9l9-6 9 6M9 13h6"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
   convert: '<path d="M17 3l4 4-4 4M3 7h18M7 21l-4-4 4-4M21 17H3"/>'
@@ -146,6 +147,19 @@ function isRentProperty(property) {
   const slug = String(property?.categories?.slug || "").trim().toLowerCase();
   return title.includes("اجاره") || slug.includes("rent") ||
     numericValue(property?.deposit) > 0 || numericValue(property?.monthly_rent) > 0;
+}
+
+function isSaleProperty(property) {
+  const title = String(property?.categories?.title || "").trim();
+  const slug = String(property?.categories?.slug || "").trim().toLowerCase();
+  if (title.includes("فروش") || slug.includes("sale")) return true;
+  return !isRentProperty(property) && numericValue(property?.price) > 0;
+}
+
+function getPresaleBadgeMarkup(property) {
+  return isSaleProperty(property) && property?.is_presale === true
+    ? '<span class="saee-presale-badge">پیش‌فروش</span>'
+    : "";
 }
 
 function isRentConvertible(property) {
@@ -484,6 +498,7 @@ function renderNeighborhoodPicker() {
       </div>
 
       <div class="neighborhood-actions">
+        <button type="button" id="confirmNeighborhoods">تأیید</button>
         <button type="button" id="clearNeighborhoods">پاک کردن</button>
       </div>
     </div>
@@ -565,7 +580,7 @@ function renderNeighborhoodOptions() {
         <span>${escapeHtml(item.name)}</span>
       </label>
     `;
-  }).join("");
+      }).join("");
 }
 
 async function loadProperties() {
@@ -883,12 +898,15 @@ function renderPropertyCard(property) {
             : ""
         }
 
-        ${
-          getRentConversionCardMarkup(property) ||
-          (isRentProperty(property)
-            ? getNonConvertiblePriceCardMarkup(property)
-            : `<div class="saee-conversion-card-button saee-price-card"><span class="saee-conversion-card-text"><span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span></span></div>`)
-        }
+        <div class="saee-card-price-wrap">
+          ${
+            getRentConversionCardMarkup(property) ||
+            (isRentProperty(property)
+              ? getNonConvertiblePriceCardMarkup(property)
+              : `<div class="saee-conversion-card-button saee-price-card"><span class="saee-conversion-card-text"><span class="saee-conversion-main-price">${escapeHtml(getPropertyPrice(property))}</span></span></div>`)
+          }
+          ${getPresaleBadgeMarkup(property)}
+        </div>
 
         ${
           features.length
@@ -985,7 +1003,6 @@ function openPropertyDetails(propertyId, focusConversion = false) {
   currentGalleryIndex = 0;
 
   const detailRows = [
-    ["کد ملک", getPropertyCode(property)],
     ["دسته‌بندی", property.categories?.title || "ملک"],
     ["متراژ", property.area ? `${formatNumber(property.area)} متر مربع` : ""],
     [
@@ -1000,8 +1017,6 @@ function openPropertyDetails(propertyId, focusConversion = false) {
         ? formatNumber(property.floor)
         : ""
     ],
-    ["موقعیت", property.location_text || ""],
-    ["آدرس", property.address || ""],
     ["پارکینگ", property.parking ? "دارد" : ""],
     ["آسانسور", property.elevator ? "دارد" : ""],
     ["انباری", property.storage ? "دارد" : ""],
@@ -1022,6 +1037,11 @@ function openPropertyDetails(propertyId, focusConversion = false) {
             src="${escapeAttribute(currentGalleryImages[0])}"
             alt="تصویر اصلی ملک"
             fetchpriority="high">
+        </button>
+        <button type="button" class="detail-gallery-expand"
+          onclick="openFullscreenImage(currentGalleryIndex)"
+          aria-label="بزرگ‌نمایی عکس">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" /></svg>
         </button>
 
         ${
@@ -1048,17 +1068,6 @@ function openPropertyDetails(propertyId, focusConversion = false) {
             : ""
         }
       </div>
-      <div class="detail-gallery-tools">
-        <button type="button"
-          class="detail-gallery-expand"
-          onclick="openFullscreenImage(currentGalleryIndex)"
-          aria-label="بزرگ‌نمایی عکس">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" />
-          </svg>
-          <span>مشاهده عکس بزرگ</span>
-        </button>
-      </div>
     `
     : '<div class="property-no-image detail-no-image">تصویری ثبت نشده است.</div>';
 
@@ -1081,7 +1090,6 @@ function openPropertyDetails(propertyId, focusConversion = false) {
       ${imagesMarkup}
 
       <div class="property-modal-body">
-        ${getViewingContactsMarkup(property)}
         <div class="property-code-label">
           کد ملک: ${escapeHtml(getPropertyCode(property))}
         </div>
@@ -1090,12 +1098,19 @@ function openPropertyDetails(propertyId, focusConversion = false) {
 
         <div class="detail-price saee-price-card">
           ${escapeHtml(getPropertyPrice(property))}
+          ${getPresaleBadgeMarkup(property)}
         </div>
 
         ${isRentProperty(property) && !isRentConvertible(property)
           ? getNonConvertiblePriceCardMarkup(property)
           : ""}
         ${getRentConversionMarkup(property)}
+        ${(property.location_text || property.address) ? `
+          <div class="saee-detail-location">
+            ${property.location_text ? `<div><b>موقعیت:</b> ${escapeHtml(property.location_text)}</div>` : ""}
+            ${property.address ? `<div><b>آدرس:</b> ${escapeHtml(property.address)}</div>` : ""}
+          </div>` : ""}
+        ${getViewingContactsMarkup(property)}
         ${
           features.length
             ? `<div class="detail-features">
@@ -1146,7 +1161,7 @@ function openPropertyDetails(propertyId, focusConversion = false) {
             block: "center"
           });
         }
-      }, 100);
+              }, 100);
     }
   }
 
@@ -1727,7 +1742,7 @@ function ensureExtraStyles() {
       margin: 0 0 16px;
       padding: 14px;
       color: #e8e3d7;
-      background: #1b1a16;
+            background: #1b1a16;
       border: 1px solid #514832;
       border-radius: 12px;
           }
