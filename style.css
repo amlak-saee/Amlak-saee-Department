@@ -1615,3 +1615,24 @@ body, body button, body input, body select, body textarea, body label, body p, b
 .saee-rent-slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 5px rgba(223, 193, 108, .28), 0 0 0 3px #dfc16c, 0 3px 10px rgba(0, 0, 0, .65) !important;
 }
+
+
+/* اصلاحات نهایی جزئیات و هدر ساعی */
+.hero { background-image: linear-gradient(rgba(17,17,15,.38),rgba(17,17,15,.72)), url("tehran-sunset.png"); background-position:center 56%; }
+.saee-presale-badge { display:inline-block; vertical-align:middle; margin-inline-start:10px; padding:4px 10px; border-radius:7px; background:#16834a; color:#fff; font-size:.78rem; font-weight:900; white-space:nowrap; }
+.saee-sale-price { font-size:1.8rem !important; }
+.saee-detail-location { margin:10px 0 14px; padding:12px 14px; border:1px solid rgba(216,180,90,.2); border-radius:10px; background:#1d1c18; color:#eee6d5; line-height:2; }
+.saee-detail-location b { color:#dfc16c; }
+.saee-detail-facts { margin:10px 0 14px; }
+.saee-viewing-contacts { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:10px 0 16px; }
+.saee-viewing-contacts h3 { margin:0; }
+.saee-conversion-cta { display:flex; align-items:center; gap:8px; margin-top:5px; color:#ff7777 !important; font-size:.82rem !important; background:rgba(190,35,35,.12); border:1px solid rgba(220,70,70,.28); border-radius:8px; padding:5px 8px; }
+.saee-conversion-sticker { display:inline-grid; place-items:center; width:23px; height:23px; border-radius:6px; color:#fff; background:#a92d2d; font-size:16px; }
+.saee-conversion-main-price { color:#f2dfad !important; font-size:1.55rem !important; }
+.saee-conversion-card-text strong { font-size:1.02rem !important; color:#d7c18a !important; }
+.detail-main-gallery { position:relative; }
+.detail-gallery-expand { position:absolute !important; right:12px; bottom:12px; z-index:5; width:38px; height:38px; min-height:38px; padding:8px; border-radius:8px; background:rgba(17,17,16,.82); color:#f0d27b; }
+.detail-gallery-expand span { display:none !important; }
+.detail-gallery-tools { display:none !important; }
+.saee-rent-slider::-webkit-slider-thumb { width:22px !important; height:22px !important; box-shadow:0 0 5px rgba(216,180,90,.3) !important; }
+.saee-rent-slider::-moz-range-thumb { width:22px !important; height:22px !important; box-shadow:0 0 5px rgba(216,180,90,.3) !important; }
