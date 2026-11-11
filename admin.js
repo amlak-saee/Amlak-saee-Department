@@ -496,7 +496,7 @@ async function addNeighborhood(event) {
 }
 
 async function toggleNeighborhood(id, isActive) {
-    try {
+  try {
     const { error } = await db
       .from("neighborhoods")
       .update({ is_active: isActive })
@@ -722,27 +722,6 @@ function updateRentConversionBox() {
   if (endRent) endRent.required = enabled;
 }
 
-function isSelectedCategorySale() {
-  const select = $("category");
-  const option = select?.selectedOptions?.[0];
-  const label = String(option?.textContent || "").trim();
-  const slug = String(option?.dataset?.slug || "").toLowerCase();
-  if (label.includes("فروش") || slug.includes("sale")) return true;
-  if (label.includes("اجاره") || slug.includes("rent")) return false;
-  const price = Number(getInputValue("price") || 0);
-  const deposit = Number(getInputValue("deposit") || 0);
-  const monthlyRent = Number(getInputValue("monthlyRent") || 0);
-  return price > 0 && deposit <= 0 && monthlyRent <= 0;
-}
-
-function updatePresaleField() {
-  const field = $("presaleField");
-  const checkbox = $("isPresale");
-  const visible = isSelectedCategorySale();
-  if (field) field.style.display = visible ? "block" : "none";
-  if (!visible && checkbox) checkbox.checked = false;
-}
-
 function getPropertyPayload() {
   const title = getInputValue("title").trim();
   const categoryId = getInputValue("category");
@@ -796,7 +775,6 @@ function getPropertyPayload() {
     deposit: numericValue("deposit"),
     monthly_rent: numericValue("monthlyRent"),
     rent_convertible: rentConvertible,
-    is_presale: isSelectedCategorySale() && getChecked("isPresale"),
     end_deposit: endDeposit,
     end_monthly_rent: endMonthlyRent,
     area: numericValue("area"),
@@ -994,7 +972,7 @@ function getProjectRef() {
   ) {
     return parts[0];
   }
-  
+
   throw new Error("آدرس پروژه Supabase قابل شناسایی نیست.");
 }
 
@@ -1363,8 +1341,6 @@ function resetPropertyForm() {
 
   updateFrontageBox();
   updateRentConversionBox();
-  setChecked("isPresale", false);
-  updatePresaleField();
 
   setMessage("propertyMessage", "");
 }
@@ -1491,7 +1467,7 @@ function renderAdminProperties() {
           </button>
 
           <button
-                      type="button"
+            type="button"
             data-action="toggle-property"
             data-id="${escapeHtml(property.id)}"
             data-active="${String(!active)}">
@@ -1598,8 +1574,6 @@ async function editProperty(id) {
     setInputValue("address", property.address);
     setInputValue("viewingContacts", property.viewing_contacts);
     setInputValue("frontageType", property.frontage_type);
-    setChecked("isPresale", property.is_presale === true);
-    updatePresaleField();
 
     setInputValue(
       "rentConvertible",
@@ -1824,7 +1798,10 @@ async function saveSiteSettings(event) {
       if (existing?.id) {
         const { error } = await db
           .from("site_settings")
-          .update({ setting_value: value })
+          .update({
+            setting_value: value,
+            updated_at: new Date().toISOString()
+          })
           .eq("id", existing.id);
 
         if (error) throw error;
@@ -1833,7 +1810,8 @@ async function saveSiteSettings(event) {
           .from("site_settings")
           .insert({
             setting_key: key,
-            setting_value: value
+            setting_value: value,
+            updated_at: new Date().toISOString()
           });
 
         if (error) throw error;
@@ -1866,12 +1844,7 @@ function setupAdminEvents() {
 
   $("category")?.addEventListener("change", () => {
     updateFrontageBox();
-    updatePresaleField();
     renderFilterOptions(filterOptionsCache);
-  });
-  updatePresaleField();
-  ["price", "deposit", "monthlyRent"].forEach((id) => {
-    $(id)?.addEventListener("input", updatePresaleField);
   });
 
   $("rentConvertible")?.addEventListener("change", () => {
